@@ -1,0 +1,252 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #18352a;
+  background: #f4f8f1;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button {
+  border: 0;
+  border-radius: 12px;
+  background: #18794e;
+  color: #fff;
+  padding: 14px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.6;
+}
+.secondary {
+  background: #e4f3e9;
+  color: #176941;
+}
+.link {
+  background: transparent;
+  color: #18794e;
+  padding: 8px;
+}
+header {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 max(24px, calc((100% - 1120px) / 2));
+  background: #fff;
+  border-bottom: 1px solid #dfe9df;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+header div {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+header small {
+  color: #708078;
+}
+.app {
+  max-width: 1120px;
+  margin: auto;
+  padding: 30px 20px 60px;
+}
+.hero {
+  background: linear-gradient(120deg, #dff5df, #f8f1d7);
+  padding: 36px;
+  border-radius: 24px;
+  margin-bottom: 22px;
+}
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  max-width: 720px;
+  margin: 0.25rem 0;
+}
+.eyebrow {
+  color: #18794e;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 22px;
+}
+.card {
+  background: #fff;
+  border: 1px solid #dce7dc;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 30px #315b4010;
+}
+.uploader {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.drop {
+  min-height: 260px;
+  border: 2px dashed #9bc7a6;
+  border-radius: 18px;
+  background: #f5fbf5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  gap: 10px;
+}
+.drop input {
+  display: none;
+}
+.drop b {
+  font-size: 3rem;
+}
+.drop img {
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+}
+.check {
+  display: flex;
+  gap: 9px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.check input {
+  width: 18px;
+}
+.result {
+  min-height: 500px;
+}
+.resultHead {
+  display: flex;
+  justify-content: space-between;
+}
+.result h2 {
+  font-size: 2rem;
+  margin: 0.2rem 0;
+}
+.result h3 {
+  margin-top: 24px;
+}
+.result li {
+  margin: 8px 0;
+  line-height: 1.45;
+}
+.severity {
+  height: min-content;
+  padding: 7px 10px;
+  border-radius: 99px;
+  background: #fff3cb;
+  color: #805c00;
+  font-weight: 800;
+  font-size: 0.72rem;
+}
+.severity.HIGH,
+.severity.CRITICAL {
+  background: #ffe2dd;
+  color: #9c291d;
+}
+.empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #748078;
+}
+.empty:first-letter {
+  font-size: 3rem;
+}
+.disclaimer {
+  font-size: 0.78rem;
+  color: #738078;
+  border-top: 1px solid #e6eee6;
+  padding-top: 15px;
+}
+.history {
+  margin-top: 22px;
+}
+.historyRow {
+  display: grid;
+  grid-template-columns: 35px 1fr auto;
+  align-items: center;
+  padding: 13px 0;
+  border-top: 1px solid #edf1ed;
+}
+.historyRow div {
+  display: flex;
+  flex-direction: column;
+}
+.historyRow small,
+.historyRow time {
+  color: #718078;
+}
+.auth {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 20px;
+  padding: 24px;
+  background: radial-gradient(circle at top, #d9f2dc, #f7f8ed 55%);
+}
+.auth .brand {
+  text-align: center;
+}
+.auth .brand h1 {
+  font-size: 3rem;
+  margin: 0;
+}
+.auth .leaf {
+  font-size: 4rem;
+  color: #18794e;
+}
+.auth form {
+  width: min(400px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.auth input {
+  padding: 14px;
+  border: 1px solid #cbd8cd;
+  border-radius: 11px;
+}
+.auth > select {
+  justify-self: center;
+  padding: 8px;
+  border-radius: 9px;
+}
+@media (max-width: 780px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    padding: 25px;
+  }
+  .app {
+    padding: 20px 14px;
+  }
+  .result {
+    min-height: 350px;
+  }
+  header {
+    padding: 0 15px;
+  }
+  header small {
+    display: none;
+  }
+}
