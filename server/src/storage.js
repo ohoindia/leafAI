@@ -7,13 +7,15 @@ export const s3 = env.UPLOAD_BUCKET ? new S3Client({}) : null;
 
 export async function saveUpload(key, bytes) {
   if (s3) {
-    await s3.send(new PutObjectCommand({
-      Bucket: env.UPLOAD_BUCKET,
-      Key: key,
-      Body: bytes,
-      ContentType: "application/octet-stream",
-      ServerSideEncryption: "AES256",
-    }));
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: env.UPLOAD_BUCKET,
+        Key: key,
+        Body: bytes,
+        ContentType: "application/octet-stream",
+        ServerSideEncryption: "AES256",
+      }),
+    );
     return;
   }
   const directory = path.resolve("uploads");

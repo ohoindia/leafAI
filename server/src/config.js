@@ -15,7 +15,12 @@ const schema = z.object({
   DB_SSL: z.enum(["true", "false"]).default("false"),
   DB_SSL_CA: z.string().optional(),
   UPLOAD_BUCKET: z.string().min(1).optional(),
-  MAX_UPLOAD_BYTES: z.coerce.number().int().positive().max(10 * 1024 * 1024).default(4 * 1024 * 1024),
+  MAX_UPLOAD_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(10 * 1024 * 1024)
+    .default(4 * 1024 * 1024),
   OPENAI_API_KEY: z.string().min(1),
   OPENAI_VISION_MODEL: z.string().default("gpt-6-astra"),
   JWT_ACCESS_SECRET: z.string().min(32),
@@ -26,7 +31,9 @@ const schema = z.object({
 });
 export const env = schema.parse(process.env);
 if (process.env.AWS_LAMBDA_FUNCTION_NAME && !env.UPLOAD_BUCKET) {
-  throw new Error("UPLOAD_BUCKET is required in Lambda; local storage is not durable");
+  throw new Error(
+    "UPLOAD_BUCKET is required in Lambda; local storage is not durable",
+  );
 }
 if (env.DB_SSL === "true" && !env.DB_SSL_CA) {
   throw new Error("DB_SSL_CA is required when DB_SSL is true");
