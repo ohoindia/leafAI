@@ -194,11 +194,9 @@ app.post(
         meta.width < 300 ||
         meta.height < 300
       )
-        return res
-          .status(400)
-          .json({
-            error: "Use a clear JPEG, PNG or WebP image at least 300×300",
-          });
+        return res.status(400).json({
+          error: "Use a clear JPEG, PNG or WebP image at least 300×300",
+        });
       const normalized = await sharp(req.file.buffer)
         .rotate()
         .resize({
@@ -344,15 +342,13 @@ if (env.NODE_ENV === "production") {
 app.use((err, req, res, next) => {
   console.error(req.id, err);
   if (err instanceof z.ZodError)
-    return res
-      .status(400)
-      .json({
-        error: "Invalid input",
-        details: err.issues.map((x) => ({
-          path: x.path.join("."),
-          message: x.message,
-        })),
-      });
+    return res.status(400).json({
+      error: "Invalid input",
+      details: err.issues.map((x) => ({
+        path: x.path.join("."),
+        message: x.message,
+      })),
+    });
   if (err.code === "ER_DUP_ENTRY")
     return res.status(409).json({ error: "Record already exists" });
   if (err instanceof multer.MulterError)
