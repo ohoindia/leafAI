@@ -1,0 +1,12 @@
+[
+  {
+    "source": "/api/<*>",
+    "target": "https://REPLACE_WITH_FUNCTION_URL.lambda-url.REGION.on.aws/api/<*>",
+    "status": "200"
+  },
+  {
+    "source": "</^[^.]+$|\\.(?!(css|gif|ico|jpg|js|png|txt|svg|woff|woff2|ttf|map|json|webp)$)([^.]+$)/>",
+    "target": "/index.html",
+    "status": "200"
+  }
+]

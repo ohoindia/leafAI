@@ -1,0 +1,17 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm use 22
+        - npm --prefix client ci
+    build:
+      commands:
+        - npm --prefix client run build
+  artifacts:
+    baseDirectory: client/dist
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - ~/.npm/**/*

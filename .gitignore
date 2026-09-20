@@ -3,3 +3,7 @@ node_modules/
 server/uploads/
 client/dist/
 *.log
+.aws-sam/
+samconfig.toml
+*.secret.json
+uploads/

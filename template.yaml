@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: LeafCare API on Lambda with durable private upload storage
+
+Parameters:
+  AppSecretArn:
+    Type: String
+    Description: ARN of the Secrets Manager JSON secret (see docs/aws-deployment.md)
+  AllowedOrigins:
+    Type: String
+    Description: Exact Amplify HTTPS origin, plus optional comma-separated custom origins
+    AllowedPattern: "https://.+"
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnets with NAT egress for OpenAI and AWS APIs
+  LambdaSecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: Security groups permitted to reach the MySQL or RDS Proxy endpoint
+  VisionModel:
+    Type: String
+    Description: Vision-capable model ID available to your OpenAI API project
+  ReservedConcurrency:
+    Type: Number
+    Default: 10
+    MinValue: 1
+    MaxValue: 100
+
+Resources:
+  Uploads:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+  UploadsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref Uploads
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt Uploads.Arn
+              - !Sub "${Uploads.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+  Api:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: server/
+      Handler: src/lambda.handler
+      Runtime: nodejs22.x
+      Architectures: [x86_64]
+      MemorySize: 1024
+      Timeout: 120
+      ReservedConcurrentExecutions: !Ref ReservedConcurrency
+      VpcConfig:
+        SubnetIds: !Ref PrivateSubnetIds
+        SecurityGroupIds: !Ref LambdaSecurityGroupIds
+      Environment:
+        Variables:
+          NODE_ENV: production
+          APP_SECRET_ARN: !Ref AppSecretArn
+          ALLOWED_ORIGINS: !Ref AllowedOrigins
+          OPENAI_VISION_MODEL: !Ref VisionModel
+          UPLOAD_BUCKET: !Ref Uploads
+          MAX_UPLOAD_BYTES: "4194304"
+          DB_CONNECTION_LIMIT: "2"
+          DB_SSL: "true"
+          TRUST_PROXY: "0"
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Ref AppSecretArn
+            - Effect: Allow
+              Action: s3:PutObject
+              Resource: !Sub "${Uploads.Arn}/*"
+  ApiUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt Api.Arn
+      AuthType: NONE
+      InvokeMode: BUFFERED
+  ApiUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Api
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+  ApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Api
+      Action: lambda:InvokeFunction
+      Principal: "*"
+      InvokedViaFunctionUrl: true
+  ApiLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${Api}"
+      RetentionInDays: 30
+
+Outputs:
+  ApiUrl:
+    Value: !GetAtt ApiUrl.FunctionUrl
+    Description: Use this URL as the target of the Amplify /api/<*> rewrite
+  FunctionName:
+    Value: !Ref Api
+  UploadBucket:
+    Value: !Ref Uploads

@@ -122,6 +122,8 @@ function App() {
   };
   const analyze = async () => {
     if (!file || !consent) return alert("Choose an image and provide consent.");
+    if (file.size > 4 * 1024 * 1024)
+      return alert("Choose an image smaller than 4 MB.");
     setLoading(true);
     try {
       const fd = new FormData();
