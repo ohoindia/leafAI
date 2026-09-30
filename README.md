@@ -1,5 +1,7 @@
 # LeafCare AI
 
+Direct AWS Lambda deployment: see [ZIP deployment and Function URL instructions](docs/lambda-deployment.md). Uses your existing AWS database and `server/.env` exported to Lambda environment variables. Build with `npm --prefix server run lambda:package`; no Docker is needed for this workflow.
+
 Android and iOS: the matching React Native + Expo application is in `mobile/`. See the [mobile setup and build guide](mobile/README.md) for phone, emulator, APK, and iOS build instructions.
 
 For AWS Lambda backend and AWS Amplify website setup, see the [AWS deployment guide](docs/aws-deployment.md). The repository includes a SAM template, Amplify build configuration, API rewrite example, Secrets Manager integration, and private S3 upload storage. AWS uploads are limited to 4 MiB.
@@ -17,13 +19,13 @@ A secure React + NestJS + MySQL starter for AI-assisted plant-leaf screening. It
 
 ## Run locally
 
-1. Copy `.env.example` to `.env` and replace every secret. Generate the encryption key with `openssl rand -hex 32`; use separate long random JWT secrets.
+1. Copy `server/.env.example` to `server/.env` and replace every secret. Generate the encryption key with `openssl rand -hex 32`; use separate long random JWT secrets.
 2. Set `OPENAI_API_KEY`. Keep it only in the backend environment—never in React.
 3. Start MySQL and import `database/schema.sql`, or run `docker compose up mysql -d`.
 4. Run `npm install`, then `npm run install:all`, then `npm run dev`.
 5. Open `http://localhost:5173`, create an account, and upload a clear leaf photo.
 
-For one-container production mode, set `NODE_ENV=production`, use strong managed secrets, configure a real DB host, and run `docker compose up --build`. The application is served at `http://localhost:8080`.
+For one-container production mode, set `NODE_ENV=production` in `server/.env`, use strong managed secrets, configure a real DB host, and run `docker compose up --build`. The application is served at `http://localhost:8080`.
 
 ## Voice commands
 
@@ -48,14 +50,14 @@ Swagger UI: `http://localhost:8080/api/docs` (OpenAPI JSON: `/api/docs-json`). S
 
 ### 1. Configure and start the backend
 
-Run these commands from the repository root (`LeafAI`) in PowerShell. If you already have a configured `.env`, keep it.
+Run these commands from the repository root (`LeafAI`) in PowerShell. If you already have a configured `server/.env`, keep it.
 
 ```powershell
-if (!(Test-Path .env)) { Copy-Item .env.example .env }
+if (!(Test-Path server/.env)) { Copy-Item server/.env.example server/.env }
 npm --prefix server install
 ```
 
-Edit the root `.env` with your database connection settings: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`. For the bundled Docker database, use the values in `docker-compose.yml`.
+Edit the `server/.env` with your database connection settings: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`. For the bundled Docker database, use the values in `docker-compose.yml`.
 
 Create an API key on the [OpenAI API Keys page](https://platform.openai.com/api-keys) and set `OPENAI_API_KEY` in this backend `.env`. Keep it out of the website/mobile code and Swagger's Authorize field. The OpenAI key authenticates the server to OpenAI; the bearer token below authenticates your user to LeafCare AI.
 
@@ -74,7 +76,7 @@ docker compose up mysql -d
 npm --prefix server run dev
 ```
 
-The Docker database imports `database/schema.sql` on first initialization. If using your own MySQL server, import that schema yourself. The API loads the root `.env` even when launched from `server/`; existing process environment variables take precedence. Restart the backend after changing `.env`.
+The Docker database imports `database/schema.sql` on first initialization. If using your own MySQL server, import that schema yourself. The API loads `server/.env` from either the repository root or `server/`; existing process environment variables take precedence. Restart the backend after changing `.env`.
 
 Open [Swagger UI](http://localhost:8080/api/docs). The [OpenAPI JSON](http://localhost:8080/api/docs-json) and [health check](http://localhost:8080/api/health) are also available. Use your configured `PORT` or deployed API host if different from `localhost:8080`.
 
@@ -143,7 +145,7 @@ To sign out, execute **POST /api/auth/logout** while authorized, then clear the 
 | `Authentication required` / HTTP 401 | Sign in and authorize with the entire `accessToken` value. Remove any manually added `Bearer` prefix. Renew expired tokens. |
 | `Invalid credentials` | Use an existing account's email/password. Five failed logins can lock the account for 15 minutes. |
 | HTTP 429 | Authentication requests are rate-limited; wait before retrying. |
-| Missing or invalid environment settings | Configure the named fields in the root `.env`, then restart. Do not leave example secrets or a blank OpenAI API key. |
+| Missing or invalid environment settings | Configure the named fields in the `server/.env`, then restart. Do not leave example secrets or a blank OpenAI API key. |
 | Database connection error | Start MySQL, check its credentials/port, and ensure the schema is imported. |
 | Login works but analysis fails | Check the server error, OpenAI key/model access, selected image, upload size, and consent. |
 

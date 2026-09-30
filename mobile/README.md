@@ -8,12 +8,12 @@ Use Node.js 22.19 or later and Docker Desktop (or your own MySQL).
 From the repository root, if the backend is not already configured:
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item server/.env.example server/.env
 npm install
 npm run install:all
 ```
 
-Edit the root `.env`: set `OPENAI_API_KEY`, two separate random JWT secrets, and a 64-character hexadecimal `UPLOAD_ENCRYPTION_KEY`. Keep the DB settings in sync with `docker-compose.yml` (or your own MySQL credentials). Do not overwrite an existing configured `.env`.
+Edit the `server/.env`: set `OPENAI_API_KEY`, two separate random JWT secrets, and a 64-character hexadecimal `UPLOAD_ENCRYPTION_KEY`. Keep the DB settings in sync with `docker-compose.yml` (or your own MySQL credentials). Do not overwrite an existing configured `.env`.
 
 Generate each secret separately with:
 

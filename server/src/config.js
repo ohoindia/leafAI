@@ -36,7 +36,7 @@ if (!parsed.success) {
   const fields = [...new Set(parsed.error.issues.map((issue) => issue.path.join(".")))];
   throw new Error(
     `Missing or invalid environment settings: ${fields.join(", ")}. ` +
-    "Configure the repository-root .env using .env.example, or supply these environment variables. " +
+    "Configure server/.env using server/.env.example, or supply Lambda environment variables. " +
     "Set database credentials, OPENAI_API_KEY, JWT secrets, and a 64-character hexadecimal UPLOAD_ENCRYPTION_KEY.",
   );
 }

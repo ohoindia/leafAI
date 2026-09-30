@@ -6,7 +6,9 @@
     "dev": "tsc-watch -p tsconfig.json --onSuccess \"node dist/main.js\"",
     "start": "node dist/main.js",
     "test": "npm run build && node --test test/*.test.js",
-    "check": "tsc --noEmit -p tsconfig.json"
+    "check": "tsc --noEmit -p tsconfig.json",
+    "lambda:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-lambda.ps1",
+    "lambda:env": "node scripts/export-lambda-env.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",

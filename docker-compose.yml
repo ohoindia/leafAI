@@ -17,7 +17,7 @@ services:
       retries: 20
   app:
     build: .
-    env_file: .env
+    env_file: server/.env
     ports: ["8080:8080"]
     depends_on:
       mysql:
