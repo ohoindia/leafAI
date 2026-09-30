@@ -71,6 +71,26 @@ test("Function URL health request returns JSON without caching and reuses the ha
   }
 });
 
+test("Swagger UI, assets, and API schema are available", async () => {
+  const page = await handler(event("/api/docs"), {});
+  assert.equal(page.statusCode, 200);
+  assert.match(page.body, /swagger-ui/);
+  for (const asset of ["swagger-ui-init.js", "swagger-ui-bundle.js", "swagger-ui.css"]) {
+    const response = await handler(event(`/api/docs/${asset}`), {});
+    assert.equal(response.statusCode, 200, asset);
+  }
+  const response = await handler(event("/api/docs-json"), {});
+  assert.equal(response.statusCode, 200);
+  const doc = JSON.parse(response.body);
+  assert.equal(doc.info.title, "LeafCare AI API");
+  assert.equal(doc.components.securitySchemes.bearer.scheme, "bearer");
+  assert.ok(doc.paths["/api/health"].get);
+  assert.ok(doc.paths["/api/auth/login"].post.requestBody.content["application/json"]);
+  assert.deepEqual(doc.paths["/api/analyses"].post.security, [{ bearer: [] }]);
+  assert.equal(doc.paths["/api/analyses"].post.requestBody.content["multipart/form-data"].schema.properties.leaf.format, "binary");
+  assert.equal(doc.paths["/api/analyses/{id}"].get.parameters[0].name, "id");
+});
+
 test("protected and unknown API routes return JSON errors, not website HTML", async () => {
   const denied = await handler(event("/api/analyses"), {});
   assert.equal(denied.statusCode, 401);

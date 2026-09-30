@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
 import { NestFactory } from "@nestjs/core";
 import { ExpressAdapter } from "@nestjs/platform-express";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import { AppModule } from "./app.module.js";
 import { ApiExceptionFilter } from "./common/api-exception.filter.js";
@@ -34,7 +35,12 @@ export async function createApplication() {
     res.setHeader("X-Request-Id", (req as ApiRequest).id);
     next();
   });
-  server.use(helmet({ crossOriginResourcePolicy: { policy: "same-site" } }));
+  server.use(helmet({
+    crossOriginResourcePolicy: { policy: "same-site" },
+    contentSecurityPolicy: {
+      directives: { upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null },
+    },
+  }));
   server.use(
     cors({
       origin: (origin, callback) =>
@@ -54,6 +60,17 @@ export async function createApplication() {
   server.post(["/api/auth/register", "/api/auth/login"], authLimit);
   app.setGlobalPrefix("api");
   app.useGlobalFilters(new ApiExceptionFilter());
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle("LeafCare AI API")
+    .setDescription("Sign in through /api/auth/login, then paste accessToken into Authorize to test protected endpoints.")
+    .setVersion("1.0")
+    .addBearerAuth()
+    .build();
+  SwaggerModule.setup("api/docs", app,
+    () => SwaggerModule.createDocument(app, swaggerConfig), {
+      jsonDocumentUrl: "api/docs-json",
+      swaggerOptions: { persistAuthorization: false },
+    });
   if (env.NODE_ENV === "production" && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
     // Register the website before Nest's final 404 handler, bypassing every API request.
     const website = express.Router();

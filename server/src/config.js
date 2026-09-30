@@ -1,5 +1,7 @@
-import "dotenv/config";
+import { loadEnvironment } from "./load-environment.js";
 import { z } from "zod";
+
+loadEnvironment();
 
 const schema = z.object({
   NODE_ENV: z
@@ -29,7 +31,16 @@ const schema = z.object({
   ALLOWED_ORIGINS: z.string().default("http://localhost:5173"),
   TRUST_PROXY: z.coerce.number().default(0),
 });
-export const env = schema.parse(process.env);
+const parsed = schema.safeParse(process.env);
+if (!parsed.success) {
+  const fields = [...new Set(parsed.error.issues.map((issue) => issue.path.join(".")))];
+  throw new Error(
+    `Missing or invalid environment settings: ${fields.join(", ")}. ` +
+    "Configure the repository-root .env using .env.example, or supply these environment variables. " +
+    "Set database credentials, OPENAI_API_KEY, JWT secrets, and a 64-character hexadecimal UPLOAD_ENCRYPTION_KEY.",
+  );
+}
+export const env = parsed.data;
 if (process.env.AWS_LAMBDA_FUNCTION_NAME && !env.UPLOAD_BUCKET) {
   throw new Error(
     "UPLOAD_BUCKET is required in Lambda; local storage is not durable",
