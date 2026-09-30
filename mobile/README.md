@@ -62,6 +62,19 @@ For an Android emulator, install Android Studio, create and start a virtual devi
 
 Sign in with your existing account, or create one. Photograph or select a leaf, enable consent, and analyze. Choose English, Telugu, or Hindi and tap **Read result aloud**. Tap an entry in history to reopen its result. Device voices determine language availability; iOS silent mode can mute speech.
 
+## Expo tunnel repeatedly asks to install ngrok
+
+If `expo start --tunnel` reports `Install @expo/ngrok@^4.1.0 and try again` after a successful global installation, use the project-local development dependency. From `mobile`, run:
+
+```powershell
+npm ci
+npx expo start --tunnel --clear
+```
+
+This project includes `@expo/ngrok` in `devDependencies` so Expo can resolve it locally. To add it to another checkout that does not yet include it, use `npx expo install @expo/ngrok@^4.1.0 --dev`. Stop the old Expo process with Ctrl+C before restarting and scan the new QR code. The empty bundler cache message is expected after `--clear`; a deprecated transitive `uuid` warning is not this installation failure.
+
+The Expo tunnel serves the mobile development bundle. Keep `EXPO_PUBLIC_API_URL` pointed at a backend reachable from your phone; tunneling Expo does not tunnel the NestJS API.
+
 ## 3. Build installable apps
 
 From `mobile`, use Expo's EAS cloud build service (works from Windows):
