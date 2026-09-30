@@ -7,3 +7,4 @@ client/dist/
 samconfig.toml
 *.secret.json
 uploads/
+server/dist/

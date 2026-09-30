@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "LeafCare AI",
+    "slug": "leafcare-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      ["expo-image-picker", {
+        "photosPermission": "Choose a leaf photo for plant health analysis.",
+        "cameraPermission": "Photograph a leaf for plant health analysis.",
+        "microphonePermission": false
+      }]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.leafcareai.app",
+      "infoPlist": { "NSAppTransportSecurity": { "NSAllowsLocalNetworking": true } }
+    },
+    "android": {
+      "package": "com.leafcareai.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

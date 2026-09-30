@@ -1,14 +1,16 @@
 # LeafCare AI
 
+Android and iOS: the matching React Native + Expo application is in `mobile/`. See the [mobile setup and build guide](mobile/README.md) for phone, emulator, APK, and iOS build instructions.
+
 For AWS Lambda backend and AWS Amplify website setup, see the [AWS deployment guide](docs/aws-deployment.md). The repository includes a SAM template, Amplify build configuration, API rewrite example, Secrets Manager integration, and private S3 upload storage. AWS uploads are limited to 4 MiB.
 
-A secure React + Node/Express + MySQL starter for AI-assisted plant-leaf screening. It analyzes a photographed leaf, returns structured plant-health guidance in English, Telugu, and Hindi, reads results aloud, accepts voice commands, and keeps a traceable login/upload/analysis history.
+A secure React + NestJS + MySQL starter for AI-assisted plant-leaf screening. It analyzes a photographed leaf, returns structured plant-health guidance in English, Telugu, and Hindi, reads results aloud, accepts voice commands, and keeps a traceable login/upload/analysis history.
 
 ## Included
 
 - React/Vite responsive UI with camera upload, multilingual labels and speech output.
 - Browser speech recognition commands: analyze, history, read result, switch language.
-- Node/Express API with OpenAI Responses API vision analysis and strict JSON output.
+- NestJS API with OpenAI Responses API vision analysis and strict JSON output.
 - MySQL 8 schema for users, login events, sessions, encrypted leaf uploads, full analyses, translated displayed outputs, voice commands, and audit logs.
 - Argon2id passwords; short-lived JWT access tokens; rotated, hashed refresh tokens in HttpOnly SameSite cookies; account lockout; rate limits; Helmet; CORS allowlist; Zod validation.
 - File type/size/dimension checks, normalization, SHA-256 fingerprint, AES-256-GCM encryption at rest, per-user history authorization.
@@ -44,3 +46,18 @@ Chrome/Edge provide the broadest Web Speech API support. Try “analyze leaf,”
 
 `OPENAI_VISION_MODEL` defaults to `gpt-6-astra`. You can change it without editing code after validating another current vision-capable model for quality, latency, availability, and cost. The analysis prompt produces all three languages in one structured response so the exact displayed output can be stored.
 
+## Server structure
+
+The backend uses NestJS with TypeScript and the Express adapter. Each feature in
+`server/src/auth`, `analyses`, `voice-commands`, and `health` has a module,
+controller, and service. Controllers handle HTTP requests; services contain the
+application logic. `AppModule` composes the features and `CommonModule` provides
+shared database, security, and storage services. Existing JavaScript integration
+helpers are compiled alongside TypeScript. JWT authentication uses a Nest guard,
+file uploads use a Nest interceptor, and the global exception filter preserves
+API error responses.
+
+Development: `npm --prefix server run dev` compiles and restarts the API on changes.
+For a standalone production start, run `npm --prefix server run build`, then
+`npm --prefix server start`. Docker and SAM compile the backend during packaging.
+Node.js 22 or later is required. All existing `/api` endpoint paths are retained.

@@ -61,9 +61,11 @@ Resources:
                 aws:SecureTransport: "false"
   Api:
     Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
     Properties:
       CodeUri: server/
-      Handler: src/lambda.handler
+      Handler: dist/lambda.handler
       Runtime: nodejs22.x
       Architectures: [x86_64]
       MemorySize: 1024

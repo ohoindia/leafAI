@@ -1,8 +1,8 @@
 # AWS deployment
 
-The website runs in Amplify Hosting. Its relative `/api` requests are forwarded by an Amplify HTTPS rewrite to a Lambda Function URL. Express retains responsibility for JWT authentication and origin checks. The refresh cookie stays `HttpOnly`, `Secure`, and `SameSite=Strict` on the website origin. Do not point browser requests directly at the Function URL; that would turn the refresh cookie into a cross-site cookie.
+The website runs in Amplify Hosting. Its relative `/api` requests are forwarded by an Amplify HTTPS rewrite to a Lambda Function URL. NestJS retains responsibility for JWT authentication and origin checks. The refresh cookie stays `HttpOnly`, `Secure`, and `SameSite=Strict` on the website origin. Do not point browser requests directly at the Function URL; that would turn the refresh cookie into a cross-site cookie.
 
-The SAM stack creates the Node.js 22 Lambda, public Function URL and both required invoke permissions, private S3 bucket, execution role, and 30-day CloudWatch log group. It uses an existing private MySQL 8 database, VPC subnets, security groups, and Secrets Manager secret. It does not create those prerequisites or an Amplify app. Local `npm run dev` and the existing Docker deployment still use the standalone Express server and local upload storage.
+The SAM stack creates the Node.js 22 Lambda, public Function URL and both required invoke permissions, private S3 bucket, execution role, and 30-day CloudWatch log group. It uses an existing private MySQL 8 database, VPC subnets, security groups, and Secrets Manager secret. It does not create those prerequisites or an Amplify app. Local `npm run dev` and the existing Docker deployment still use the standalone NestJS server and local upload storage.
 
 ## 1. Prepare the database and network
 
@@ -39,6 +39,8 @@ sam validate --lint --template-file template.yaml
 sam build --use-container --template-file template.yaml
 sam deploy --guided
 ```
+
+The SAM Makefile installs backend dependencies, compiles the NestJS application into `dist`, and removes development dependencies. The Lambda handler is `dist/lambda.handler`.
 
 The container build is necessary for the Linux x86_64 native `sharp` and `argon2` dependencies, especially when deploying from Windows or macOS. Do not zip a Windows `node_modules` directory into Lambda. These commands are deployment instructions; no build needs to be run just to review the source changes.
 

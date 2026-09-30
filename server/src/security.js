@@ -18,18 +18,6 @@ export function issueTokens(user, sessionId) {
     ),
   };
 }
-export function auth(req, res, next) {
-  try {
-    const token = req.headers.authorization?.replace(/^Bearer /, "");
-    req.user = jwt.verify(token, env.JWT_ACCESS_SECRET, {
-      issuer: "leaf-care-ai",
-      audience: "leaf-care-web",
-    });
-    next();
-  } catch {
-    res.status(401).json({ error: "Authentication required" });
-  }
-}
 export function encrypt(bytes) {
   const key = Buffer.from(env.UPLOAD_ENCRYPTION_KEY, "hex"),
     iv = crypto.randomBytes(12),

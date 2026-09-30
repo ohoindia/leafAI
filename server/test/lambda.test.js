@@ -22,10 +22,10 @@ Object.assign(process.env, {
 });
 delete process.env.APP_SECRET_ARN;
 
-const { handler } = await import("../src/lambda.js");
-const { db } = await import("../src/db.js");
-const { s3, saveUpload } = await import("../src/storage.js");
-const { issueTokens, encrypt } = await import("../src/security.js");
+const { handler } = await import("../dist/lambda.js");
+const { db } = await import("../dist/db.js");
+const { s3, saveUpload } = await import("../dist/storage.js");
+const { issueTokens, encrypt } = await import("../dist/security.js");
 after(async () => {
   mock.restoreAll();
   s3.destroy();

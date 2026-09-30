@@ -32,8 +32,9 @@ async function initialize() {
       client.destroy();
     }
   }
-  const { default: app } = await import("./app.js");
-  return serverless(app);
+  const { createApplication } = await import("./app.js");
+  const app = await createApplication();
+  return serverless(app.getHttpAdapter().getInstance());
 }
 
 export async function handler(event, context) {

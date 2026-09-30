@@ -2,10 +2,11 @@
   "name": "leaf-care-ai-server",
   "type": "module",
   "scripts": {
-    "test": "node --test test/*.test.js",
-    "dev": "node --watch src/index.js",
-    "start": "node src/index.js",
-    "check": "node --check src/index.js"
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc-watch -p tsconfig.json --onSuccess \"node dist/main.js\"",
+    "start": "node dist/main.js",
+    "test": "npm run build && node --test test/*.test.js",
+    "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
@@ -23,6 +24,24 @@
     "openai": "^5.19.1",
     "serverless-http": "^4.0.0",
     "sharp": "^0.34.3",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/platform-express": "^11.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "tsc-watch": "^6.2.1",
+    "@types/node": "^22.0.0",
+    "@types/express": "^5.0.0",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^2.0.0"
   }
 }
