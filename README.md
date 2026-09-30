@@ -19,6 +19,8 @@ A secure React + NestJS + MySQL starter for AI-assisted plant-leaf screening. It
 
 ## Run locally
 
+For AWS deployment using your existing database, go directly to [Deploy the server to AWS Lambda](#deploy-the-server-to-aws-lambda) below.
+
 1. Copy `server/.env.example` to `server/.env` and replace every secret. Generate the encryption key with `openssl rand -hex 32`; use separate long random JWT secrets.
 2. Set `OPENAI_API_KEY`. Keep it only in the backend environment—never in React.
 3. Start MySQL and import `database/schema.sql`, or run `docker compose up mysql -d`.
@@ -26,6 +28,90 @@ A secure React + NestJS + MySQL starter for AI-assisted plant-leaf screening. It
 5. Open `http://localhost:5173`, create an account, and upload a clear leaf photo.
 
 For one-container production mode, set `NODE_ENV=production` in `server/.env`, use strong managed secrets, configure a real DB host, and run `docker compose up --build`. The application is served at `http://localhost:8080`.
+
+## Deploy the server to AWS Lambda
+
+Use your existing AWS database. This workflow builds a ZIP on Windows and exposes a Lambda Function URL. It does not require Docker or SAM. The backend configuration file is `server/.env`.
+
+### First-time deployment
+
+1. **Build the package** from the `LeafAI` repository root:
+
+   ```powershell
+   npm --prefix server ci
+   npm --prefix server run lambda:package
+   ```
+
+   This creates `server/lambda.zip` with Linux-compatible dependencies. The ZIP excludes `.env` and secrets.
+
+2. **Create the function** in AWS Console > Lambda > Create function > Author from scratch. Use these settings:
+
+   | Setting | Value |
+   | --- | --- |
+   | Function name | `leafcare-api` |
+   | Region | `ap-south-1` (or your chosen region) |
+   | Runtime | Node.js 22.x |
+   | Architecture | x86_64 |
+   | Handler, under Code > Runtime settings | `dist/lambda.handler` |
+   | Memory, under Configuration > General configuration | 1024 MB |
+   | Timeout | 120 seconds |
+
+   Under **Code > Upload from > .zip file**, select `server/lambda.zip`. Use an execution role with CloudWatch Logs access and `s3:PutObject` permission on your private upload bucket. Configure access to your existing database; if it is private, select the appropriate existing VPC/subnets/security group and ensure outbound access to OpenAI. See the [full deployment guide](docs/lambda-deployment.md) for the network and role details.
+
+3. **Create the public URL:** open **Configuration > Function URL > Create function URL**, choose **Auth type: NONE**, and save. Protected application endpoints still require a JWT. Leave the Function URL CORS settings unset; the app handles CORS. Copy the resulting HTTPS URL.
+
+4. **Configure environment variables:** edit `server/.env` to use your existing AWS database endpoint and credentials. Set `UPLOAD_BUCKET` to your private upload bucket and add the Function URL origin (without a trailing slash) to `ALLOWED_ORIGINS`. Retain your OpenAI key, JWT secrets, and encryption key. Export the settings:
+
+   ```powershell
+   npm --prefix server run lambda:env
+   ```
+
+   This produces the Git-ignored `server/lambda-environment.json`. With AWS CLI authenticated to your account, apply it:
+
+   ```powershell
+   aws sts get-caller-identity
+   aws lambda update-function-configuration --function-name leafcare-api --region ap-south-1 --environment file://server/lambda-environment.json --query FunctionName --output text
+   aws lambda wait function-updated --function-name leafcare-api --region ap-south-1
+   ```
+
+   Alternatively, enter the values under **Configuration > Environment variables > Edit** in the console. Include `NODE_ENV=production`, `DB_CONNECTION_LIMIT=2`, `MAX_UPLOAD_BYTES=4194304`, and `TRUST_PROXY=0`. The export command supplies these automatically. Lambda does not read your local `.env` file. Environment updates replace the entire variable map; include any additional settings you need to retain.
+
+5. **Verify the deployment** by opening these paths on your Function URL:
+
+   ```text
+   https://YOUR_ID.lambda-url.ap-south-1.on.aws/api/health
+   https://YOUR_ID.lambda-url.ap-south-1.on.aws/api/docs
+   ```
+
+   Health should return `{"status":"ok"}`. Swagger lets you register, log in, authorize with the returned token, and test an upload. The bare URL `/` returns `Not found` because it is not an API route.
+
+### Deploy later code changes
+
+Run these commands from the repository root whenever backend code or dependencies change:
+
+```powershell
+npm --prefix server ci
+npm --prefix server test
+npm --prefix server run lambda:package
+aws lambda update-function-code --function-name leafcare-api --region ap-south-1 --zip-file fileb://server/lambda.zip --query '{Function:FunctionName,Status:LastUpdateStatus}' --output json
+aws lambda wait function-updated --function-name leafcare-api --region ap-south-1
+```
+
+Stop if any build or test command fails. The existing function, environment variables, and Function URL are retained. Do not create a new function for each update. If using the console instead of AWS CLI, upload the rebuilt `server/lambda.zip` under the existing function's **Code > Upload from > .zip file**.
+
+If only configuration changes, edit `server/.env`, run `npm --prefix server run lambda:env`, and repeat the `update-function-configuration` and wait commands above. No ZIP rebuild is needed for environment-only changes. Avoid rotating the upload encryption key when existing uploads depend on it.
+
+After each deployment, check `/api/health`, `/api/docs`, and a signed-in API request. View errors under **Lambda > Monitor > View CloudWatch logs**. Replace the function name and region in every command if you chose different values.
+
+### Connect the mobile app to Lambda
+
+Set the deployed origin in `mobile/.env` (without `/api`):
+
+```env
+EXPO_PUBLIC_API_URL=https://YOUR_ID.lambda-url.ap-south-1.on.aws
+```
+
+Restart Expo from `mobile` with `npx expo start --clear`, adding `--tunnel` if needed. The app will use Lambda instead of the backend on your PC. For installation builds, configure the same value in your EAS build environment.
 
 ## Voice commands
 

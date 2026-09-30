@@ -87,6 +87,16 @@ Restart Expo with `npx expo start --clear` (or add `--tunnel`). The phone can th
 
 ## Later updates
 
-Run `npm --prefix server run lambda:package` and upload the new ZIP to the same function. Its URL stays the same. For environment changes, edit `server/.env`, regenerate the environment JSON, and apply it using the command above. Check **Monitor > View CloudWatch logs** for startup or request errors.
+From the repository root, rebuild and upload to the same function:
+
+```powershell
+npm --prefix server ci
+npm --prefix server test
+npm --prefix server run lambda:package
+aws lambda update-function-code --function-name leafcare-api --region YOUR_REGION --zip-file fileb://server/lambda.zip --query '{Function:FunctionName,Status:LastUpdateStatus}' --output json
+aws lambda wait function-updated --function-name leafcare-api --region YOUR_REGION
+```
+
+Stop if a build or test fails. Its URL and environment settings stay the same. Alternatively upload the rebuilt ZIP through the existing function's console page. For environment-only changes, edit `server/.env`, regenerate the environment JSON, and apply it using the configuration command above; a ZIP rebuild is not required. Check `/api/health` after deployment and **Monitor > View CloudWatch logs** for startup or request errors.
 
 References: [AWS Node.js ZIP deployments](https://docs.aws.amazon.com/lambda/latest/dg/nodejs-package.html), [Lambda environment variables](https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html), [Function URLs](https://docs.aws.amazon.com/lambda/latest/dg/urls-configuration.html), [VPC internet access](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc-internet.html), [sharp Linux prebuilds](https://sharp.pixelplumbing.com/install/).
