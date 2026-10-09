@@ -39,6 +39,13 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "leafcare"
+    "scheme": "leafcare",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ba67d2e2-a2c4-4411-b873-8ad695511eaf"
+      }
+    },
+    "owner": "reachkarun"
   }
 }

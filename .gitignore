@@ -11,3 +11,4 @@ server/dist/
 server/.lambda-build/
 server/lambda.zip
 server/lambda-environment.json
+server/build/

@@ -1,10 +1,18 @@
 # AWS deployment
 
+For new deployments, use the [OHO-style server deployment guide](../server/DEPLOYMENT.md): package from `server/`, deploy using SAM, and configure environment variables directly in Lambda. GitHub Actions can be added later. This page describes the older repository-root template with Secrets Manager; retain it for stacks already created with that template.
+
 For direct ZIP deployment using your existing database and Lambda environment variables, follow [the direct Lambda guide](lambda-deployment.md). The infrastructure-managed SAM/Amplify workflow below is optional.
 
 The website runs in Amplify Hosting. Its relative `/api` requests are forwarded by an Amplify HTTPS rewrite to a Lambda Function URL. NestJS retains responsibility for JWT authentication and origin checks. The refresh cookie stays `HttpOnly`, `Secure`, and `SameSite=Strict` on the website origin. Do not point browser requests directly at the Function URL; that would turn the refresh cookie into a cross-site cookie.
 
 The SAM stack creates the Node.js 22 Lambda, public Function URL and both required invoke permissions, private S3 bucket, execution role, and 30-day CloudWatch log group. It uses an existing private MySQL 8 database, VPC subnets, security groups, and Secrets Manager secret. It does not create those prerequisites or an Amplify app. Local `npm run dev` and the existing Docker deployment still use the standalone NestJS server and local upload storage.
+
+## Initial deployment order
+
+Complete sections 1–6 in order: prepare the database/network, store secrets, create Amplify Hosting, deploy the SAM stack, add the API rewrite, and verify the live application. Run commands from the repository root in PowerShell, one at a time, and stop on any failure. Check `aws sts get-caller-identity` before deploying. Record the stack name, region, Amplify app/branch, stack outputs, and working source revision.
+
+For a manually created Lambda, use the [direct ZIP guide](lambda-deployment.md#initial-deployment-checklist).
 
 ## 1. Prepare the database and network
 
@@ -50,6 +58,8 @@ In the guided deployment, choose a stack name such as `leafcare-api`, your regio
 
 For later backend updates, run `sam build --use-container` followed by `sam deploy`. Push frontend updates to the connected branch to trigger Amplify deployment. A build is required to publish new frontend assets and package native Lambda dependencies, even though it is not required for the source-editing checks.
 
+Before deploying the current server against an existing database, apply the [analysis-context migration](lambda-deployment.md#before-deploying-the-current-server-to-an-existing-database) from a machine with database access. Keep the existing encryption key and upload bucket. After `sam deploy` completes, use the stack's `FunctionName` output with the [deployment metadata checks](lambda-deployment.md#confirm-the-function-was-updated), then run the cloud checks below. Update SAM-managed resources through the template and `sam deploy` so later stack updates retain your configuration.
+
 ## 5. Connect the website to the API
 
 Copy the stack's `ApiUrl` output. In Amplify **Hosting → Rewrites and redirects**, paste the rules from `deploy/amplify-rewrites.json` and replace the placeholder hostname with the actual Lambda URL hostname. Keep `/api/<*>` → `https://FUNCTION_HOST/api/<*>` as a **200 rewrite**, first in the list, before the SPA rule. The repository JSON file is an example for the console; Amplify does not automatically import it.
@@ -57,6 +67,40 @@ Copy the stack's `ApiUrl` output. In Amplify **Hosting → Rewrites and redirect
 Do not cache `/api` responses. The backend sets `Cache-Control: no-store, private` for every API response, including errors and authentication responses. Add custom website domains and additional branches to the stack's comma-separated `AllowedOrigins` parameter before using them; redeploy the backend configuration. All branches of an Amplify app share its rewrite rules, so use separate apps/stacks for isolated environments.
 
 The default `TRUST_PROXY=0` avoids trusting spoofable forwarded addresses on the publicly reachable Function URL. Through Amplify, audit IPs and rate-limit keys may represent the proxy. In-memory rate limits apply separately in each Lambda execution environment, not across the deployment. Configure a managed edge rate limit/WAF or a shared rate-limit store before relying on a global abuse limit; do not simply trust all forwarded headers.
+
+## Updates after making changes
+
+### Update a SAM-managed backend
+
+1. Save the working source revision and configuration for rollback. Apply required [database migrations](lambda-deployment.md#before-deploying-the-current-server-to-an-existing-database) before code that needs them.
+2. Run each command from the repository root, stopping on any failure:
+
+   ```powershell
+   aws sts get-caller-identity
+   npm --prefix server ci
+   npm --prefix server test
+   sam validate --lint --template-file template.yaml
+   sam build --use-container --template-file template.yaml
+   sam deploy
+   ```
+
+3. Use the same saved stack and region from the initial guided deployment. For parameter changes such as origins, run `sam deploy --guided` against that same stack and review the values. Change infrastructure/environment defaults in `template.yaml`; change secret values in Secrets Manager and recycle Lambda execution environments as described in section 2.
+4. Check deployment metadata and complete section 6. Keep the bucket and encryption key for existing photos. To roll back code, rebuild the previous working source and deploy it to the same stack; database migrations and secret changes require separate handling.
+
+### Update the website
+
+1. Check the website build locally:
+
+   ```powershell
+   npm --prefix client ci
+   npm --prefix client run build
+   ```
+
+2. Commit the intended frontend changes and push to the branch connected to Amplify. With automatic builds enabled, Amplify builds and publishes using `amplify.yml`; otherwise start a deployment for that branch in the Amplify console.
+3. Wait for Amplify to show a successful deployment for the intended commit. Open the deployed website and check the changed screen, `/api/health`, sign-in, and upload. A local build alone does not update the hosted website.
+4. If the API hostname changed, update the Amplify rewrite in section 5. If the website origin changed, update backend allowed origins too. For a failed release, redeploy the previous successful Amplify deployment or revert the frontend commit and deploy again.
+
+For releases changing both website and backend, apply database prerequisites, deploy the compatible backend first, then publish the website and complete section 6. Mobile changes follow the [mobile build guide](../mobile/README.md). Documentation-only changes need no runtime deployment.
 
 ## 6. Verify after deployment
 

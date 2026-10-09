@@ -9,6 +9,7 @@ import { Alert } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import { File } from "expo-file-system";
 import * as Speech from "expo-speech";
 import { request, ApiError } from "./api";
 import { endpoints, uploadRules } from "../../common/api.js";
@@ -174,11 +175,8 @@ function useAppState() {
     await run(async () => {
       go("processing");
       const form = new FormData();
-      form.append("leaf", {
-        uri: photo,
-        name: "leaf.jpg",
-        type: "image/jpeg",
-      } as unknown as Blob);
+      // Expo 57 fetch requires file bytes, rather than React Native URI parts.
+      form.append("leaf", new File(photo), "leaf.jpg");
       form.append("language", lang);
       form.append("consent", "true");
       form.append("plantName", plantName);

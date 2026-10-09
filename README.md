@@ -1,10 +1,14 @@
 # LeafCare AI
 
-Direct AWS Lambda deployment: see [ZIP deployment and Function URL instructions](docs/lambda-deployment.md). Uses your existing AWS database and `server/.env` exported to Lambda environment variables. Build with `npm --prefix server run lambda:package`; no Docker is needed for this workflow.
+**Recommended Lambda setup:** follow [server/DEPLOYMENT.md](server/DEPLOYMENT.md), matching OHO's install → test → package → SAM deploy sequence. Run from `server/`; SAM uploads automatically. Configure application settings directly in Lambda. GitHub Actions can be added later.
+
+Deployment instructions: [initial SAM deployment](server/DEPLOYMENT.md#5-first-deployment) and [redeploy after changes](server/DEPLOYMENT.md#7-redeploy-after-code-or-dependency-changes).
+
+Legacy manual Lambda deployment: [ZIP upload instructions](docs/lambda-deployment.md) remain available for existing manually managed functions. New setups should use the server SAM guide above.
 
 Android and iOS: the matching React Native + Expo application is in `mobile/`. See the [mobile setup and build guide](mobile/README.md) for phone, emulator, APK, and iOS build instructions.
 
-For AWS Lambda backend and AWS Amplify website setup, see the [AWS deployment guide](docs/aws-deployment.md). The repository includes a SAM template, Amplify build configuration, API rewrite example, Secrets Manager integration, and private S3 upload storage. AWS uploads are limited to 4 MiB.
+For Amplify website configuration and existing stacks created with the older root template, see the [legacy AWS guide](docs/aws-deployment.md). New backend setups use `server/template.yaml`; the repository-root template retains its Secrets Manager workflow for existing stacks. AWS uploads are limited to 4 MiB.
 
 A secure React + NestJS + MySQL starter for AI-assisted plant-leaf screening. It analyzes a photographed leaf, returns structured plant-health guidance in English, Telugu, and Hindi, reads results aloud, accepts voice commands, and keeps a traceable login/upload/analysis history.
 
@@ -19,7 +23,7 @@ A secure React + NestJS + MySQL starter for AI-assisted plant-leaf screening. It
 
 ## Run locally
 
-For AWS deployment using your existing database, go directly to [Deploy the server to AWS Lambda](#deploy-the-server-to-aws-lambda) below.
+For AWS deployment using your existing database, go directly to the [server deployment guide](server/DEPLOYMENT.md).
 
 1. Copy `server/.env.example` to `server/.env` and replace every secret. Generate the encryption key with `openssl rand -hex 32`; use separate long random JWT secrets.
 2. Set `OPENAI_API_KEY`. Keep it only in the backend environment—never in React.
@@ -30,6 +34,8 @@ For AWS deployment using your existing database, go directly to [Deploy the serv
 For one-container production mode, set `NODE_ENV=production` in `server/.env`, use strong managed secrets, configure a real DB host, and run `docker compose up --build`. The application is served at `http://localhost:8080`.
 
 ## Deploy the server to AWS Lambda
+
+For the recommended OHO-style SAM setup, follow [server/DEPLOYMENT.md](server/DEPLOYMENT.md). The manual upload instructions below are a legacy alternative; do not use them to update a SAM-managed function.
 
 Use your existing AWS database. This workflow builds a ZIP on Windows and exposes a Lambda Function URL. It does not require Docker or SAM. The backend configuration file is `server/.env`.
 
@@ -56,7 +62,7 @@ Use your existing AWS database. This workflow builds a ZIP on Windows and expose
    | Memory, under Configuration > General configuration | 1024 MB |
    | Timeout | 120 seconds |
 
-   Under **Code > Upload from > .zip file**, select `server/lambda.zip`. Use an execution role with CloudWatch Logs access and `s3:PutObject` permission on your private upload bucket. Configure access to your existing database; if it is private, select the appropriate existing VPC/subnets/security group and ensure outbound access to OpenAI. See the [full deployment guide](docs/lambda-deployment.md) for the network and role details.
+   Under **Code > Upload from > .zip file**, select `server/lambda.zip`. Use an execution role with CloudWatch Logs access and both `s3:PutObject` and `s3:GetObject` permissions on your private upload bucket's objects. Configure access to your existing database; if it is private, select the appropriate existing VPC/subnets/security group and ensure outbound access to OpenAI. See the [full deployment guide](docs/lambda-deployment.md) for the network and role details.
 
 3. **Create the public URL:** open **Configuration > Function URL > Create function URL**, choose **Auth type: NONE**, and save. Protected application endpoints still require a JWT. Leave the Function URL CORS settings unset; the app handles CORS. Copy the resulting HTTPS URL.
 
@@ -86,6 +92,8 @@ Use your existing AWS database. This workflow builds a ZIP on Windows and expose
    Health should return `{"status":"ok"}`. Swagger lets you register, log in, authorize with the returned token, and test an upload. The bare URL `/` returns `Not found` because it is not an API route.
 
 ### Deploy later code changes
+
+Local edits and Git pushes do not automatically update a manually deployed Lambda. Before deploying the current server to an existing database, follow the [migration and permission prerequisites](docs/lambda-deployment.md#before-deploying-the-current-server-to-an-existing-database). The full guide also covers [deployment verification](docs/lambda-deployment.md#confirm-the-function-was-updated), large ZIP uploads, and rollback.
 
 Run these commands from the repository root whenever backend code or dependencies change:
 

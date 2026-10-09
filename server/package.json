@@ -7,6 +7,7 @@
     "start": "node --use-system-ca dist/main.js",
     "test": "npm run build && node --test test/*.test.js",
     "check": "tsc --noEmit -p tsconfig.json",
+    "package:lambda": "npm run build && node scripts/package-lambda.cjs",
     "lambda:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-lambda.ps1",
     "lambda:env": "node scripts/export-lambda-env.mjs"
   },

@@ -1,0 +1,139 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: LeafCare NestJS API with direct Lambda configuration and private uploads
+
+Parameters:
+  VpcSubnetIds:
+    Type: String
+    Default: ''
+    Description: Comma-separated private subnet IDs; leave empty for a public database
+  VpcSecurityGroupIds:
+    Type: String
+    Default: ''
+    Description: Lambda security group IDs; provide together with subnet IDs
+  ApiReservedConcurrency:
+    Type: Number
+    Default: 10
+    MinValue: 1
+    MaxValue: 100
+  ExistingUploadBucket:
+    Type: String
+    Default: ''
+    Description: Existing private photo bucket to preserve; empty creates a new bucket
+
+Conditions:
+  UseVpc: !And
+    - !Not [!Equals [!Ref VpcSubnetIds, '']]
+    - !Not [!Equals [!Ref VpcSecurityGroupIds, '']]
+  CreateUploads: !Equals [!Ref ExistingUploadBucket, '']
+
+Rules:
+  VpcParametersTogether:
+    Assertions:
+      - Assert: !Or
+          - !And
+              - !Equals [!Ref VpcSubnetIds, '']
+              - !Equals [!Ref VpcSecurityGroupIds, '']
+          - !And
+              - !Not [!Equals [!Ref VpcSubnetIds, '']]
+              - !Not [!Equals [!Ref VpcSecurityGroupIds, '']]
+        AssertDescription: Provide both VPC parameters, or leave both empty.
+
+Resources:
+  Uploads:
+    Type: AWS::S3::Bucket
+    Condition: CreateUploads
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+  UploadsPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: CreateUploads
+    Properties:
+      Bucket: !Ref Uploads
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource: [!GetAtt Uploads.Arn, !Sub '${Uploads.Arn}/*']
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+  Api:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: build/lambda/
+      Handler: dist/lambda.handler
+      Runtime: nodejs22.x
+      Architectures: [x86_64]
+      MemorySize: 1024
+      Timeout: 120
+      ReservedConcurrentExecutions: !Ref ApiReservedConcurrency
+      VpcConfig: !If
+        - UseVpc
+        - SubnetIds: !Split [',', !Ref VpcSubnetIds]
+          SecurityGroupIds: !Split [',', !Ref VpcSecurityGroupIds]
+        - !Ref AWS::NoValue
+      # Application environment variables are maintained directly in Lambda.
+      # SAM supplies the logging and (when needed) VPC managed policies.
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: [s3:PutObject, s3:GetObject]
+              Resource: !If
+                - CreateUploads
+                - !Sub '${Uploads.Arn}/*'
+                - !Sub 'arn:${AWS::Partition}:s3:::${ExistingUploadBucket}/*'
+  ApiUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt Api.Arn
+      AuthType: NONE
+      InvokeMode: BUFFERED
+  ApiUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Api
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+  ApiInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Api
+      Action: lambda:InvokeFunction
+      Principal: '*'
+      InvokedViaFunctionUrl: true
+  ApiLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${Api}'
+      RetentionInDays: 30
+
+Outputs:
+  ApiBaseUrl:
+    Value: !GetAtt ApiUrl.FunctionUrl
+  FunctionName:
+    Value: !Ref Api
+  SwaggerUrl:
+    Description: Swagger UI for testing the deployed API
+    Value: !Sub '${ApiUrl.FunctionUrl}api/docs'
+  OpenApiUrl:
+    Description: OpenAPI JSON schema
+    Value: !Sub '${ApiUrl.FunctionUrl}api/docs-json'
+  UploadBucket:
+    Value: !If [CreateUploads, !Ref Uploads, !Ref ExistingUploadBucket]
