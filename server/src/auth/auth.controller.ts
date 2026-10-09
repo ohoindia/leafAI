@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   HttpCode,
   Req,
@@ -14,14 +15,29 @@ import { AuthGuard } from "./auth.guard.js";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 const credentials = {
-  email: { type: "string" as const, format: "email", example: "you@example.com" },
-  password: { type: "string" as const, minLength: 10, maxLength: 128, format: "password" },
+  email: {
+    type: "string" as const,
+    format: "email",
+    example: "you@example.com",
+  },
+  password: {
+    type: "string" as const,
+    minLength: 10,
+    maxLength: 128,
+    format: "password",
+  },
 };
 
 @Controller("auth")
 @ApiTags("Authentication")
 export class AuthController {
   constructor(private readonly service: AuthService) {}
+  @Get("me")
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  me(@Req() req: ApiRequest) {
+    return this.service.me(req);
+  }
   private setRefreshCookie(res: Response, token: string) {
     res.cookie("refreshToken", token, {
       httpOnly: true,
@@ -32,16 +48,28 @@ export class AuthController {
     });
   }
   @Post("register")
-  @ApiBody({ schema: { type: "object", required: ["email", "password", "fullName"], properties: {
-    ...credentials,
-    fullName: { type: "string", minLength: 2, maxLength: 150 },
-    language: { type: "string", enum: ["en", "te", "hi"], default: "en" },
-  } } })
+  @ApiBody({
+    schema: {
+      type: "object",
+      required: ["email", "password", "fullName"],
+      properties: {
+        ...credentials,
+        fullName: { type: "string", minLength: 2, maxLength: 150 },
+        language: { type: "string", enum: ["en", "te", "hi"], default: "en" },
+      },
+    },
+  })
   register(@Req() req: ApiRequest) {
     return this.service.register(req);
   }
   @Post("login")
-  @ApiBody({ schema: { type: "object", required: ["email", "password"], properties: credentials } })
+  @ApiBody({
+    schema: {
+      type: "object",
+      required: ["email", "password"],
+      properties: credentials,
+    },
+  })
   @HttpCode(200)
   async login(
     @Req() req: ApiRequest,
@@ -52,7 +80,9 @@ export class AuthController {
     return { accessToken: tokens.accessToken, user };
   }
   @Post("refresh")
-  @ApiOperation({ summary: "Refresh access token using the HttpOnly cookie set by login" })
+  @ApiOperation({
+    summary: "Refresh access token using the HttpOnly cookie set by login",
+  })
   @HttpCode(200)
   async refresh(
     @Req() req: ApiRequest,

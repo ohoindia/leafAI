@@ -1,1 +1,1 @@
-export { default } from './src/LeafCareApp';
+export { default } from './src/app/_layout';

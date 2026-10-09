@@ -70,6 +70,8 @@ CREATE TABLE leaf_analyses (
   model_response_id VARCHAR(150) NULL,
   status ENUM('PROCESSING','COMPLETED','FAILED','REVIEW_REQUIRED') NOT NULL DEFAULT 'PROCESSING',
   plant_name VARCHAR(255) NULL,
+  provided_plant_name VARCHAR(150) NULL,
+  plant_location VARCHAR(255) NULL,
   disease_name VARCHAR(255) NULL,
   confidence DECIMAL(5,4) NULL,
   severity ENUM('UNKNOWN','LOW','MEDIUM','HIGH','CRITICAL') NOT NULL DEFAULT 'UNKNOWN',

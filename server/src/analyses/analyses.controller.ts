@@ -3,16 +3,24 @@ import {
   Get,
   Post,
   Req,
+  Res,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import type { Response } from "express";
 import { memoryStorage } from "multer";
 import { env } from "../config.js";
 import { AuthGuard } from "../auth/auth.guard.js";
 import type { ApiRequest } from "../common/api-request.js";
 import { AnalysesService } from "./analyses.service.js";
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiParam, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiParam,
+  ApiTags,
+} from "@nestjs/swagger";
 @Controller("analyses")
 @ApiTags("Analyses")
 @ApiBearerAuth()
@@ -21,11 +29,23 @@ export class AnalysesController {
   constructor(private readonly service: AnalysesService) {}
   @Post()
   @ApiConsumes("multipart/form-data")
-  @ApiBody({ schema: { type: "object", required: ["leaf", "consent"], properties: {
-    leaf: { type: "string", format: "binary", description: `JPEG, PNG or WebP; at least 300 x 300 pixels; maximum ${env.MAX_UPLOAD_BYTES} bytes.` },
-    consent: { type: "string", enum: ["true"] },
-    language: { type: "string", enum: ["en", "te", "hi"], default: "en" },
-  } } })
+  @ApiBody({
+    schema: {
+      type: "object",
+      required: ["leaf", "consent"],
+      properties: {
+        leaf: {
+          type: "string",
+          format: "binary",
+          description: `JPEG, PNG or WebP; at least 300 x 300 pixels; maximum ${env.MAX_UPLOAD_BYTES} bytes.`,
+        },
+        consent: { type: "string", enum: ["true"] },
+        language: { type: "string", enum: ["en", "te", "hi"], default: "en" },
+        plantName: { type: "string", maxLength: 150 },
+        location: { type: "string", maxLength: 255 },
+      },
+    },
+  })
   @UseInterceptors(
     FileInterceptor("leaf", {
       storage: memoryStorage(),
@@ -43,5 +63,11 @@ export class AnalysesController {
   @ApiParam({ name: "id", type: String, format: "uuid" })
   findOne(@Req() req: ApiRequest) {
     return this.service.findOne(req);
+  }
+  @Get(":id/image")
+  @ApiParam({ name: "id", type: String, format: "uuid" })
+  async image(@Req() req: ApiRequest, @Res() res: Response) {
+    res.setHeader("Cache-Control", "no-store, private");
+    res.type("image/jpeg").send(await this.service.image(req));
   }
 }

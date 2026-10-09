@@ -7,6 +7,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { rateLimit } from "express-rate-limit";
 import { NestFactory } from "@nestjs/core";
+import { ForbiddenException } from "@nestjs/common";
 import { ExpressAdapter } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import type { NestExpressApplication } from "@nestjs/platform-express";
@@ -46,7 +47,7 @@ export async function createApplication() {
       origin: (origin, callback) =>
         !origin || origins.includes(origin)
           ? callback(null, true)
-          : callback(new Error("Origin blocked")),
+          : callback(new ForbiddenException("Origin blocked")),
       credentials: true,
     }),
   );

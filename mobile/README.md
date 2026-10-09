@@ -1,6 +1,6 @@
 # LeafCare AI for Android and iOS
 
-React Native + Expo mobile companion to the existing React website. Uses the same NestJS API, accounts, database, consent requirement, and saved analyses. Colors, card styling, hero gradient, and English/Telugu/Hindi labels match the website. Includes camera/gallery selection, JPEG normalization, analysis, history details, and spoken results.
+React Native + Expo mobile companion to the existing React website. Uses the same NestJS API, accounts, database, consent requirement, and saved analyses. Colors, card styling, hero gradient, and English/Telugu/Hindi labels match the website. Includes language selection, sign-in/register, home, camera/gallery capture, photo review, optional plant/location details and consent, processing, results, full analysis/resources, searchable history, care tips, profile, and a touch-command voice assistant. Expo Router routes live in `src/app`; screen components live in `src/screens`; session state lives in `src/state.tsx`. Both apps use the repository-level `common/` folder for API transport, endpoints, naming, copy, validation rules, and shared response types.
 
 ## 1. Start the existing backend
 
@@ -62,6 +62,25 @@ For an Android emulator, install Android Studio, create and start a virtual devi
 
 Sign in with your existing account, or create one. Photograph or select a leaf, enable consent, and analyze. Choose English, Telugu, or Hindi and tap **Read result aloud**. Tap an entry in history to reopen its result. Device voices determine language availability; iOS silent mode can mute speech.
 
+## Expo Go keeps spinning after scanning (no Bundling in terminal)
+
+The phone has not reached Metro yet. Stop the old Expo terminal with Ctrl+C, close the loading screen in Expo Go, and run from the repository root:
+
+```powershell
+npm --prefix mobile run start:tunnel
+```
+
+Wait for **Tunnel ready**, then scan the new QR code. This avoids local Wi-Fi routing/firewall issues and choosing a VPN or WSL adapter. `npm start` explicitly opens Expo Go; `npm run start:lan` is also available for a reachable local network.
+
+If the tunnel times out, retry after checking your PC's VPN/network connection. For LAN, put the phone and PC on the same Wi-Fi and open `http://<PC-WiFi-IP>:8081/status` on the phone. It should display `packager-status:running`. If that URL does not open, allow Node.js through your firewall or use the tunnel. For multiple adapters, set the Wi-Fi IPv4 address explicitly for that terminal:
+
+```powershell
+$env:REACT_NATIVE_PACKAGER_HOSTNAME = "<PC-WiFi-IP>"
+npm run start:lan
+```
+
+Update Expo Go to match SDK 57. The app opens its language screen without contacting the backend; the API URL matters when signing in or analyzing a leaf. Tunneling Metro does not tunnel the API.
+
 ## Expo tunnel repeatedly asks to install ngrok
 
 If `expo start --tunnel` reports `Install @expo/ngrok@^4.1.0 and try again` after a successful global installation, use the project-local development dependency. From `mobile`, run:
@@ -105,11 +124,12 @@ For local native compilation, use `npx expo run:android` with Android Studio/JDK
 
 ```powershell
 npm run typecheck
+npm run lint
 npm test
 npx expo-doctor@latest
 npx expo export --platform all
 ```
 
-The native app holds access tokens only in memory and asks for sign-in again after expiration or restart. It does not depend on the website's browser refresh cookies. The website's Web Speech recognition commands are not ported: mobile has touch controls and native text-to-speech. Camera and speech behavior must be verified on physical Android and iOS devices; real analysis also requires the running database and configured backend API key.
+The native app holds access tokens only in memory and asks for sign-in again after expiration or restart. It does not depend on the website's browser refresh cookies. The mobile voice assistant supports the same command buttons with native text-to-speech and command logging. Microphone speech recognition remains browser-only. Camera and speech behavior must be verified on physical Android and iOS devices; real analysis also requires the running database and configured backend API key.
 
 References: [Expo device setup](https://docs.expo.dev/get-started/set-up-your-environment/), [EAS builds](https://docs.expo.dev/build/setup/), [local native builds](https://docs.expo.dev/guides/local-app-overview/).

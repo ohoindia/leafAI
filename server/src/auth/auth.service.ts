@@ -21,6 +21,21 @@ export class AuthService {
     private readonly db: DatabaseService,
     private readonly security: SecurityService,
   ) {}
+  async me(req: ApiRequest) {
+    const [rows] = await this.db.execute(
+      "SELECT id,full_name,email,preferred_language,role FROM users WHERE id=? AND is_active=1",
+      [req.user.sub],
+    );
+    if (!rows[0]) throw new UnauthorizedException("Session expired");
+    const u = rows[0];
+    return {
+      id: u.id,
+      fullName: u.full_name,
+      email: u.email,
+      language: u.preferred_language,
+      role: u.role,
+    };
+  }
   async register(req: ApiRequest) {
     const b = creds
       .extend({

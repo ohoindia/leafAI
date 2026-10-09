@@ -34,7 +34,9 @@ async function initialize() {
   }
   const { createApplication } = await import("./app.js");
   const app = await createApplication();
-  return serverless(app.getHttpAdapter().getInstance());
+  return serverless(app.getHttpAdapter().getInstance(), {
+    binary: ["image/jpeg"],
+  });
 }
 
 export async function handler(event, context) {

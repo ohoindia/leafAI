@@ -7,16 +7,24 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
-      ["expo-image-picker", {
-        "photosPermission": "Choose a leaf photo for plant health analysis.",
-        "cameraPermission": "Photograph a leaf for plant health analysis.",
-        "microphonePermission": false
-      }]
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a leaf photo for plant health analysis.",
+          "cameraPermission": "Photograph a leaf for plant health analysis.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-router"
     ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.leafcareai.app",
-      "infoPlist": { "NSAppTransportSecurity": { "NSAllowsLocalNetworking": true } }
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "package": "com.leafcareai.app",
@@ -30,6 +38,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "scheme": "leafcare"
   }
 }

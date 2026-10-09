@@ -5,14 +5,15 @@ import ts from 'typescript';
 
 process.env.EXPO_PUBLIC_API_URL = 'https://leaf.example/';
 const source = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
-const { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } });
+let { outputText } = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } });
+outputText = outputText.replaceAll('../../common/api.js', new URL('../../common/api.js', import.meta.url).href);
 const { request, ApiError } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
 
 test('JSON requests use the existing API path and bearer token without browser cookies', async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async (url, options) => {
     assert.equal(url, 'https://leaf.example/api/analyses');
-    assert.equal(options.headers.Authorization, 'Bearer access-token');
+    assert.equal(new Headers(options.headers).get('Authorization'), 'Bearer access-token');
     assert.equal(options.credentials, 'omit');
     return Response.json([{ id: 'saved-analysis' }]);
   };
@@ -25,7 +26,7 @@ test('multipart uploads leave the boundary header to the native fetch implementa
   const form = new FormData(); form.append('consent', 'true');
   globalThis.fetch = async (_url, options) => {
     assert.equal(options.body, form);
-    assert.equal(options.headers['Content-Type'], undefined);
+    assert.equal(new Headers(options.headers).get('Content-Type'), null);
     return Response.json({ id: 'new-analysis' });
   };
   try { await request('/analyses', 'token', { method: 'POST', body: form }); }

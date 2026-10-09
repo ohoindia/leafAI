@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { z } from "zod";
 import { DatabaseService } from "../common/database.service.js";
 import type { ApiRequest } from "../common/api-request.js";
@@ -15,6 +15,13 @@ export class VoiceCommandsService {
         analysisId: z.string().uuid().nullable().optional(),
       })
       .parse(req.body);
+    if (b.analysisId) {
+      const [rows] = await this.db.execute(
+        "SELECT id FROM leaf_analyses WHERE id=? AND user_id=?",
+        [b.analysisId, req.user.sub],
+      );
+      if (!rows[0]) throw new NotFoundException("Not found");
+    }
     await this.db.execute(
       "INSERT INTO voice_commands(user_id,analysis_id,language_code,transcript,detected_intent,was_successful) VALUES(?,?,?,?,?,?)",
       [

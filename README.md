@@ -234,6 +234,7 @@ To sign out, execute **POST /api/auth/logout** while authorized, then clear the 
 | Missing or invalid environment settings | Configure the named fields in the `server/.env`, then restart. Do not leave example secrets or a blank OpenAI API key. |
 | Database connection error | Start MySQL, check its credentials/port, and ensure the schema is imported. |
 | Login works but analysis fails | Check the server error, OpenAI key/model access, selected image, upload size, and consent. |
+| `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` during analysis | Use Node.js 22.19 or later and restart with `npm run dev` or `npm --prefix server start`. These commands enable `--use-system-ca` so Node trusts the operating system's certificate store, including installed corporate/antivirus CAs, while keeping TLS verification enabled. For direct launches use `node --use-system-ca server/dist/main.js`. If your organization's CA is not installed, obtain its trusted PEM bundle from your administrator and set `NODE_EXTRA_CA_CERTS` in the shell before starting Node; setting it in `.env` is too late. |
 
 ## Model configuration
 
@@ -253,4 +254,21 @@ API error responses.
 Development: `npm --prefix server run dev` compiles and restarts the API on changes.
 For a standalone production start, run `npm --prefix server run build`, then
 `npm --prefix server start`. Docker and SAM compile the backend during packaging.
-Node.js 22 or later is required. All existing `/api` endpoint paths are retained.
+Node.js 22.19 or later is required. All existing `/api` endpoint paths are retained.
+
+## Mobile web screen flow
+
+The website always uses a centered, single-column viewport with a maximum width of 430px, including desktop browsers. On smaller phones it fills the available width.
+
+The flow is language selection → sign in/create account → dashboard → camera/gallery → photo review → optional plant name/location and required consent → analysis progress → summary → full details/voice assistant. History supports search, filters, reopening saved results, saved photos and audit metadata. Camera capture uses the device's native picker; gallery is a separate picker. Voice commands also have clickable fallbacks when speech recognition is unavailable.
+
+Existing databases need the additive context migration before running the updated backend:
+
+```powershell
+npm --prefix server run build
+node server/scripts/migrate-analysis-context.mjs
+```
+
+The migration is safe to rerun and preserves existing rows. New databases use the updated `database/schema.sql`. The equivalent one-time SQL is in `database/migrations/001_analysis_context.sql`.
+
+For existing Lambda execution roles, include both `s3:PutObject` and `s3:GetObject` on your upload bucket's objects. The SAM template includes both. Photos remain encrypted at rest and are decrypted only by the authenticated, owner-scoped `GET /api/analyses/:id/image` route. `GET /api/auth/me` restores profile information after a page reload. Analysis requests now accept optional `plantName` (150 characters) and `location` (255 characters). New analyses include translated full guidance; old saved analyses retain their original translations and use English for any missing detailed sections.

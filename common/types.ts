@@ -1,0 +1,44 @@
+export type Language = "en" | "te" | "hi";
+export type Guidance = {
+  summary: string;
+  symptoms: string[];
+  actions: string[];
+  disclaimer: string;
+  likely_causes?: string[];
+  treatment?: string[];
+  prevention?: string[];
+  when_to_consult_expert?: string;
+  safety_note?: string;
+};
+export type Analysis = {
+  id: string;
+  status: string;
+  plant: string;
+  scientific_name: string;
+  condition: string;
+  confidence: number;
+  severity: string;
+  translations?: Record<Language, Guidance>;
+  likely_causes?: string[];
+  treatment?: string[];
+  prevention?: string[];
+  when_to_consult_expert?: string;
+  safety_note?: string;
+  created_at?: string;
+  original_file_name?: string;
+  model_name?: string;
+  requested_language?: Language;
+  plant_location?: string;
+  provided_plant_name?: string;
+  consent_to_analyze?: boolean;
+};
+export type HistoryItem = {
+  id: string;
+  status: string;
+  plant_name: string | null;
+  disease_name: string | null;
+  created_at: string;
+  severity?: string;
+  provided_plant_name?: string;
+};
+export type User = { fullName: string; email: string; language?: Language };

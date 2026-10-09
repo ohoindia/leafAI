@@ -1,0 +1,40 @@
+export const copy = {
+  en: {
+    title: "LeafCare AI",
+    sub: "Understand your plant leaf in seconds",
+    upload: "Upload or capture a leaf",
+    analyze: "Analyze leaf",
+    listen: "Voice command",
+    history: "Recent analyses",
+    login: "Sign in",
+    register: "Create account",
+    consent: "I consent to this image being processed for AI analysis.",
+    tip: "For best results: one leaf, natural light, both sides, plain background.",
+  },
+  te: {
+    title: "లీఫ్‌కేర్ AI",
+    sub: "మీ మొక్క ఆకును క్షణాల్లో అర్థం చేసుకోండి",
+    upload: "ఆకు ఫోటోను అప్‌లోడ్ చేయండి",
+    analyze: "ఆకును విశ్లేషించండి",
+    listen: "వాయిస్ కమాండ్",
+    history: "ఇటీవలి విశ్లేషణలు",
+    login: "లాగిన్",
+    register: "ఖాతా సృష్టించండి",
+    consent:
+      "AI విశ్లేషణ కోసం ఈ చిత్రాన్ని ప్రాసెస్ చేయడానికి నేను అంగీకరిస్తున్నాను.",
+    tip: "మంచి ఫలితాల కోసం: ఒక ఆకు, సహజ కాంతి, రెండు వైపులు, సాధారణ నేపథ్యం.",
+  },
+  hi: {
+    title: "लीफकेयर AI",
+    sub: "अपने पौधे की पत्ती को कुछ सेकंड में समझें",
+    upload: "पत्ती की फोटो अपलोड करें",
+    analyze: "पत्ती का विश्लेषण करें",
+    listen: "वॉइस कमांड",
+    history: "हाल के विश्लेषण",
+    login: "साइन इन",
+    register: "खाता बनाएँ",
+    consent:
+      "मैं AI विश्लेषण के लिए इस चित्र को प्रोसेस करने की सहमति देता/देती हूँ।",
+    tip: "बेहतर परिणाम: एक पत्ती, प्राकृतिक रोशनी, दोनों तरफ, सादा बैकग्राउंड।",
+  },
+};

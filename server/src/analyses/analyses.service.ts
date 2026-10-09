@@ -1,6 +1,7 @@
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
+import { z } from "zod";
 import {
   Injectable,
   BadRequestException,
@@ -28,6 +29,13 @@ export class AnalysesService {
       if (req.body.consent !== "true")
         throw new BadRequestException("Consent is required");
       if (!req.file) throw new BadRequestException("Leaf image is required");
+      const context = z
+        .object({
+          plantName: z.string().trim().max(150).default(""),
+          location: z.string().trim().max(255).default(""),
+          language: z.enum(["en", "te", "hi"]).default("en"),
+        })
+        .parse(req.body);
       const meta = await sharp(req.file.buffer, { failOn: "error" }).metadata();
       if (
         !["jpeg", "png", "webp"].includes(meta.format ?? "") ||
@@ -65,21 +73,22 @@ export class AnalysesService {
         ],
       );
       await this.db.execute(
-        "INSERT INTO leaf_analyses(id,upload_id,user_id,requested_language,model_name,prompt_version) VALUES(?,?,?,?,?,?)",
+        "INSERT INTO leaf_analyses(id,upload_id,user_id,requested_language,model_name,prompt_version,provided_plant_name,plant_location) VALUES(?,?,?,?,?,?,?,?)",
         [
           analysisId,
           uploadId,
           req.user.sub,
-          ["en", "te", "hi"].includes(req.body.language)
-            ? req.body.language
-            : "en",
+          context.language,
           env.OPENAI_VISION_MODEL,
-          "leaf-v1",
+          "leaf-v2",
+          context.plantName || null,
+          context.location || null,
         ],
       );
       const result = await this.leafAnalysis.analyzeLeaf(
           normalized,
           "image/jpeg",
+          context,
         ),
         d = result.data,
         status =
@@ -109,9 +118,9 @@ export class AnalysesService {
         req,
         { model: env.OPENAI_VISION_MODEL, status },
       );
-      return { id: analysisId, status, ...d };
+      return this.findOne({ user: req.user, params: { id: analysisId } });
     } catch (e: any) {
-      if (e instanceof BadRequestException) throw e;
+      if (e instanceof BadRequestException || e instanceof z.ZodError) throw e;
       await this.db
         .execute(
           "UPDATE leaf_analyses SET status='FAILED',error_code='ANALYSIS_FAILED',error_message=?,processing_ms=?,completed_at=NOW(3) WHERE id=?",
@@ -123,17 +132,49 @@ export class AnalysesService {
   }
   async list(req: ApiRequest) {
     const [rows] = await this.db.execute(
-      "SELECT id,status,plant_name,disease_name,confidence,severity,requested_language,created_at FROM leaf_analyses WHERE user_id=? ORDER BY created_at DESC LIMIT 50",
+      "SELECT id,status,plant_name,disease_name,confidence,severity,requested_language,provided_plant_name,plant_location,created_at FROM leaf_analyses WHERE user_id=? ORDER BY created_at DESC LIMIT 50",
       [req.user.sub],
     );
     return rows;
   }
-  async findOne(req: ApiRequest) {
+  async findOne(req: Pick<ApiRequest, "user" | "params">) {
     const [rows] = await this.db.execute(
-      "SELECT id,status,plant_name,disease_name,confidence,severity,analysis_json,created_at FROM leaf_analyses WHERE id=? AND user_id=?",
+      "SELECT a.*,u.original_file_name,u.consent_to_analyze,u.uploaded_at FROM leaf_analyses a JOIN leaf_uploads u ON u.id=a.upload_id WHERE a.id=? AND a.user_id=?",
       [req.params.id, req.user.sub],
     );
     if (!rows[0]) throw new NotFoundException("Not found");
-    return rows[0];
+    const row = rows[0];
+    const data =
+      typeof row.analysis_json === "string"
+        ? JSON.parse(row.analysis_json)
+        : row.analysis_json;
+    const {
+      analysis_json,
+      output_en,
+      output_te,
+      output_hi,
+      error_message,
+      ...metadata
+    } = row;
+    return {
+      ...metadata,
+      ...data,
+      id: row.id,
+      status: row.status,
+      analysis_json: data,
+    };
+  }
+  async image(req: ApiRequest) {
+    const [rows] = await this.db.execute(
+      "SELECT u.storage_key,u.encryption_iv,u.encryption_tag FROM leaf_uploads u JOIN leaf_analyses a ON a.upload_id=u.id WHERE a.id=? AND a.user_id=? AND u.deleted_at IS NULL",
+      [req.params.id, req.user.sub],
+    );
+    if (!rows[0]) throw new NotFoundException("Not found");
+    const row = rows[0];
+    return this.security.decrypt(
+      await this.storage.readUpload(row.storage_key),
+      row.encryption_iv,
+      row.encryption_tag,
+    );
   }
 }

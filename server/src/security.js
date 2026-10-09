@@ -4,6 +4,15 @@ import { env } from "./config.js";
 
 export const sha256 = (value) =>
   crypto.createHash("sha256").update(value).digest("hex");
+export function decrypt(bytes, iv, tag) {
+  const decipher = crypto.createDecipheriv(
+    "aes-256-gcm",
+    Buffer.from(env.UPLOAD_ENCRYPTION_KEY, "hex"),
+    Buffer.from(iv, "hex"),
+  );
+  decipher.setAuthTag(Buffer.from(tag, "hex"));
+  return Buffer.concat([decipher.update(bytes), decipher.final()]);
+}
 export function issueTokens(user, sessionId) {
   return {
     accessToken: jwt.sign(

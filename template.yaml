@@ -92,7 +92,9 @@ Resources:
               Action: secretsmanager:GetSecretValue
               Resource: !Ref AppSecretArn
             - Effect: Allow
-              Action: s3:PutObject
+              Action:
+                - s3:PutObject
+                - s3:GetObject
               Resource: !Sub "${Uploads.Arn}/*"
   ApiUrl:
     Type: AWS::Lambda::Url

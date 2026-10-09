@@ -3,8 +3,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsc-watch -p tsconfig.json --onSuccess \"node dist/main.js\"",
-    "start": "node dist/main.js",
+    "dev": "tsc-watch -p tsconfig.json --onSuccess \"node --use-system-ca dist/main.js\"",
+    "start": "node --use-system-ca dist/main.js",
     "test": "npm run build && node --test test/*.test.js",
     "check": "tsc --noEmit -p tsconfig.json",
     "lambda:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-lambda.ps1",
@@ -35,7 +35,7 @@
     "zod": "^3.25.76"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.19.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",

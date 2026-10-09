@@ -75,7 +75,11 @@ test("Swagger UI, assets, and API schema are available", async () => {
   const page = await handler(event("/api/docs"), {});
   assert.equal(page.statusCode, 200);
   assert.match(page.body, /swagger-ui/);
-  for (const asset of ["swagger-ui-init.js", "swagger-ui-bundle.js", "swagger-ui.css"]) {
+  for (const asset of [
+    "swagger-ui-init.js",
+    "swagger-ui-bundle.js",
+    "swagger-ui.css",
+  ]) {
     const response = await handler(event(`/api/docs/${asset}`), {});
     assert.equal(response.statusCode, 200, asset);
   }
@@ -85,9 +89,15 @@ test("Swagger UI, assets, and API schema are available", async () => {
   assert.equal(doc.info.title, "LeafCare AI API");
   assert.equal(doc.components.securitySchemes.bearer.scheme, "bearer");
   assert.ok(doc.paths["/api/health"].get);
-  assert.ok(doc.paths["/api/auth/login"].post.requestBody.content["application/json"]);
+  assert.ok(
+    doc.paths["/api/auth/login"].post.requestBody.content["application/json"],
+  );
   assert.deepEqual(doc.paths["/api/analyses"].post.security, [{ bearer: [] }]);
-  assert.equal(doc.paths["/api/analyses"].post.requestBody.content["multipart/form-data"].schema.properties.leaf.format, "binary");
+  assert.equal(
+    doc.paths["/api/analyses"].post.requestBody.content["multipart/form-data"]
+      .schema.properties.leaf.format,
+    "binary",
+  );
   assert.equal(doc.paths["/api/analyses/{id}"].get.parameters[0].name, "id");
 });
 
@@ -191,6 +201,51 @@ test("encrypted upload bytes are written to the private S3 bucket", async () => 
     assert.notDeepEqual(input.Body, plain);
     assert.equal(input.ServerSideEncryption, "AES256");
   } finally {
+    send.mock.restore();
+  }
+});
+
+test("saved photo endpoint returns decrypted binary only for its owner", async () => {
+  const token = issueTokens(
+    { id: 7, role: "USER" },
+    crypto.randomUUID(),
+  ).accessToken;
+  const plain = Buffer.from([255, 216, 255, 224, 0, 16]);
+  const data = encrypt(plain),
+    id = crypto.randomUUID();
+  const execute = mock.method(db, "execute", async (sql, args) => {
+    assert.match(sql, /a.user_id=\?/);
+    assert.deepEqual(args, [id, "7"]);
+    return [
+      [
+        {
+          storage_key: `${id}.bin`,
+          encryption_iv: data.iv,
+          encryption_tag: data.tag,
+        },
+      ],
+    ];
+  });
+  const send = mock.method(s3, "send", async () => ({
+    Body: { transformToByteArray: async () => data.encrypted },
+  }));
+  try {
+    const result = await handler(
+      event(`/api/analyses/${id}/image`, "GET", {
+        headers: { authorization: `Bearer ${token}` },
+      }),
+      {},
+    );
+    assert.equal(result.statusCode, 200);
+    assert.match(result.headers["content-type"], /image\/jpeg/);
+    assert.equal(result.headers["cache-control"], "no-store, private");
+    assert.equal(result.isBase64Encoded, true);
+    assert.deepEqual(Buffer.from(result.body, "base64"), plain);
+    assert.equal(send.mock.calls[0].arguments[0].input.Key, `${id}.bin`);
+    const denied = await handler(event(`/api/analyses/${id}/image`), {});
+    assert.equal(denied.statusCode, 401);
+  } finally {
+    execute.mock.restore();
     send.mock.restore();
   }
 });
