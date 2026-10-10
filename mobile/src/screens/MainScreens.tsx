@@ -1,3 +1,4 @@
+import { Weather } from "../Weather";
 import { useLocale } from "../locale";
 import { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
@@ -23,6 +24,7 @@ export function HomeScreen() {
       title={localize(accountGreeting(a.user?.fullName))}
     >
       <Text style={s.body}>{localize("Healthy plants make a happier you.")}</Text>
+      <Weather />
       <LinearGradient colors={["#007ca8", "#005e80"]} style={s.hero}>
         <Text style={[s.title, { color: "#fff" }]}>{localize("Analyze a leaf")}</Text>
         <Text style={[s.body, { color: "#fff" }]}>{localize("Take a photo or choose from your gallery to detect plant issues, get insights and care recommendations.")}</Text>

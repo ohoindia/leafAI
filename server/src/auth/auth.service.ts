@@ -126,16 +126,31 @@ export class AuthService {
     const [secrets] = await this.db.execute("SELECT ConfigKey,ConfigValue FROM ConfigSecrets");
     return Object.fromEntries([...values, ...secrets].map(r => [r.ConfigKey, r.ConfigValue]));
   }
-  async requestOtp(req: ApiRequest) {
+  async checkMobile(req: ApiRequest) {
     const { mobileNumber } = z.object({ mobileNumber: z.string().trim().regex(/^[6-9][0-9]{9}$/) }).parse(req.body);
+    const [users] = await this.db.execute("SELECT id,is_active,pin_hash,mobile_verified_at FROM users WHERE mobile_number=? LIMIT 1", [mobileNumber]);
+    const user = users[0];
+    if (user && !user.is_active) throw new UnauthorizedException("Account is inactive. Please contact support.");
+    const profileCreated = Boolean(user?.pin_hash && user?.mobile_verified_at);
+    return { exists: Boolean(user), profileCreated, nextAction: profileCreated ? "PIN_LOGIN" : "REQUEST_OTP" };
+  }
+  async requestOtp(req: ApiRequest) {
+    const { mobileNumber, resetPin } = z.object({ mobileNumber: z.string().trim().regex(/^[6-9][0-9]{9}$/), resetPin: z.boolean().default(false) }).parse(req.body);
     const config = await this.otpConfig();
     const otp = String(crypto.randomInt(100000, 1000000));
     const guid = crypto.randomUUID();
     const expires = new Date(Date.now() + 120000);
     await this.db.transaction(async c => {
-      const [users] = await c.execute("SELECT id FROM users WHERE mobile_number=? AND is_active=1 FOR UPDATE", [mobileNumber]);
-      if (!users[0]) throw new BadRequestException("Mobile number is not registered. Please contact support.");
-      const [history] = await c.execute("SELECT GeneratedOn FROM MobileOTPHistory WHERE user_id=? AND GeneratedOn>DATE_SUB(NOW(3),INTERVAL 24 HOUR)", [users[0].id]);
+      const [users] = await c.execute("SELECT id,is_active,pin_hash,mobile_verified_at FROM users WHERE mobile_number=? FOR UPDATE", [mobileNumber]);
+      let user = users[0];
+      if (user && !user.is_active) throw new UnauthorizedException("Account is inactive. Please contact support.");
+      if (resetPin && !user?.pin_hash) throw new BadRequestException("Complete registration before resetting your PIN.");
+      if (user?.pin_hash && user.mobile_verified_at && !resetPin) throw new BadRequestException("Profile already created. Sign in with your PIN.");
+      if (!user) {
+        const [created] = await c.execute("INSERT INTO users(mobile_number,full_name,user_details) VALUES(?,'',?)", [mobileNumber, JSON.stringify({ phone: mobileNumber })]);
+        user = { id: created.insertId };
+      }
+      const [history] = await c.execute("SELECT GeneratedOn FROM MobileOTPHistory WHERE user_id=? AND GeneratedOn>DATE_SUB(NOW(3),INTERVAL 24 HOUR)", [user.id]);
       if (history.length >= 5) throw new BadRequestException("OTP limit reached. Try after 24 hours.");
       if (history.some((r: { GeneratedOn: string }) => new Date(r.GeneratedOn).getTime() > Date.now()-60000)) throw new BadRequestException("Wait 60 seconds before requesting another OTP.");
       if (config.OTP_SEND_ENABLED === "true") {
@@ -157,13 +172,13 @@ export class AuthService {
           } else throw Error();
         } catch { throw new ServiceUnavailableException("Unable to send OTP. Check SMS provider configuration."); }
       } else if (config.OTP_SEND_ENABLED !== "false") throw new ServiceUnavailableException("OTP sending is not configured.");
-      await c.execute("UPDATE MobileOTPHistory SET consumed_at=NOW(3) WHERE user_id=? AND consumed_at IS NULL", [users[0].id]);
-      await c.execute("INSERT INTO MobileOTPHistory(GUID,user_id,MobileNumber,OTPGenerated,ExpiredOTPOn) VALUES(?,?,?,?,?)", [guid, users[0].id, mobileNumber, otp, expires]);
+      await c.execute("UPDATE MobileOTPHistory SET consumed_at=NOW(3) WHERE user_id=? AND consumed_at IS NULL", [user.id]);
+      await c.execute("INSERT INTO MobileOTPHistory(GUID,user_id,MobileNumber,OTPGenerated,ExpiredOTPOn,purpose) VALUES(?,?,?,?,?,?)", [guid, user.id, mobileNumber, otp, expires, resetPin ? "PIN_RESET" : "REGISTRATION"]);
     });
-    return { guid, expiresAt: expires.toISOString(), deliveryEnabled: config.OTP_SEND_ENABLED === "true" };
+    return { guid, expiresAt: expires.toISOString(), deliveryEnabled: config.OTP_SEND_ENABLED === "true", ...(config.OTP_SEND_ENABLED === "false" ? { testOtp: otp } : {}) };
   }
   async verifyOtp(req: ApiRequest) {
-    const b = z.object({ guid: z.string().uuid(), otp: z.string().regex(/^\d{6}$/), fullName: z.string().trim().min(2).max(150) }).parse(req.body);
+    const b = z.object({ guid: z.string().uuid(), otp: z.string().regex(/^\d{6}$/), fullName: z.string().trim().min(2).max(150).optional() }).parse(req.body);
     const valid = await this.db.transaction(async c => {
       const [rows] = await c.execute("SELECT * FROM MobileOTPHistory WHERE GUID=? FOR UPDATE", [b.guid]);
       const r = rows[0];
@@ -177,26 +192,56 @@ export class AuthService {
         const submitted = Buffer.from(b.otp);
         if (otp.length !== submitted.length || !crypto.timingSafeEqual(otp, submitted)) return false;
       } catch { return false; }
-      await c.execute("UPDATE MobileOTPHistory SET verified_at=NOW(3),full_name=?,ExpiredOTPOn=DATE_ADD(NOW(3),INTERVAL 5 MINUTE) WHERE GUID=?", [b.fullName, b.guid]);
+      let fullName = b.fullName;
+      if (r.purpose === "PIN_RESET") {
+        const [owners] = await c.execute("SELECT full_name FROM users WHERE id=? AND is_active=1", [r.user_id]);
+        if (!owners[0]) return false;
+        fullName = owners[0].full_name;
+      }
+      if (!fullName || fullName.trim().length < 2) throw new BadRequestException("Enter your full name to complete registration.");
+      await c.execute("UPDATE MobileOTPHistory SET verified_at=NOW(3),full_name=?,ExpiredOTPOn=DATE_ADD(NOW(3),INTERVAL 5 MINUTE) WHERE GUID=?", [fullName, b.guid]);
       return true;
     });
     if (!valid) throw new UnauthorizedException("Invalid or expired OTP. Request a new code.");
     return { guid: b.guid, message: "OTP verified. Set your PIN." };
   }
-  async login(req: ApiRequest) {
+  private async completeProfile(req: ApiRequest) {
     const b = z.object({ guid: z.string().uuid(), pin: z.string().regex(/^\d{4}$/), language: z.enum(["en", "te", "hi"]).default("en") }).parse(req.body);
     const hash = await argon2.hash(b.pin, { type: argon2.argon2id });
-    const u = await this.db.transaction(async c => {
+    return this.db.transaction(async c => {
       const [records] = await c.execute("SELECT * FROM MobileOTPHistory WHERE GUID=? FOR UPDATE", [b.guid]);
       const proof = records[0];
       if (!proof || !proof.verified_at || proof.consumed_at || new Date(proof.ExpiredOTPOn) <= new Date()) throw new UnauthorizedException("Verification expired. Request a new OTP.");
       const [users] = await c.execute("SELECT * FROM users WHERE id=? AND mobile_number=? AND is_active=1 FOR UPDATE", [proof.user_id, proof.MobileNumber]);
       if (!users[0]) throw new UnauthorizedException("Mobile number is not registered");
-      await c.execute("UPDATE users SET full_name=?,pin_hash=?,preferred_language=? WHERE id=?", [proof.full_name, hash, b.language, proof.user_id]);
+      if (users[0].pin_hash && users[0].mobile_verified_at && proof.purpose !== "PIN_RESET") throw new UnauthorizedException("Profile already created. Sign in with your PIN.");
+      await c.execute("UPDATE users SET full_name=?,pin_hash=?,preferred_language=?,mobile_verified_at=NOW(3) WHERE id=?", [proof.full_name, hash, b.language, proof.user_id]);
       await c.execute("UPDATE MobileOTPHistory SET consumed_at=NOW(3) WHERE GUID=?", [b.guid]);
       await c.execute("UPDATE user_sessions SET revoked_at=NOW(3) WHERE user_id=? AND revoked_at IS NULL", [proof.user_id]);
       return { ...users[0], full_name: proof.full_name, preferred_language: b.language };
     });
+  }
+  async login(req: ApiRequest) {
+    const setup = z.object({ guid: z.string().uuid(), pin: z.string().regex(/^\d{4}$/), language: z.enum(["en", "te", "hi"]).default("en") });
+    const pinLogin = z.object({ mobileNumber: z.string().trim().regex(/^[6-9][0-9]{9}$/), pin: z.string().regex(/^\d{4}$/) });
+    const b = z.union([pinLogin, setup]).parse(req.body);
+    let u: any;
+    if ("guid" in b) u = await this.completeProfile({ ...req, body: b } as ApiRequest);
+    else {
+      u = await this.db.transaction(async c => {
+        const [rows] = await c.execute("SELECT * FROM users WHERE mobile_number=? FOR UPDATE", [b.mobileNumber]);
+        const user = rows[0];
+        if (!user || !user.is_active || !user.pin_hash || !user.mobile_verified_at || (user.locked_until && new Date(user.locked_until) > new Date())) return null;
+        if (!await argon2.verify(user.pin_hash, b.pin)) {
+          const count = Number(user.failed_login_count || 0) + 1;
+          await c.execute("UPDATE users SET failed_login_count=?,locked_until=IF(? >= 5,DATE_ADD(NOW(3),INTERVAL 15 MINUTE),locked_until) WHERE id=?", [count, count, user.id]);
+          return null;
+        }
+        await c.execute("UPDATE users SET failed_login_count=0,locked_until=NULL WHERE id=?", [user.id]);
+        return user;
+      });
+      if (!u) throw new UnauthorizedException("Invalid PIN or account unavailable. Use OTP to recover your PIN.");
+    }
     const sid = crypto.randomUUID();
     const tokens = this.security.issueTokens(u, sid);
     await this.db.execute(

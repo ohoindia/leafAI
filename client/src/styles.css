@@ -1039,3 +1039,31 @@ textarea:focus-visible { outline: 2px solid #007ca8; }
 .mobile-phone-input:focus-within { outline: 2px solid #007ca8; outline-offset: 2px; }
 .mobile-phone-input input:focus-visible { outline: none; }
 .mobile-auth-card .auth-security { border-top: 1px solid #e0e9ef; padding-top: 16px; text-align: center; font-size: 12px; }
+
+.weather { display:flex; flex-direction:column; gap:16px; min-width:0; }
+.weather-heading,.weather-search-row,.weather-actions { display:flex; align-items:center; gap:10px; }
+.weather-heading { justify-content:space-between; }
+.weather-heading h2 { margin-top:6px; }
+.weather-symbol { color:#e6a52b; font-size:38px; }
+.weather-search-row input { flex:1; min-width:0; }
+.weather-search-row button { padding:12px; }
+.weather-actions { flex-wrap:wrap; }
+.weather-actions button { font-size:12px; padding:10px; }
+.weather-current { padding:20px; border-radius:18px; background:linear-gradient(130deg,#e8f6ff,#f7fcff); display:flex; flex-direction:column; gap:7px; }
+.weather-location { font-weight:700; }
+.weather-temperature { font-size:42px; line-height:1.2; color:#005e80; }
+.weather-current small { color:#63758a; }
+.weather-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:14px 0; }
+.weather-metrics div { background:#f8fafc; border-radius:10px; padding:10px; overflow-wrap:anywhere; }
+.weather-metrics dt { font-size:11px; color:#63758a; }
+.weather-metrics dd { margin:4px 0 0; font-size:14px; font-weight:650; }
+.weather-outlook { border-left:3px solid #007ca8; background:#edf8ff; padding:14px; border-radius:8px; }
+.weather-outlook p { font-size:13px; margin-top:8px; }
+.weather summary { cursor:pointer; font-size:13px; font-weight:650; padding:12px 0; }
+.weather-day { border:1px solid #e0e9ef; border-radius:12px; padding:0 12px; }
+.weather-day > summary { display:flex; justify-content:space-between; gap:8px; }
+.weather summary small { display:block; font-size:11px; font-weight:400; color:#63758a; margin-top:5px; }
+.weather-hour { border-top:1px solid #e0e9ef; }
+.weather-error { color:#b42318; font-size:13px; }
+.weather-note,.weather-attribution { font-size:12px; }
+.weather-attribution { color:#007ca8; }

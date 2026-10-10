@@ -89,9 +89,9 @@ function useAppState() {
   async function loadHistory(accessToken = token) {
     setHistory(await request<HistoryItem[]>(endpoints.analyses, accessToken));
   }
-  async function authenticate(guid: string, pin: string) {
+  async function authenticate(identifier: string, pin: string, pinLogin = false) {
     return run(async () => {
-      const data = await request<{ accessToken: string; user: User }>(endpoints.login, "", { method: "POST", body: JSON.stringify({ guid, pin, language: lang }) });
+      const data = await request<{ accessToken: string; user: User }>(endpoints.login, "", { method: "POST", body: JSON.stringify(pinLogin ? { mobileNumber: identifier, pin } : { guid: identifier, pin, language: lang }) });
       setToken(data.accessToken); setUser(data.user); change(data.user.language || lang);
       router.replace("/home"); await loadHistory(data.accessToken);
     });

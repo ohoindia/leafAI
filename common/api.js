@@ -1,4 +1,7 @@
 export const endpoints = {
+  weather: "/api/weather",
+  weatherLocations: "/api/weather/locations",
+  checkMobile: "/api/auth/check-mobile",
   requestOtp: "/api/auth/request-otp",
   verifyOtp: "/api/auth/verify-otp",
   forgotPassword: "/api/auth/forgot-password",

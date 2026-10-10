@@ -1,3 +1,4 @@
+import { WeatherModule } from "./weather/weather.module.js";
 import { Module } from "@nestjs/common";
 import { CommonModule } from "./common/common.module.js";
 import { AuthModule } from "./auth/auth.module.js";
@@ -11,6 +12,7 @@ import { HealthModule } from "./health/health.module.js";
     AnalysesModule,
     VoiceCommandsModule,
     HealthModule,
+    WeatherModule,
   ],
 })
 export class AppModule {}

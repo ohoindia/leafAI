@@ -58,7 +58,7 @@ export async function createApplication() {
     rateLimit({ windowMs: 60_000, limit: 100, standardHeaders: "draft-8" }),
   );
   const authLimit = rateLimit({ windowMs: 15 * 60_000, limit: 10 });
-  server.post(["/api/auth/register", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/change-password"], authLimit);
+  server.post(["/api/auth/check-mobile", "/api/auth/request-otp", "/api/auth/verify-otp", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/change-password"], authLimit);
   app.setGlobalPrefix("api");
   app.useGlobalFilters(new ApiExceptionFilter());
   const swaggerConfig = new DocumentBuilder()

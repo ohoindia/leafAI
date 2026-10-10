@@ -5,9 +5,10 @@ CREATE TABLE users (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   mobile_number VARCHAR(10) NULL,
   pin_hash VARCHAR(255) NULL,
+  mobile_verified_at DATETIME(3) NULL,
   UNIQUE KEY uq_users_mobile (mobile_number),
-  email VARCHAR(255) NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NULL,
+  password_hash VARCHAR(255) NULL,
   full_name VARCHAR(150) NOT NULL,
   user_details JSON NULL,
   profile_photo JSON NULL,
@@ -191,5 +192,6 @@ CREATE TABLE MobileOTPHistory (
  OTPGenerated JSON NOT NULL, GeneratedOn DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
  ExpiredOTPOn DATETIME(3) NOT NULL, attempts INT NOT NULL DEFAULT 0, verified_at DATETIME(3) NULL,
  consumed_at DATETIME(3) NULL, full_name VARCHAR(150) NULL,
+ purpose ENUM('REGISTRATION','PIN_RESET') NOT NULL DEFAULT 'REGISTRATION',
  INDEX ix_otp_user_time(user_id,GeneratedOn), FOREIGN KEY(user_id) REFERENCES users(id)
 );

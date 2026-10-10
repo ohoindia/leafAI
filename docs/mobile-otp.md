@@ -1,13 +1,13 @@
 # Mobile OTP authentication
 
-Apply database/migrations/005_mobile_otp.sql once to existing installations. New databases use schema.sql.
-The migration backfills unique 10-digit Indian phone numbers from users.user_details.phone. Check and assign users.mobile_number for remaining users; unregistered or inactive numbers cannot sign in.
+Apply database/migrations/005_mobile_otp.sql once to existing installations, followed by 006_remove_otp_hash.sql and 007_pin_login_profiles.sql. New databases use schema.sql.
+The migration backfills unique 10-digit Indian phone numbers from users.user_details.phone. Check and assign users.mobile_number for remaining users; inactive numbers cannot sign in. New numbers create pending user records during OTP registration.
 
-Flow: POST /api/auth/request-otp {mobileNumber}, POST /api/auth/verify-otp {guid,otp,fullName}, then POST /api/auth/login {guid,pin,language}. The PIN is four digits and is stored as an Argon2 hash. Every sign-in currently follows OTP, name, and PIN setup as requested. Existing password login/registration/recovery routes are removed.
+Flow: POST /api/auth/check-mobile {mobileNumber} first. A profile with pin_hash and mobile_verified_at uses POST /api/auth/login {mobileNumber,pin}. New/incomplete profiles use POST /api/auth/request-otp {mobileNumber}, POST /api/auth/verify-otp {guid,otp,fullName}, then POST /api/auth/login {guid,pin,language}. Forgotten PINs use request-otp {mobileNumber,resetPin:true}, verify-otp {guid,otp}, and login {guid,pin,language}; the verified reset preserves the original name. The PIN is four digits and is stored as an Argon2 hash. Completed profiles sign in directly using their PIN; previously verified OTPs do not have to remain unexpired. Completion sets mobile_verified_at after OTP verification and PIN setup. Five wrong PIN attempts lock the account for fifteen minutes. Existing password login/registration/recovery routes are removed.
 
 ConfigValues and ConfigSecrets have ConfigKey and ConfigValue columns. Secrets override values and are read on each OTP request; SMS settings never come from environment variables. Database connection, JWT signing and storage encryption settings remain in their existing configuration.
 
-Set ConfigValues.OTP_SEND_ENABLED to true or false. False still generates a random OTP and requires verification; it never bypasses authentication or returns the OTP to the browser. For controlled testing, an administrator can read OTPGenerated directly from MobileOTPHistory. Do not disable sending for normal users.
+Set ConfigValues.OTP_SEND_ENABLED to true or false. False generates and stores a random OTP and returns it as testOtp for display on the web/mobile verification screen. Users still enter and verify the code. When sending is enabled, testOtp is omitted. Keep OTP_SEND_ENABLED=true for normal users; false is a testing mode.
 
 For MSG91 set SMS_PROVIDER=msg91, MSG91_OTP_TEMPLATE_ID and optionally MSG91_OTP_URL in ConfigValues, and MSG91_AUTH_KEY in ConfigSecrets. Uses the same Flow API recipients[{mobiles:91+number,var:otp}] payload as ohoCustomerApp. Configure the template variable as var.
 For SMSFresh set SMS_PROVIDER=smsfresh, SMSFRESH_OTP_URL and SMSFRESH_SENDER in ConfigValues, and SMSFRESH_USER and SMSFRESH_PASSWORD in ConfigSecrets. Provider URLs must be HTTPS.

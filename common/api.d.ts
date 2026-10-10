@@ -1,4 +1,7 @@
 export const endpoints: {
+  weather: string;
+  weatherLocations: string;
+  checkMobile: string;
   requestOtp: string;
   verifyOtp: string;
   forgotPassword: string;

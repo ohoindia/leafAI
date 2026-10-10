@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { UserDetails, UserAvatar } from "./UserDetails";
+import { Weather } from "./Weather";
 import { FarmOverview } from "./FarmOverview";
 import { FarmDetails } from "./FarmDetails";
 import { profileSettings, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
@@ -173,33 +174,47 @@ function App() {
     [preview],
   );
   const [authMobile, setAuthMobile] = useState("");
+  const [authName, setAuthName] = useState("");
   const [authStage, setAuthStage] = useState("mobile");
+  const [authChecking, setAuthChecking] = useState(false);
+  const [authReset, setAuthReset] = useState(false);
   const [otpChallenge, setOtpChallenge] = useState(null);
-  async function auth(e) {
-    e.preventDefault();
-    setBusy(true);
-    setError("");
-    const b = Object.fromEntries(new FormData(e.currentTarget));
+  const mobileLookup = useRef(null);
+  async function checkAuthMobile(value) {
+    mobileLookup.current?.abort();
+    const controller = new AbortController(); mobileLookup.current = controller;
+    const digits = value.replace(/\D/g, "").slice(0,10);
+    setAuthMobile(digits); setAuthStage("mobile"); setOtpChallenge(null); setAuthReset(false); setAuthName(""); setError(""); setAuthChecking(false);
+    if (digits.length !== 10) return;
+    if (!/^[6-9]\d{9}$/.test(digits)) { setError("Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9."); return; }
+    setAuthChecking(true);
     try {
-      if (authStage === "mobile") {
-        setOtpChallenge(await api(endpoints.requestOtp, { method: "POST", body: JSON.stringify({ mobileNumber: authMobile }) })); setAuthStage("otp"); return;
-      }
+      const result = await api(endpoints.checkMobile, { method:"POST", body:JSON.stringify({mobileNumber:digits}), signal:controller.signal });
+      if (!controller.signal.aborted) setAuthStage(result.profileCreated ? "login-pin" : "request");
+    } catch(e) { if (!controller.signal.aborted) setError(e.message); }
+    finally { if (!controller.signal.aborted) setAuthChecking(false); }
+  }
+  async function sendAuthOtp(resetPin=false) {
+    if (busy || authChecking) return;
+    setBusy(true); setError("");
+    try {setOtpChallenge(await api(endpoints.requestOtp,{method:"POST",body:JSON.stringify({mobileNumber:authMobile,resetPin})}));setAuthReset(resetPin);setAuthStage("otp");}
+    catch(e){setError(e.message);}finally{setBusy(false);}
+  }
+  async function auth(e) {
+    e.preventDefault(); if (busy || authChecking) return;
+    const b = Object.fromEntries(new FormData(e.currentTarget));
+    if (authStage === "mobile") { await checkAuthMobile(authMobile); return; }
+    if (authStage === "request") { await sendAuthOtp(); return; }
+    setBusy(true);setError("");
+    try {
       if (authStage === "otp") {
-        await api(endpoints.verifyOtp, { method: "POST", body: JSON.stringify({ ...b, guid: otpChallenge.guid }) }); setAuthStage("pin"); return;
+        await api(endpoints.verifyOtp,{method:"POST",body:JSON.stringify({guid:otpChallenge.guid,otp:b.otp,...(!authReset?{fullName:authName}: {})})});setAuthStage("pin");return;
       }
-      if (b.pin !== b.confirmPin) throw Error("PINs do not match.");
-      const x = await api(endpoints.login, { method: "POST", body: JSON.stringify({ guid: otpChallenge.guid, pin: b.pin, language: lang }) });
-      setAuthStage("mobile"); setOtpChallenge(null);
-      tokenRef.current = x.accessToken;
-      setToken(x.accessToken);
-      setUser(x.user);
-      change(x.user.language || lang);
-      go("home");
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
+      if (authStage === "pin" && b.pin !== b.confirmPin) throw Error("PINs do not match.");
+      const x=await api(endpoints.login,{method:"POST",body:JSON.stringify(authStage === "login-pin" ? {mobileNumber:authMobile,pin:b.pin} : {guid:otpChallenge.guid,pin:b.pin,language:lang})});
+      setAuthStage("mobile");setOtpChallenge(null);setAuthMobile("");setAuthName("");
+      tokenRef.current=x.accessToken;setToken(x.accessToken);setUser(x.user);change(x.user.language||lang);go("home");
+    } catch(e){setError(e.message);}finally{setBusy(false);}
   }
   async function saveFarmDetails(farmDetails, farmId, newCrop = false, addPreviousCrop = false) {
     if (busy) return false;
@@ -462,29 +477,34 @@ function App() {
                 </div>
                 <section className="mobile-auth-card">
                 <span className="auth-eyebrow">{localize("Account access")}</span>
-                <h2>{localize(authStage === "mobile" ? "Welcome to Krishi Karshak" : authStage === "otp" ? "Verify OTP and enter name" : "Set your PIN")}</h2>
-                <p className="muted">{localize(authStage === "mobile" ? "Enter your mobile number to continue caring for your plants." : authStage === "otp" ? "Enter the six-digit code sent to your mobile number." : "Choose a four-digit PIN to secure your account.")}</p>
-                <form key={authStage} onSubmit={auth}>
-                  {authStage === "mobile" && <>
+                <h2>{localize(authStage === "otp" ? "Verify OTP" : authStage === "pin" ? "Set your PIN" : "Welcome to Krishi Karshak")}</h2>
+                <p className="muted">{localize(authStage === "otp" ? "Enter the six-digit code sent to your mobile number." : authStage === "pin" ? "Choose a four-digit PIN to secure your account." : "Enter your mobile number to sign in or create an account.")}</p>
+                <form onSubmit={auth}>
+                  {["mobile","request","login-pin"].includes(authStage) && <>
                     <label htmlFor="mobile-number">{localize("Enter mobile number")} <span className="required-marker" aria-hidden="true">*</span></label>
-                    <div className="mobile-phone-input">
-                      <span className="country-prefix" aria-label="Country code +91">+91</span>
-                      <input id="mobile-number" name="mobileNumber" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder={localize("Enter mobile number")} maxLength={11} pattern="[6-9][0-9]{4} ?[0-9]{5}" value={authMobile.replace(/(\d{5})(\d+)/, "$1 $2")} onChange={e => { setAuthMobile(e.target.value.replace(/\D/g, "").slice(0, 10)); setError(""); }} disabled={busy} required />
+                    <div className="mobile-phone-input"><span className="country-prefix" aria-label="Country code +91">+91</span>
+                      <input id="mobile-number" name="mobileNumber" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder={localize("Enter mobile number")} maxLength={11} pattern="[6-9][0-9]{4} ?[0-9]{5}" value={authMobile.replace(/(\d{5})(\d+)/,"$1 $2")} onChange={e=>void checkAuthMobile(e.target.value)} disabled={busy} required />
                     </div>
                   </>}
-
+                  {authChecking && <p role="status">{localize("Checking mobile number...")}</p>}
+                  {authStage === "login-pin" && <>
+                    <label>{localize("Enter 4-digit PIN")}<PasswordField key={authMobile} name="pin" autoComplete="current-password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required autoFocus /></label>
+                    <button type="button" className="text-button" disabled={busy} onClick={()=>void sendAuthOtp(true)}>{localize("Forgot PIN? Request OTP")}</button>
+                  </>}
+                  {authStage === "request" && <><p>{localize("Create your profile with OTP verification.")}</p><label>{localize("Full name")}<input name="fullName" autoComplete="name" minLength={2} maxLength={150} value={authName} onChange={e=>setAuthName(e.target.value)} required /></label></>}
                   {authStage === "otp" && <>
+                    <p className="muted">+91 {authMobile}</p>
                     <label>{localize("OTP")}<input name="otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required /></label>
-                    <label>{localize("Full name")}<input name="fullName" autoComplete="name" minLength={2} maxLength={150} required /></label>
-                    {!otpChallenge.deliveryEnabled && <p>{localize("SMS delivery is disabled. Contact your administrator for the test OTP.")}</p>}
+                    {!authReset && <label>{localize("Full name")}<input name="fullName" autoComplete="name" minLength={2} maxLength={150} value={authName} onChange={e=>setAuthName(e.target.value)} required /></label>}
+                    {!otpChallenge.deliveryEnabled && otpChallenge.testOtp && <p role="status">{localize("Test OTP")}: <strong>{otpChallenge.testOtp}</strong></p>}
                   </>}
                   {authStage === "pin" && <>
                     <label>{localize("Set 4-digit PIN")}<PasswordField name="pin" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required /></label>
                     <label>{localize("Confirm PIN")}<PasswordField name="confirmPin" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required /></label>
                   </>}
-                  <button disabled={busy}>{localize(authStage === "mobile" ? "Request OTP" : authStage === "otp" ? "Verify OTP" : "Save and sign in")}</button>
+                  <button disabled={busy || authChecking}>{localize(authStage === "mobile" ? "Continue" : authStage === "request" ? "Request OTP" : authStage === "login-pin" ? "Sign in" : authStage === "otp" ? "Verify OTP" : "Save and sign in")}</button>
                 </form>
-                {authStage !== "mobile" && <button className="outline" disabled={busy} onClick={() => { setAuthStage("mobile"); setOtpChallenge(null); setError(""); }}>{localize("Change number / request new OTP")}</button>}
+                {["otp","pin"].includes(authStage) && <button className="outline" disabled={busy} onClick={()=>void checkAuthMobile(authMobile)}>{localize("Back to mobile number")}</button>}
                 <Language lang={lang} change={change} />
                 <p className="auth-security muted">{localize("Your plants. Your care. All in one place.")}</p>
                 </section>
@@ -500,6 +520,7 @@ function App() {
                   </h1>
                   <p>{localize("Healthy plants make")}<br />{localize("a happier you.")}</p>
                 </section>
+                <Weather api={api} user={user} lang={lang} />
                 <section className="analyze-card">
                   <span className="camera-circle">
                     <Icon name="camera" />

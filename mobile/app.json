@@ -15,7 +15,13 @@
           "microphonePermission": false
         }
       ],
-      "expo-router"
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Use your location to show local weather and your five-day forecast."
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true,

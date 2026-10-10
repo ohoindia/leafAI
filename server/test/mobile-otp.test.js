@@ -10,7 +10,8 @@ function fixture({user=true, history=[], record, enabled='false'}={}) {
  const execute=async(sql,args)=> {
   if(sql.includes('FROM ConfigValues')) return [[{ConfigKey:'OTP_SEND_ENABLED',ConfigValue:enabled},{ConfigKey:'SMS_PROVIDER',ConfigValue:'msg91'}]];
   if(sql.includes('FROM ConfigSecrets')) return [[]];
-  if(sql.includes('SELECT id FROM users')) return [user?[{id:7}]:[]];
+  if(sql.includes('FROM users WHERE mobile_number=')) return [user?[{id:7,is_active:1}]:[]];
+  if(sql.startsWith('INSERT INTO users')) { writes.push({sql,args}); return [{insertId:7,affectedRows:1}]; }
   if(sql.includes('SELECT GeneratedOn')) return [history];
   if(sql.includes('SELECT * FROM MobileOTPHistory')) return [record?[record]:[]];
   writes.push({sql,args}); return [{affectedRows:1}];
@@ -18,18 +19,20 @@ function fixture({user=true, history=[], record, enabled='false'}={}) {
  const db={execute,transaction:work=>work({execute})};
  return {service:new AuthService(db,{encrypt, decrypt}),writes};
 }
-test('OTP request requires a registered mobile number and validates input',async()=>{
+test('new mobile number creates a pending user and requires OTP verification',async()=>{
  const {service,writes}=fixture({user:false});
- await assert.rejects(service.requestOtp({body:{mobileNumber:'9876543210'}}),/not registered/);
- await assert.rejects(service.requestOtp({body:{mobileNumber:'abc'}})); assert.equal(writes.length,0);
+ await service.requestOtp({body:{mobileNumber:'9876543210'}});
+ assert.ok(writes.some(x=>x.sql.startsWith('INSERT INTO users')));
+ assert.ok(writes.some(x=>x.sql.startsWith('INSERT INTO MobileOTPHistory')));
+ await assert.rejects(service.requestOtp({body:{mobileNumber:'abc'}}));
 });
-test('sending disabled stores a readable six-digit OTP without returning it to the client',async()=>{
+test('sending disabled returns the same generated test OTP stored in the table',async()=>{
  const {service,writes}=fixture(); const result=await service.requestOtp({body:{mobileNumber:'9876543210'}});
- assert.equal(result.deliveryEnabled,false); assert.equal(result.otp,undefined);
- const insert=writes.find(x=>x.sql.startsWith('INSERT')); assert.equal(insert.args[2],'9876543210');
+ assert.equal(result.deliveryEnabled,false); assert.match(result.testOtp,/^\d{6}$/);
+ const insert=writes.find(x=>x.sql.startsWith('INSERT')); assert.equal(insert.args[2],'9876543210'); assert.equal(result.testOtp,insert.args[3]);
  assert.match(insert.args[3],/^\d{6}$/);
  assert.ok(writes.every(x=>!x.sql.includes('OTPGenerated=JSON_OBJECT()')));
- assert.equal(insert.args.length,5); assert.ok(insert.args[4] instanceof Date); assert.ok(!insert.sql.includes('otp_hash'));
+ assert.equal(insert.args.length,6); assert.ok(insert.args[4] instanceof Date); assert.ok(!insert.sql.includes('otp_hash'));
 });
 test('OTP resend cooldown, daily limit and missing provider credentials prevent writes',async()=>{
  for(const options of [{history:[{GeneratedOn:new Date()}]},{history:Array(5).fill({GeneratedOn:new Date(0)})},{enabled:'true'}]) {
@@ -75,11 +78,58 @@ test('MSG91 uses database secrets over values and the reference Flow payload',as
   const execute=async(sql,args)=>{
    if(sql.includes('FROM ConfigValues')) return [[...Object.entries({OTP_SEND_ENABLED:'true',SMS_PROVIDER:'msg91',MSG91_AUTH_KEY:'wrong',MSG91_OTP_TEMPLATE_ID:'template'}).map(([ConfigKey,ConfigValue])=>({ConfigKey,ConfigValue}))]];
    if(sql.includes('FROM ConfigSecrets')) return [[{ConfigKey:'MSG91_AUTH_KEY',ConfigValue:'secret'}]];
-   if(sql.includes('SELECT id FROM users')) return [[{id:7}]];
+   if(sql.includes('FROM users WHERE mobile_number=')) return [[{id:7,is_active:1}]];
    if(sql.includes('SELECT GeneratedOn')) return [[]];return [{affectedRows:1}];
   };
   const service=new AuthService({execute,transaction:work=>work({execute})},{encrypt:()=>({encrypted:Buffer.from('cipher'),iv:'iv',tag:'tag'})});
-  await service.requestOtp({body:{mobileNumber:'9876543210'}});
+  const result=await service.requestOtp({body:{mobileNumber:'9876543210'}});
+  assert.equal(result.testOtp,undefined);
   assert.equal(payload.template_id,'template');assert.equal(payload.recipients[0].mobiles,'919876543210');assert.match(payload.recipients[0].var,/^\d{6}$/);
  } finally {globalThis.fetch=previous;}
+});
+test('mobile lookup chooses PIN only for active completed verified profiles',async()=>{
+ for(const [user,expected] of [[undefined,'REQUEST_OTP'],[{id:7,is_active:1},'REQUEST_OTP'],[{id:7,is_active:1,pin_hash:'hash'},'REQUEST_OTP'],[{id:7,is_active:1,pin_hash:'hash',mobile_verified_at:new Date(0)},'PIN_LOGIN']]) {
+  const service=new AuthService({execute:async(sql,args)=>{assert.ok(sql.includes('WHERE mobile_number=?'));assert.deepEqual(args,['9876543210']);return [user?[user]:[]];}},{});
+  const result=await service.checkMobile({body:{mobileNumber:'9876543210'}});assert.equal(result.nextAction,expected);
+ }
+ const inactive=new AuthService({execute:async()=>[[{id:7,is_active:0,pin_hash:'hash',mobile_verified_at:new Date()}]]},{});
+ await assert.rejects(inactive.checkMobile({body:{mobileNumber:'9876543210'}}),/inactive/);
+});
+test('completed profile signs in using its existing PIN without OTP or profile changes',async()=>{
+ const pinHash=await argon2.hash('1234');const writes=[];
+ const user={id:7,is_active:1,mobile_number:'9876543210',mobile_verified_at:new Date(0),pin_hash:pinHash,full_name:'Existing Farmer',email:null,role:'USER',preferred_language:'te'};
+ const execute=async(sql,args)=>{assert.ok(!sql.includes('MobileOTPHistory'));if(sql.startsWith('SELECT * FROM users'))return [[user]];if(sql.startsWith('SELECT'))return [[]];writes.push({sql,args});return [{affectedRows:1}];};
+ const service=new AuthService({execute,transaction:work=>work({execute})},{issueTokens:()=>({accessToken:'access',refreshToken:'refresh'}),sha256:()=> 'hash'});
+ const result=await service.login({body:{mobileNumber:'9876543210',pin:'1234'},ip:'127.0.0.1',get:()=> 'test'});
+ assert.equal(result.user.fullName,'Existing Farmer');assert.equal(result.user.language,'te');assert.ok(writes.every(x=>!x.sql.includes('pin_hash=?')));
+});
+test('wrong PIN persists attempt count and lockout; incomplete and inactive accounts cannot use PIN',async()=>{
+ const pinHash=await argon2.hash('1234');
+ for(const extra of [{failed_login_count:4},{mobile_verified_at:null},{is_active:0},{locked_until:new Date(Date.now()+60000)}]) {
+  const writes=[];const user={id:7,is_active:1,mobile_verified_at:new Date(),pin_hash:pinHash,...extra};
+  const execute=async(sql,args)=>{if(sql.startsWith('SELECT'))return [[user]];writes.push({sql,args});return [{affectedRows:1}];};
+  const service=new AuthService({transaction:work=>work({execute})},{});
+  await assert.rejects(service.login({body:{mobileNumber:'9876543210',pin:'0000'}}),/Invalid PIN/);
+  if(extra.failed_login_count===4){assert.equal(writes[0].args[0],5);assert.ok(writes[0].sql.includes('INTERVAL 15 MINUTE'));}else assert.equal(writes.length,0);
+ }
+});
+test('completed users must explicitly request PIN recovery to receive OTP',async()=>{
+ const user={id:7,is_active:1,pin_hash:'hash',mobile_verified_at:new Date()};const writes=[];
+ const execute=async(sql,args)=>{
+  if(sql.includes('FROM ConfigValues'))return [[{ConfigKey:'OTP_SEND_ENABLED',ConfigValue:'false'}]];
+  if(sql.includes('FROM ConfigSecrets')||sql.includes('SELECT GeneratedOn'))return [[]];
+  if(sql.includes('FROM users'))return [[user]];
+  writes.push({sql,args});return [{affectedRows:1}];
+ };
+ const service=new AuthService({execute,transaction:work=>work({execute})},{});
+ await assert.rejects(service.requestOtp({body:{mobileNumber:'9876543210'}}),/Sign in with your PIN/);assert.equal(writes.length,0);
+ await service.requestOtp({body:{mobileNumber:'9876543210',resetPin:true}});
+ assert.equal(writes.find(x=>x.sql.startsWith('INSERT INTO MobileOTPHistory')).args[5],'PIN_RESET');
+});
+test('OTP recovery preserves the saved name after verifying the code',async()=>{
+ const writes=[];const record={user_id:7,OTPGenerated:123456,purpose:'PIN_RESET',ExpiredOTPOn:new Date(Date.now()+60000),attempts:0};
+ const execute=async(sql,args)=>{if(sql.includes('FROM MobileOTPHistory'))return [[record]];if(sql.includes('SELECT full_name'))return [[{full_name:'Saved Name'}]];writes.push({sql,args});return [{affectedRows:1}];};
+ const service=new AuthService({transaction:work=>work({execute})},{});
+ await service.verifyOtp({body:{guid,otp:'123456'}});
+ assert.equal(writes.find(x=>x.sql.includes('verified_at=NOW')).args[0],'Saved Name');
 });

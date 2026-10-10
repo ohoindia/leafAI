@@ -56,6 +56,9 @@ export class AuthController {
       maxAge: 7 * 864e5,
     });
   }
+  @Post("check-mobile")
+  @HttpCode(200)
+  checkMobile(@Req() req: ApiRequest) { return this.service.checkMobile(req); }
   @Post("request-otp")
   @HttpCode(200)
   requestOtp(@Req() req: ApiRequest) { return this.service.requestOtp(req); }
@@ -64,7 +67,7 @@ export class AuthController {
   verifyOtp(@Req() req: ApiRequest) { return this.service.verifyOtp(req); }
   @Post("login")
   @HttpCode(200)
-  @ApiBody({ schema: { type: "object", required: ["guid", "pin"], properties: { guid: { type: "string", format: "uuid" }, pin: { type: "string", pattern: "^[0-9]{4}$" }, language: { type: "string", enum: ["en", "te", "hi"] } } } })
+  @ApiBody({ schema: { type: "object", required: ["pin"], properties: { mobileNumber: { type: "string", pattern: "^[6-9][0-9]{9}$" }, guid: { type: "string", format: "uuid" }, pin: { type: "string", pattern: "^[0-9]{4}$" }, language: { type: "string", enum: ["en", "te", "hi"] } } } })
   async login(@Req() req: ApiRequest, @Res({ passthrough: true }) res: Response) {
     const { tokens, user } = await this.service.login(req);
     this.setRefreshCookie(res, tokens.refreshToken);
