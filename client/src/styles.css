@@ -1009,3 +1009,10 @@ textarea:focus-visible { outline: 2px solid #007ca8; }
 .farm-summary dd { font-size: 15px; line-height: 1.6; font-weight: 500; }
 .farm-section-actions { justify-content: flex-start; border-top: 1px solid #edf2f6; padding-top: 16px; }
 @media (max-width: 360px) { .farm-field-grid, .farm-summary { grid-template-columns: 1fr; } }
+
+.user-photo { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.user-photo-large { width: 96px; height: 96px; min-width: 96px; font-size: 30px; }
+.user-photo-panel { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.user-photo-panel h3 { align-self: flex-start; }
+.profile-camera { width: 100%; display: grid; gap: 12px; }
+.profile-camera video { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; background: #142b41; }

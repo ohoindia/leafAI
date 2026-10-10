@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
+import { UserDetails, UserAvatar } from "./UserDetails";
 import { FarmDetails } from "./FarmDetails";
-import { profileSettings, accountInitials, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
+import { profileSettings, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
 import { endpoints, uploadRules, requestApi } from '../../common/api.js';
 function Leaf({ large = false }) {
   return <img className={large ? "leaf large" : "leaf"} src="/leaf-logo.svg" alt="" />;
@@ -195,6 +196,25 @@ function App() {
       const data = await api(endpoints.me, { method: "PATCH", body: JSON.stringify({ fullName: user.fullName, language: lang, farmDetails }) });
       setUser(data); setNotice("Farm details saved.");
       return true;
+    } catch (e) { setError(e.message); return false; }
+    finally { setBusy(false); }
+  }
+  async function saveUserDetails(fullName, userDetails) {
+    if (busy) return false;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const data = await api(endpoints.me, { method: "PATCH", body: JSON.stringify({ fullName, language: lang, userDetails }) });
+      setUser(data); setNotice("User details saved."); return true;
+    } catch (e) { setError(e.message); return false; }
+    finally { setBusy(false); }
+  }
+  async function uploadProfilePhoto(file) {
+    if (busy) return false;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const form = new FormData(); form.append("photo", file);
+      setUser(await api(endpoints.profilePhoto, { method: "POST", body: form }));
+      setNotice("Profile photo saved."); return true;
     } catch (e) { setError(e.message); return false; }
     finally { setBusy(false); }
   }
@@ -397,7 +417,7 @@ function App() {
                 </div>
               </div>
               <button className="account-avatar" aria-label={`Open profile for ${user?.fullName || "your account"}`} onClick={() => go("profile")}>
-                {accountInitials(user?.fullName)}
+                <UserAvatar user={user} />
               </button>
             </header>
           )}
@@ -930,7 +950,7 @@ function App() {
             {screen === "profile" && <>
               <h2>{screens.profile}</h2>
                 <section className="profile-hero card">
-                  <div className="account-avatar profile-avatar">{accountInitials(user?.fullName)}</div>
+                  <UserAvatar user={user} large />
                   <div><h3>{user?.fullName || "Your account"}</h3><p className="muted">{user?.email}</p></div>
                 </section>
               <div className="profile-menu">
@@ -946,15 +966,7 @@ function App() {
               <h2>{screens[screen]}</h2>
               {screen === "language" && <section className="card"><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>}
               {screen === "farm-details" && <FarmDetails details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
-              {screen === "account-details" && <>
-                <section className="card"><h3>Account details</h3>
-                  <form key={user?.fullName} onSubmit={e => account(e, "profile")}>
-                    <label>Full name<input name="fullName" defaultValue={user?.fullName} autoComplete="name" required minLength={2} maxLength={150} /></label>
-                    <label>Email address<input value={user?.email || ""} readOnly /></label>
-                    <button disabled={busy}>{busy ? "Saving..." : "Save profile"}</button>
-                  </form>
-                </section>
-              </>}
+              {screen === "account-details" && <UserDetails user={user} busy={busy} onSave={saveUserDetails} onUpload={uploadProfilePhoto} />}
               {screen === "security" && <>
                 <section className="card"><h3>Password & security</h3>
                   <form onSubmit={e => account(e, "changePassword")}>

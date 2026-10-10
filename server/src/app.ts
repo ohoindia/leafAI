@@ -39,7 +39,7 @@ export async function createApplication() {
   server.use(helmet({
     crossOriginResourcePolicy: { policy: "same-site" },
     contentSecurityPolicy: {
-      directives: { upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null },
+      directives: { imgSrc: ["'self'", "data:", "blob:"], upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null },
     },
   }));
   server.use(

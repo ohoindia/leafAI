@@ -7,7 +7,10 @@ import {
   Req,
   Res,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { memoryStorage } from "multer";
 import type { Response } from "express";
 import type { ApiRequest } from "../common/api-request.js";
 import { env } from "../config.js";
@@ -36,13 +39,19 @@ export class AuthController {
   @Get("me")
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
-  me(@Req() req: ApiRequest) {
+  me(@Req() req: ApiRequest, @Res({ passthrough: true }) res: Response) {
+    res.setHeader("Cache-Control", "no-store, private");
     return this.service.me(req);
   }
   @Patch("me")
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   updateProfile(@Req() req: ApiRequest) { return this.service.updateProfile(req); }
+  @Post("me/photo")
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor("photo", { storage: memoryStorage(), limits: { fileSize: 4 * 1024 * 1024, files: 1 } }))
+  uploadPhoto(@Req() req: ApiRequest) { return this.service.uploadPhoto(req); }
   @Post("forgot-password")
   @HttpCode(200)
   forgotPassword(@Req() req: ApiRequest) { return this.service.forgotPassword(req); }

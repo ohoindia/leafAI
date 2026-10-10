@@ -1,8 +1,10 @@
+import sharp from "sharp";
+import { userDetailsSchema } from "./user-schema.js";
 import crypto from "node:crypto";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
-import { Injectable, UnauthorizedException, ServiceUnavailableException } from "@nestjs/common";
+import { Injectable, UnauthorizedException, ServiceUnavailableException, BadRequestException } from "@nestjs/common";
 import { env } from "../config.js";
 import { DatabaseService } from "../common/database.service.js";
 import { SecurityService } from "../common/security.service.js";
@@ -24,7 +26,7 @@ export class AuthService {
   ) {}
   async me(req: ApiRequest) {
     const [rows] = await this.db.execute(
-      "SELECT id,full_name,email,preferred_language,role,farm_details FROM users WHERE id=? AND is_active=1",
+      "SELECT id,full_name,email,preferred_language,role,farm_details,user_details,profile_photo FROM users WHERE id=? AND is_active=1",
       [req.user.sub],
     );
     if (!rows[0]) throw new UnauthorizedException("Session expired");
@@ -35,16 +37,38 @@ export class AuthService {
       email: u.email,
       language: u.preferred_language,
       role: u.role,
+      userDetails: typeof u.user_details === "string" ? JSON.parse(u.user_details) : (u.user_details || {}),
+      profilePhoto: this.photoData(u.profile_photo),
       farmDetails: typeof u.farm_details === "string" ? JSON.parse(u.farm_details) : (u.farm_details || {}),
     };
   }
   async updateProfile(req: ApiRequest) {
-    const b = z.object({ fullName: z.string().trim().min(2).max(150), language: z.enum(["en", "te", "hi"]), farmDetails: farmDetailsSchema.optional() }).parse(req.body);
-    if (b.farmDetails !== undefined) {
-      await this.db.execute("UPDATE users SET full_name=?,preferred_language=?,farm_details=? WHERE id=? AND is_active=1", [b.fullName, b.language, JSON.stringify(b.farmDetails), req.user.sub]);
-    } else {
-      await this.db.execute("UPDATE users SET full_name=?,preferred_language=? WHERE id=? AND is_active=1", [b.fullName, b.language, req.user.sub]);
-    }
+    const b = z.object({ fullName: z.string().trim().min(2).max(150), language: z.enum(["en", "te", "hi"]), farmDetails: farmDetailsSchema.optional(), userDetails: userDetailsSchema.optional() }).parse(req.body);
+    const columns = ["full_name=?", "preferred_language=?"];
+    const values: string[] = [b.fullName, b.language];
+    if (b.farmDetails !== undefined) { columns.push("farm_details=?"); values.push(JSON.stringify(b.farmDetails)); }
+    if (b.userDetails !== undefined) { columns.push("user_details=?"); values.push(JSON.stringify(b.userDetails)); }
+    values.push(req.user.sub);
+    await this.db.execute(`UPDATE users SET ${columns.join(",")} WHERE id=? AND is_active=1`, values);
+    return this.me(req);
+  }
+  private photoData(value: unknown): string | null {
+    if (!value) return null;
+    const photo = typeof value === "string" ? JSON.parse(value) : value;
+    const { encrypted, iv, tag } = photo as { encrypted: string; iv: string; tag: string };
+    return `data:image/jpeg;base64,${this.security.decrypt(Buffer.from(encrypted, "base64"), iv, tag).toString("base64")}`;
+  }
+  async uploadPhoto(req: ApiRequest) {
+    if (!req.file || req.file.buffer.length > 4 * 1024 * 1024) throw new BadRequestException("Choose a photo smaller than 4 MiB.");
+    let normalized: Buffer;
+    try {
+      const image = sharp(req.file.buffer, { failOn: "error", limitInputPixels: 40_000_000 });
+      const meta = await image.metadata();
+      if (!["jpeg", "png", "webp"].includes(meta.format || "") || (meta.pages || 1) > 1) throw new Error("Unsupported image");
+      normalized = await image.rotate().resize(384, 384, { fit: "cover" }).jpeg({ quality: 85 }).toBuffer();
+    } catch { throw new BadRequestException("Choose a valid JPEG, PNG or WebP photo."); }
+    const photo = this.security.encrypt(normalized);
+    await this.db.execute("UPDATE users SET profile_photo=? WHERE id=? AND is_active=1", [JSON.stringify({ encrypted: photo.encrypted.toString("base64"), iv: photo.iv, tag: photo.tag }), req.user.sub]);
     return this.me(req);
   }
   async forgotPassword(req: ApiRequest) {
@@ -164,7 +188,9 @@ export class AuthService {
         email: u.email,
         language: u.preferred_language,
         role: u.role,
-        farmDetails: typeof u.farm_details === "string" ? JSON.parse(u.farm_details) : (u.farm_details || {}),
+        userDetails: typeof u.user_details === "string" ? JSON.parse(u.user_details) : (u.user_details || {}),
+      profilePhoto: this.photoData(u.profile_photo),
+      farmDetails: typeof u.farm_details === "string" ? JSON.parse(u.farm_details) : (u.farm_details || {}),
       },
     };
   }

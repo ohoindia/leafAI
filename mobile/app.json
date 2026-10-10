@@ -10,8 +10,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Choose a leaf photo for plant health analysis.",
-          "cameraPermission": "Photograph a leaf for plant health analysis.",
+          "photosPermission": "Choose a profile photo or a leaf photo for plant health analysis.",
+          "cameraPermission": "Take your profile photo or photograph a leaf for plant health analysis.",
           "microphonePermission": false
         }
       ],

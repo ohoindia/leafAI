@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   profileSettings,
-  accountInitials,
   accountGreeting,
   analysisStatus,
   careTips,
@@ -12,7 +11,9 @@ import {
   voiceCommands,
 } from "../../../common/content.js";
 import { useLeafCare } from "../state";
-import { AnalysisPhoto, Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
+import { UserAvatar, AnalysisPhoto, Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
+import { userDetailSections, type UserDetails } from "../../../common/profile.js";
+
 export function HomeScreen() {
   const a = useLeafCare();
   return (
@@ -140,7 +141,7 @@ export function ProfileScreen() {
   return <Page title={screens.profile}>
     <Card>
       <View style={s.row}>
-        <View style={s.accountAvatar}><Text style={s.avatarText}>{accountInitials(a.user?.fullName)}</Text></View>
+        <UserAvatar />
         <View style={s.flex}><Text style={s.heading}>{a.user?.fullName || "Your account"}</Text><Text style={s.muted}>{a.user?.email}</Text></View>
       </View>
     </Card>
@@ -151,12 +152,25 @@ export function ProfileScreen() {
 export function AccountDetailsScreen() {
   const a = useLeafCare();
   const [name, setName] = useState<string>();
+  const [draft, setDraft] = useState<UserDetails>();
+  const details = draft ?? a.user?.userDetails ?? {};
   return <Page title={screens["account-details"]}>
-    <Card title="Account details">
-      <Text style={s.body}>Full name</Text><Field value={name ?? a.user?.fullName ?? ""} onChangeText={setName} maxLength={150} autoComplete="name" accessibilityLabel="Full name" />
-      <Text style={s.body}>Email address</Text><Text style={s.muted}>{a.user?.email}</Text>
-      <Button title={a.busy ? "Saving..." : "Save profile"} disabled={a.busy} onPress={() => { void a.saveProfile(name ?? a.user?.fullName ?? "").then(ok => { if (ok) setName(undefined); }); }} />
+    <Card title="Profile photo">
+      <View style={{ alignItems: "center" }}>{a.profilePhotoDraft ? <Image source={{ uri: a.profilePhotoDraft }} accessibilityLabel="Selected profile photo preview" style={{ width: 120, height: 120, borderRadius: 60 }} /> : <UserAvatar large />}</View>
+      <Text style={s.muted}>Use a clear photo of yourself. Review it before uploading.</Text>
+      <Button secondary title="Take photo" disabled={a.busy} onPress={() => { void a.pickProfilePhoto(true); }} />
+      <Button secondary title="Choose from gallery" disabled={a.busy} onPress={() => { void a.pickProfilePhoto(false); }} />
+      {a.profilePhotoDraft && <><Button title={a.busy ? "Uploading..." : "Upload photo"} disabled={a.busy} onPress={() => { void a.uploadProfilePhoto(); }} /><Button secondary title="Cancel photo" disabled={a.busy} onPress={() => a.setProfilePhotoDraft(undefined)} /></>}
     </Card>
+    <Card title="Personal details">
+      <Text style={s.body}>Full name</Text><Field value={name ?? a.user?.fullName ?? ""} onChangeText={setName} maxLength={150} editable={!a.busy} autoComplete="name" accessibilityLabel="Full name" />
+      <Text style={s.body}>Email address</Text><Text style={s.muted}>{a.user?.email}</Text>
+    </Card>
+    {userDetailSections.map(section => <Card key={section.title} title={section.title}>
+      {section.fields.map(field => <View key={field.key} style={{ gap: 8 }}><Text style={s.body}>{field.label}</Text><Field accessibilityLabel={field.label} placeholder={field.placeholder} value={details[field.key] || ""} editable={!a.busy} maxLength={field.key.includes("Phone") || field.key === "phone" ? 30 : field.key === "postalCode" ? 20 : 300} keyboardType={field.key.includes("Phone") || field.key === "phone" ? "phone-pad" : "default"} onChangeText={value => setDraft({ ...details, [field.key]: value })} /></View>)}
+    </Card>)}
+    <Text style={s.muted}>Your personal address is saved separately from your farm address. Contact and address fields are optional.</Text>
+    <Button title={a.busy ? "Saving..." : "Save user details"} disabled={a.busy} onPress={() => { void a.saveProfile(name ?? a.user?.fullName ?? "", undefined, details).then(ok => { if (ok) { setName(undefined); setDraft(undefined); } }); }} />
   </Page>;
 }
 export function SecurityScreen() {

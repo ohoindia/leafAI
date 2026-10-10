@@ -19,6 +19,12 @@ import { endpoints } from "../../common/api.js";
 import { apiUrl } from "./api";
 import type { Language } from "../../common/types";
 import { useLeafCare } from "./state";
+export function UserAvatar({ large = false }: { large?: boolean }) {
+  const a = useLeafCare();
+  const [failed, setFailed] = useState<string>();
+  const size = large ? 96 : 48;
+  return a.user?.profilePhoto && failed !== a.user.profilePhoto ? <Image accessibilityLabel="Your profile photo" source={{ uri: a.user.profilePhoto }} style={{ width: size, height: size, borderRadius: size / 2 }} onError={() => setFailed(a.user?.profilePhoto || "")} /> : <View style={[s.accountAvatar, { width: size, height: size, borderRadius: size / 2 }]}><Text style={[s.avatarText, large && { fontSize: 30 }]}>{accountInitials(a.user?.fullName)}</Text></View>;
+}
 export function LeafLogo({ large = false }: { large?: boolean }) {
   return <Image source={require("../assets/icon.png")} accessibilityLabel="Krishi Karshak leaf logo" style={{ width: large ? 88 : 38, height: large ? 88 : 38, borderRadius: large ? 22 : 10 }} />;
 }
@@ -173,7 +179,7 @@ export function Page({
               style={s.accountAvatar}
               onPress={() => a.go("profile")}
             >
-              <Text style={s.avatarText}>{accountInitials(a.user?.fullName)}</Text>
+              <UserAvatar />
             </Pressable>
           )}
         </View>}

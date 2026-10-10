@@ -6,6 +6,7 @@ export const endpoints = {
   login: "/api/auth/login",
   refresh: "/api/auth/refresh",
   logout: "/api/auth/logout",
+  profilePhoto: "/api/auth/me/photo",
   me: "/api/auth/me",
   analyses: "/api/analyses",
   voiceCommands: "/api/voice-commands",

@@ -6,6 +6,7 @@ export const endpoints: {
   login: string;
   refresh: string;
   logout: string;
+  profilePhoto: string;
   me: string;
   analyses: string;
   voiceCommands: string;

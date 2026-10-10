@@ -286,3 +286,10 @@ For existing Lambda execution roles, include both `s3:PutObject` and `s3:GetObje
 Open Profile → Farm and crops on web or mobile to save farm location, area and soil, irrigation, present and previous crops, inputs and field notes. All 43 fields are optional. Data is stored with the signed-in account. The profile PATCH endpoint accepts farmDetails together with fullName and language. Omitting farmDetails preserves the saved farm; submitting an empty object clears it.
 
 Before deploying the updated server to an existing database, apply `database/migrations/002_farmer_profile.sql` using your MySQL migration workflow. Fresh databases include the column in `database/schema.sql`.
+
+
+## User contact, address and profile photo
+
+Account details includes personal contact numbers, a residential address, and a profile photo. These are stored separately from farm details. Web and mobile support camera capture, gallery selection, a preview, and explicit photo upload. Photos are validated as JPEG, PNG or WebP (up to 4 MiB), normalized to a 384-pixel square, stripped of source metadata, and encrypted at rest. The authenticated profile response supplies the saved photo for the account avatar.
+
+For existing databases, build the server and run `node server/scripts/migrate-user-details.mjs` before starting the updated API. The migration is safe to rerun and adds `users.user_details` and `users.profile_photo`; fresh databases use `database/schema.sql`. The equivalent SQL is `database/migrations/003_user_details.sql`.

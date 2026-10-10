@@ -24,6 +24,7 @@ function useAppState() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const lock = useRef(false);
+  const [profilePhotoDraft, setProfilePhotoDraft] = useState<string>();
   const [photo, setPhoto] = useState<string>();
   const [consent, setConsent] = useState(false);
   const [plantName, setPlantName] = useState("");
@@ -50,6 +51,7 @@ function useAppState() {
     setToken("");
     setUser(undefined);
     setPhoto(undefined);
+    setProfilePhotoDraft(undefined);
     setResult(undefined);
     setConsent(false);
     setHistory([]);
@@ -127,11 +129,34 @@ function useAppState() {
       await loadHistory(data.accessToken);
     });
   }
-  async function saveProfile(fullName: string, farmDetails?: User["farmDetails"]) {
+  async function saveProfile(fullName: string, farmDetails?: User["farmDetails"], userDetails?: User["userDetails"]) {
     return run(async () => {
       if (fullName.trim().length < 2 || fullName.trim().length > 150) throw new Error("Enter a full name between 2 and 150 characters.");
-      const data = await request<User>(endpoints.me, token, { method: "PATCH", body: JSON.stringify({ fullName: fullName.trim(), language: lang, farmDetails }) });
+      const data = await request<User>(endpoints.me, token, { method: "PATCH", body: JSON.stringify({ fullName: fullName.trim(), language: lang, farmDetails, userDetails }) });
       setUser(data); setNotice("Profile saved.");
+    });
+  }
+  async function pickProfilePhoto(camera: boolean) {
+    return run(async () => {
+      if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) throw new Error("Allow camera access in Settings, or choose from gallery.");
+      const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.85 };
+      const selected = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
+      if (selected.canceled) return;
+      const asset = selected.assets[0];
+      const resized = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: asset.width >= asset.height ? { width: Math.min(asset.width, 768) } : { height: Math.min(asset.height, 768) } }], { compress: 0.85, format: ImageManipulator.SaveFormat.JPEG });
+      setProfilePhotoDraft(resized.uri);
+    });
+  }
+  async function uploadProfilePhoto() {
+    if (!profilePhotoDraft) return;
+    return run(async () => {
+      const form = new FormData();
+      const file = new File(profilePhotoDraft);
+      if (file.size > uploadRules.maxBytes) throw new Error("Choose a photo smaller than 4 MiB.");
+      form.append("photo", file, "profile.jpg");
+      setUser(await request<User>(endpoints.profilePhoto, token, { method: "POST", body: form }));
+      setProfilePhotoDraft(undefined);
+      setNotice("Profile photo saved.");
     });
   }
   async function recover(email: string) {
@@ -325,6 +350,10 @@ function useAppState() {
     loadHistory,
     authenticate,
     saveProfile,
+    profilePhotoDraft,
+    setProfilePhotoDraft,
+    pickProfilePhoto,
+    uploadProfilePhoto,
     recover,
     resetPassword,
     changePassword,
