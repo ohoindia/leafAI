@@ -151,6 +151,7 @@ export function ProfileScreen() {
 }
 export function AccountDetailsScreen() {
   const a = useLeafCare();
+  const [editing, setEditing] = useState(false);
   const [name, setName] = useState<string>();
   const [draft, setDraft] = useState<UserDetails>();
   const details = draft ?? a.user?.userDetails ?? {};
@@ -163,14 +164,17 @@ export function AccountDetailsScreen() {
       {a.profilePhotoDraft && <><Button title={a.busy ? "Uploading..." : "Upload photo"} disabled={a.busy} onPress={() => { void a.uploadProfilePhoto(); }} /><Button secondary title="Cancel photo" disabled={a.busy} onPress={() => a.setProfilePhotoDraft(undefined)} /></>}
     </Card>
     <Card title="Personal details">
-      <Text style={s.body}>Full name</Text><Field value={name ?? a.user?.fullName ?? ""} onChangeText={setName} maxLength={150} editable={!a.busy} autoComplete="name" accessibilityLabel="Full name" />
+      <Text style={s.body}>Full name</Text>{editing ? <Field value={name ?? a.user?.fullName ?? ""} onChangeText={setName} maxLength={150} editable={!a.busy} autoComplete="name" accessibilityLabel="Full name" /> : <Text style={s.muted}>{a.user?.fullName || "Not specified"}</Text>}
       <Text style={s.body}>Email address</Text><Text style={s.muted}>{a.user?.email}</Text>
     </Card>
     {userDetailSections.map(section => <Card key={section.title} title={section.title}>
-      {section.fields.map(field => <View key={field.key} style={{ gap: 8 }}><Text style={s.body}>{field.label}</Text><Field accessibilityLabel={field.label} placeholder={field.placeholder} value={details[field.key] || ""} editable={!a.busy} maxLength={field.key.includes("Phone") || field.key === "phone" ? 30 : field.key === "postalCode" ? 20 : 300} keyboardType={field.key.includes("Phone") || field.key === "phone" ? "phone-pad" : "default"} onChangeText={value => setDraft({ ...details, [field.key]: value })} /></View>)}
+      {section.fields.map(field => <View key={field.key} style={{ gap: 8 }}><Text style={s.body}>{field.label}</Text>{editing ? <Field accessibilityLabel={field.label} placeholder={field.placeholder} value={details[field.key] || ""} editable={!a.busy} maxLength={field.key.includes("Phone") || field.key === "phone" ? 30 : field.key === "postalCode" ? 20 : 300} keyboardType={field.key.includes("Phone") || field.key === "phone" ? "phone-pad" : "default"} onChangeText={value => setDraft({ ...details, [field.key]: value })} /> : <Text style={s.muted}>{a.user?.userDetails?.[field.key] || "Not specified"}</Text>}</View>)}
     </Card>)}
     <Text style={s.muted}>Your personal address is saved separately from your farm address. Contact and address fields are optional.</Text>
-    <Button title={a.busy ? "Saving..." : "Save user details"} disabled={a.busy} onPress={() => { void a.saveProfile(name ?? a.user?.fullName ?? "", undefined, details).then(ok => { if (ok) { setName(undefined); setDraft(undefined); } }); }} />
+    {editing ? <>
+      <Button title={a.busy ? "Saving..." : "Save user details"} disabled={a.busy} onPress={() => { void a.saveProfile(name ?? a.user?.fullName ?? "", undefined, details).then(ok => { if (ok) { setName(undefined); setDraft(undefined); setEditing(false); } }); }} />
+      <Button secondary title="Cancel" disabled={a.busy} onPress={() => { setName(undefined); setDraft(undefined); setEditing(false); a.setError(""); }} />
+    </> : <Button title="Edit" disabled={a.busy} onPress={() => setEditing(true)} />}
   </Page>;
 }
 export function SecurityScreen() {

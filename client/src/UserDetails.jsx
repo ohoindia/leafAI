@@ -11,6 +11,7 @@ export function UserAvatar({ user, large = false }) {
 }
 
 export function UserDetails({ user, busy, onSave, onUpload }) {
+  const [editing, setEditing] = useState(false);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
   const [error, setError] = useState("");
@@ -73,15 +74,20 @@ export function UserDetails({ user, busy, onSave, onUpload }) {
       {file && <div className="farm-section-actions"><button type="button" disabled={busy || camera} onClick={async () => { if (await onUpload(file)) setFile(null); }}>{busy ? "Uploading..." : "Upload photo"}</button><button type="button" className="secondary" disabled={busy} onClick={() => setFile(null)}>Cancel photo</button></div>}
       {error && <p role="alert" className="error">{error}</p>}
     </section>
-    <form onSubmit={event => {
+    {!editing ? <>
+      <section className="card"><h3>Personal details</h3><dl className="farm-summary"><div><dt>Full name</dt><dd>{user?.fullName || "Not specified"}</dd></div><div><dt>Email address</dt><dd>{user?.email || "Not specified"}</dd></div></dl></section>
+      {userDetailSections.map(section => <section className="card" key={section.title}><h3>{section.title}</h3><dl className="farm-summary">{section.fields.map(field => <div key={field.key} className={field.key.startsWith("addressLine") ? "farm-wide" : ""}><dt>{field.label}</dt><dd>{user?.userDetails?.[field.key] || "Not specified"}</dd></div>)}</dl></section>)}
+      <button type="button" disabled={busy} onClick={() => setEditing(true)}>Edit</button>
+    </> : <form onSubmit={async event => {
       event.preventDefault();
+      if (busy) return;
       const { fullName, ...userDetails } = Object.fromEntries(new FormData(event.currentTarget));
-      void onSave(fullName, userDetails);
+      if (await onSave(fullName, userDetails)) setEditing(false);
     }}>
       <section className="card"><h3>Personal details</h3><label>Full name<input name="fullName" defaultValue={user?.fullName} disabled={busy} autoComplete="name" required minLength={2} maxLength={150} /></label><label>Email address<input value={user?.email || ""} readOnly /></label></section>
       {userDetailSections.map(section => <section className="card" key={section.title}><h3>{section.title}</h3><div className="farm-field-grid">{section.fields.map(field => <label key={field.key} className={field.key.startsWith("addressLine") ? "farm-wide" : ""}>{field.label}<input name={field.key} defaultValue={user?.userDetails?.[field.key] || ""} placeholder={field.placeholder} disabled={busy} type={field.key.toLowerCase().includes("phone") ? "tel" : "text"} maxLength={field.key.toLowerCase().includes("phone") ? 30 : field.key === "postalCode" ? 20 : 300} /></label>)}</div></section>)}
       <small className="muted">Your personal address is saved separately from your farm address. Contact and address fields are optional.</small>
-      <button disabled={busy}>{busy ? "Saving..." : "Save user details"}</button>
-    </form>
+      <div className="farm-section-actions"><button disabled={busy}>{busy ? "Saving..." : "Save user details"}</button><button type="button" className="secondary" disabled={busy} onClick={() => setEditing(false)}>Cancel</button></div>
+    </form>}
   </>;
 }
