@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { UserDetails, UserAvatar } from "./UserDetails";
+import { Market } from "./Market";
 import { Weather } from "./Weather";
 import { FarmOverview } from "./FarmOverview";
 import { FarmDetails } from "./FarmDetails";
@@ -15,6 +16,8 @@ function Leaf({ large = false }) {
 }
 function Icon({ name }) {
   const paths = {
+    market: "M3 21h18M5 17v-4M10 17V9M15 17V5M20 17V3",
+    weather: "M7 18h11a4 4 0 0 0 0-8 6 6 0 0 0-11-1 4.5 4.5 0 0 0 0 9Z",
     farm: "M3 21h18M4 17l8-5 8 5M4 12l8-5 8 5M12 3v18",
     home: "m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9",
     camera: "M3 7h5l2-3h4l2 3h5v13H3Z M16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
@@ -520,7 +523,7 @@ function App() {
                   </h1>
                   <p>{localize("Healthy plants make")}<br />{localize("a happier you.")}</p>
                 </section>
-                <Weather api={api} user={user} lang={lang} />
+                <Weather api={api} user={user} lang={lang} summary onOpen={() => go("weather")} />
                 <section className="analyze-card">
                   <span className="camera-circle">
                     <Icon name="camera" />
@@ -877,7 +880,9 @@ function App() {
                 ))}
               </>
             )}
-            {screen === "farm" && <><h2>{localize(screens.farm)}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onAdd={() => go("farm-details")} /></>}
+            {screen === "market" && <Market api={api} />}
+            {screen === "weather" && <Weather api={api} user={user} lang={lang} />}
+            {screen === "farm" && <><button className="text-button" onClick={() => go("profile")}>{localize("Back to profile")}</button><h2>{localize(screens.farm)}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onAdd={() => go("farm-details")} /></>}
             {screen === "profile" && <>
               <h2>{localize(screens.profile)}</h2>
                 <section className="profile-hero card">
@@ -910,15 +915,15 @@ function App() {
             <nav aria-label={localize("Main navigation")}>
               {[
                 ["home", "home", "Home"],
-                ["capture", "search", "Diagnose"],
+                ["market", "market", "Market"],
                 ["history", "history", "History"],
-                ["farm", "farm", "Farm"],
+                ["weather", "weather", "Weather"],
                 ["profile", "profile", "Profile"],
               ].map(([next, icon, text]) => (
                 <button
                   key={next}
-                  className={(screen === next || (next === "farm" && screen === "farm-details") || (next === "profile" && ["language", "account-details", "security"].includes(screen))) ? "active" : ""}
-                  aria-current={(screen === next || (next === "farm" && screen === "farm-details") || (next === "profile" && ["language", "account-details", "security"].includes(screen))) ? "page" : undefined}
+                  className={(screen === next || (next === "profile" && ["farm", "farm-details", "language", "account-details", "security"].includes(screen))) ? "active" : ""}
+                  aria-current={(screen === next || (next === "profile" && ["farm", "farm-details", "language", "account-details", "security"].includes(screen))) ? "page" : undefined}
                   onClick={() => go(next)}
                 >
                   <Icon name={icon} />

@@ -1067,3 +1067,13 @@ textarea:focus-visible { outline: 2px solid #007ca8; }
 .weather-error { color:#b42318; font-size:13px; }
 .weather-note,.weather-attribution { font-size:12px; }
 .weather-attribution { color:#007ca8; }
+
+.weather-highlights { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 16px 0; }
+.weather-highlight { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: #edf8ff; }
+
+.market-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.market-mandi { border-left:4px solid #007ca8; }
+.market-msp { border-left:4px solid #568434; }
+.market-list { display:grid; gap:10px; margin:16px 0; }
+.market-row { display:grid; gap:6px; padding:12px; border-radius:10px; background:#f4f8fa; }
+.market-row p { margin:0; }

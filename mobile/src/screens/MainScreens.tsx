@@ -24,7 +24,7 @@ export function HomeScreen() {
       title={localize(accountGreeting(a.user?.fullName))}
     >
       <Text style={s.body}>{localize("Healthy plants make a happier you.")}</Text>
-      <Weather />
+      <Weather summary />
       <LinearGradient colors={["#007ca8", "#005e80"]} style={s.hero}>
         <Text style={[s.title, { color: "#fff" }]}>{localize("Analyze a leaf")}</Text>
         <Text style={[s.body, { color: "#fff" }]}>{localize("Take a photo or choose from your gallery to detect plant issues, get insights and care recommendations.")}</Text>
@@ -48,6 +48,10 @@ export function HomeScreen() {
       <Button secondary title={localize("Voice assistant")} onPress={() => a.go("voice")} />
     </Page>
   );
+}
+export function WeatherScreen() {
+  const localize = useLocale();
+  return <Page title={localize("Weather")}><Weather /></Page>;
 }
 export function HistoryScreen() {
   const localize = useLocale();

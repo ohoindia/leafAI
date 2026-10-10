@@ -36,3 +36,19 @@ test('paid forecast keys stay server side and switch to customer endpoint',async
 test('forecast summary excludes today and missing values; units preserve zero and soil precision',()=>{
  const raw=provider();const days=raw.daily.time.map((time,i)=>({time,precipitation_sum:raw.daily.precipitation_sum[i],temperature_2m_max:raw.daily.temperature_2m_max[i],hours:[]}));assert.match(forecastSummary(days)[0],/15.0 mm/);assert.equal(formatValue(0,'%'),'0 %');assert.equal(formatValue(null,'°C'),'Unavailable');assert.equal(formatValue(0.123,'m³/m³','soil_moisture_0_to_1cm'),'0.123 m³/m³');assert.equal(formatValue(3600,'s'),'1.0 h');assert.equal(condition(95),'Thunderstorm');assert.match(dayLabel('2026-10-10'),/10/);
 });
+
+test('forecast highlights translate dynamic values and storm dates for the selected language',()=>{
+ const days = Array.from({length:7}, (_, i) => ({time:`2026-10-${10+i}`, precipitation_sum:i === 6 ? 100 : 2, temperature_2m_max:30, wind_gusts_10m_max:20, weather_code:i === 1 ? 95 : 0, hours:[]}));
+ const english = forecastSummary(days);
+ assert.match(english[0], /10.0 mm/);
+ assert.equal(english.length, 4);
+ for (const [language, script] of [['te', /[\u0c00-\u0c7f]/], ['hi', /[\u0900-\u097f]/]]) {
+  const highlights = forecastSummary(days, language);
+  assert.equal(highlights.length, 4);
+  for (const highlight of highlights) {
+   assert.match(highlight, script);
+   assert.doesNotMatch(highlight, /\{value\}|Next five days|Highest daytime|Thunderstorms/);
+  }
+  assert.ok(highlights[3].includes(dayLabel(days[1].time, language)));
+ }
+});

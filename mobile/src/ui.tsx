@@ -223,9 +223,9 @@ export function Page({
             {(
               [
                 ["home", "Home"],
-                ["capture", "Diagnose"],
+                ["market", "Market"],
                 ["history", "History"],
-                ["farm", "Farm"],
+                ["weather", "Weather"],
                 ["profile", "Profile"],
               ] as const
             ).map(([route, label]) => (
@@ -233,13 +233,13 @@ export function Page({
                 disabled={a.busy}
                 accessibilityRole="button"
                 accessibilityLabel={localize(label)}
-                accessibilityState={{ selected: (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")), disabled: a.busy }}
+                accessibilityState={{ selected: (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))), disabled: a.busy }}
                 key={route}
                 onPress={() => a.go(route)}
-                style={[s.navItem, (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")) && s.navSelected]}
+                style={[s.navItem, (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))) && s.navSelected]}
               >
-                <NavigationIcon route={route} selected={(activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details"))} />
-                <Text style={[s.small, { color: "#63758a" }, (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")) && { color: "#007ca8", fontWeight: "700" }]}>{localize(label)}</Text>
+                <NavigationIcon route={route} selected={(activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute)))} />
+                <Text style={[s.small, { color: "#63758a" }, (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))) && { color: "#007ca8", fontWeight: "700" }]}>{localize(label)}</Text>
               </Pressable>
             ))}
           </View>

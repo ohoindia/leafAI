@@ -8,6 +8,8 @@ export const screens: Record<
   | "forgot"
   | "register"
   | "farm"
+  | "weather"
+  | "market"
   | "home"
   | "capture"
   | "review"
@@ -42,4 +44,4 @@ export function filterHistory(
 export function accountInitials(name?: string): string;
 export function accountGreeting(name?: string, hour?: number): string;
 
-export const profileSettings: { route: "language" | "account-details" | "security"; title: string; subtitle: string; icon: string }[];
+export const profileSettings: { route: "farm" | "language" | "account-details" | "security"; title: string; subtitle: string; icon: string }[];

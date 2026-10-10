@@ -5,6 +5,6 @@ export type WeatherData = { location: WeatherPlace; timezone: string; fetchedAt:
 export function condition(code: unknown): string;
 export function formatValue(value: unknown, unit?: string, field?: string): string;
 export function weatherMetrics(record: Record<string,unknown>, units: Record<string,string>): { key: string; label: string; value: string }[];
-export function forecastSummary(days: WeatherDay[]): string[];
+export function forecastSummary(days: WeatherDay[], language?: string): string[];
 export function weatherQuery(place?: WeatherPlace): string;
 export function dayLabel(date: string, language?: string): string;

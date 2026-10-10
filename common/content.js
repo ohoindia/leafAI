@@ -11,6 +11,8 @@ export const screens = {
   register: "Create account",
   home: "Home",
   farm: "Farm and crops",
+  weather: "Weather",
+  market: "Market",
   capture: "Capture leaf photo",
   review: "Review photo",
   details: "Add details & consent",
@@ -94,6 +96,7 @@ export function accountGreeting(name = "", hour = new Date().getHours()) {
 }
 
 export const profileSettings = [
+  { route: "farm", title: "Farm and crops", subtitle: "Keep your farm and seasonal crop records up to date.", icon: "farm" },
   { route: "language", title: "Change language", subtitle: "Choose your preferred language", icon: "language" },
   { route: "account-details", title: "Account details", subtitle: "View and update your personal details", icon: "profile" },
   { route: "security", title: "PIN & security", subtitle: "Manage your account PIN", icon: "security" },

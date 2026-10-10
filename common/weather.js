@@ -1,3 +1,5 @@
+import { translate } from './locale.js';
+
 export function condition(code) {
   const codes = { 0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast", 45: "Fog", 48: "Rime fog", 51: "Light drizzle", 53: "Drizzle", 55: "Dense drizzle", 56: "Freezing drizzle", 57: "Heavy freezing drizzle", 61: "Light rain", 63: "Rain", 65: "Heavy rain", 66: "Freezing rain", 67: "Heavy freezing rain", 71: "Light snow", 73: "Snow", 75: "Heavy snow", 77: "Snow grains", 80: "Light rain showers", 81: "Rain showers", 82: "Violent rain showers", 85: "Snow showers", 86: "Heavy snow showers", 95: "Thunderstorm", 96: "Thunderstorm with hail", 99: "Severe thunderstorm with hail" };
   return codes[code] || "Conditions unavailable";
@@ -18,16 +20,17 @@ export function formatValue(value, unit = "", field = "") {
 export function weatherMetrics(record, units) {
  return Object.entries(fields).filter(([key]) => key in record).map(([key, label]) => ({ key, label, value: formatValue(record[key], units[key], key) }));
 }
-export function forecastSummary(days) {
- const next = days.slice(1);
+export function forecastSummary(days, language = "en") {
+ const next = days.slice(1, 6);
+ const message = (template, value) => translate(language, template).replace('{value}', value);
  const available = key => next.map(day => day[key]).filter(value => typeof value === "number");
  const rain = available("precipitation_sum"); const temp = available("temperature_2m_max"); const gusts = available("wind_gusts_10m_max");
  const summary = [];
- if (rain.length) summary.push(`Next five days: about ${rain.reduce((a,b)=>a+b,0).toFixed(1)} mm total precipitation forecast.`);
- if (temp.length) summary.push(`Highest daytime temperature: ${Math.max(...temp).toFixed(1)} °C.`);
- if (gusts.length) summary.push(`Strongest forecast gusts: ${Math.max(...gusts).toFixed(1)} km/h.`);
+ if (rain.length) summary.push(message('Next five days: about {value} mm total precipitation forecast.', rain.reduce((a,b)=>a+b,0).toFixed(1)));
+ if (temp.length) summary.push(message('Highest daytime temperature: {value} °C.', Math.max(...temp).toFixed(1)));
+ if (gusts.length) summary.push(message('Strongest forecast gusts: {value} km/h.', Math.max(...gusts).toFixed(1)));
  const storm = next.find(day => Number(day.weather_code) >= 95);
- if (storm) summary.push(`Thunderstorms are possible on ${storm.time}.`);
+ if (storm) summary.push(message('Thunderstorms are possible on {value}.', dayLabel(storm.time, language)));
  return summary;
 }
 export function weatherQuery(place) {

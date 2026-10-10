@@ -1,4 +1,5 @@
 export const endpoints = {
+  market: "/api/market",
   weather: "/api/weather",
   weatherLocations: "/api/weather/locations",
   checkMobile: "/api/auth/check-mobile",

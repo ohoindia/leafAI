@@ -1,4 +1,5 @@
 export const endpoints: {
+  market: string;
   weather: string;
   weatherLocations: string;
   checkMobile: string;

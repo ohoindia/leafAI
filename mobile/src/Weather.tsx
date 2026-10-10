@@ -15,7 +15,7 @@ function Expand({ title, children }: { title: string; children: React.ReactNode 
  const [open,setOpen]=useState(false);
  return <View style={{ gap:12, borderTopWidth:1, borderTopColor:"#e0e9ef", paddingTop:8 }}><Pressable accessibilityRole="button" accessibilityState={{expanded:open}} onPress={()=>setOpen(!open)} style={{minHeight:48,justifyContent:"center"}}><Text style={[s.body,{fontWeight:"600"}]}>{title} {open?"-":"+"}</Text></Pressable>{open&&children}</View>;
 }
-export function Weather() {
+export function Weather({ summary = false }: { summary?: boolean }) {
  const a=useLeafCare();const localize=useLocale();
  const [data,setData]=useState<WeatherData>(),[busy,setBusy]=useState(true),[error,setError]=useState(""),[query,setQuery]=useState(""),[places,setPlaces]=useState<WeatherPlace[]>([]);
  const place=useRef<WeatherPlace|null>(null),sequence=useRef(0);
@@ -50,6 +50,11 @@ export function Weather() {
   } catch(e) {if(id===sequence.current){setError(e instanceof Error?e.message:"Could not get your location.");setBusy(false);}}
  }
  const extra=data?Object.fromEntries(Object.entries(data.currentExtra).filter(([key])=>["soil_temperature_0cm","soil_temperature_6cm","soil_moisture_0_to_1cm","soil_moisture_3_to_9cm","uv_index","visibility","dew_point_2m","et0_fao_evapotranspiration"].includes(key))):{};
+ if (summary) return <Card title={localize("Five-day outlook")}>
+  {busy && <Text accessibilityLiveRegion="polite" style={s.muted}>{localize("Loading weather...")}</Text>}{!!error && <Text accessibilityRole="alert" style={s.error}>{localize(error)}</Text>}
+  {data && <><Text style={s.heading}>{data.location.label}</Text>{forecastSummary(data.days, a.lang).map(text => <Text key={text} style={s.body}>{text}</Text>)}<View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.days.slice(1, 6).map(day => <View key={day.time} style={{ flexGrow: 1, flexBasis: "45%", backgroundColor: "#edf8ff", padding: 12, borderRadius: 12, gap: 6 }}><Text style={s.heading}>{dayLabel(day.time, a.lang)}</Text><Text style={s.body}>{localize(condition(day.weather_code))}</Text><Text style={s.body}>{localize(formatValue(day.temperature_2m_max, "\u00b0C"))} / {localize(formatValue(day.temperature_2m_min, "\u00b0C"))}</Text><Text style={s.muted}>{localize("Rain chance")} {localize(formatValue(day.precipitation_probability_max, "%"))}</Text></View>)}</View></>}
+  <Button secondary title={localize("View all weather")} onPress={() => a.go("weather")} />
+ </Card>;
  return <Card title={localize("Local weather")}>
   <Text style={s.muted}>{localize("Plan your next five days")}</Text>
   <Field value={query} onChangeText={setQuery} maxLength={100} placeholder={localize("Town, city or postal code")} accessibilityLabel={localize("Find your town or village")} onSubmitEditing={()=>void search()}/>
@@ -62,7 +67,7 @@ export function Weather() {
    <Button secondary title={localize("Refresh")} disabled={busy} onPress={()=>void load()}/>
    <Metrics record={Object.fromEntries(Object.entries(data.current).filter(([key])=>["relative_humidity_2m","wind_speed_10m","wind_gusts_10m","precipitation"].includes(key)))} units={data.units.current}/>
    <Expand title={localize("All current weather details")}><Metrics record={data.current} units={data.units.current}/><Text style={s.heading}>{localize("Hourly soil, UV and visibility estimates")}</Text><Text style={s.muted}>{data.currentExtra.time.replace("T"," ")}</Text><Metrics record={extra} units={data.units.hourly}/></Expand>
-   <Text style={s.heading}>{localize("Five-day outlook")}</Text>{forecastSummary(data.days).map(text=><Text key={text} style={s.body}>{localize(text)}</Text>)}
+   <Text style={s.heading}>{localize("Five-day outlook")}</Text>{forecastSummary(data.days, a.lang).map(text=><Text key={text} style={s.body}>{localize(text)}</Text>)}
    <Text style={s.heading}>{localize("Today and the next five days")}</Text>
    {data.days.map((day,index)=><Expand key={day.time} title={`${index===0?localize("Today"):dayLabel(day.time,a.lang)} · ${localize(condition(day.weather_code))}\n${formatValue(day.temperature_2m_max,"°C")} / ${formatValue(day.temperature_2m_min,"°C")} · ${localize("Rain chance")} ${formatValue(day.precipitation_probability_max,"%")}`}><Metrics record={day} units={data.units.daily}/><Expand title={localize("Hour-by-hour forecast")}>{day.hours.map((hour:WeatherPeriod)=><Expand key={hour.time} title={`${hour.time.slice(11,16)} · ${localize(condition(hour.weather_code))} · ${formatValue(hour.temperature_2m,"°C")}\n${localize("Rain chance")} ${formatValue(hour.precipitation_probability,"%")}`}><Metrics record={hour} units={data.units.hourly}/></Expand>)}</Expand></Expand>)}
    <Text style={s.muted}>{localize(data.modelNote)}</Text><Text style={s.muted}>{localize("Retrieved")} {new Date(data.fetchedAt).toLocaleString("en-IN",{timeZone:data.timezone})}</Text><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(data.attributionUrl)}><Text style={s.small}>{localize("Weather data by")} {data.attribution}</Text></Pressable>

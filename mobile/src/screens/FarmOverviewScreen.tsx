@@ -25,6 +25,7 @@ export function FarmOverviewScreen() {
   const farms = overviewFarms(a.user);
   const hasCrops = farms.some(farm => overviewCrops(farm).length > 0);
   return <Page title={localize("Farm and crops")}>
+    <Button secondary title={localize("Back to profile")} onPress={() => a.go("profile")} />
     <Card title={localize("Your farms and crops")}>
       <Text style={s.muted}>{farms.length} {localize(farms.length === 1 ? "farm" : "farms")}{localize("saved. Expand a farm to view its land details and crops.")}</Text>
       <Button title={localize("Add New Crop")} onPress={() => a.go("farm-details")} />
