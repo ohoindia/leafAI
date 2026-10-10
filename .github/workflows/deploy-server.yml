@@ -2,7 +2,7 @@ name: Deploy server API
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
     paths:
       - "server/**"
 
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
 
     defaults:
