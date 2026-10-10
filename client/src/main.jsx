@@ -916,8 +916,8 @@ function App() {
               {[
                 ["home", "home", "Home"],
                 ["market", "market", "Market"],
-                ["history", "history", "History"],
                 ["weather", "weather", "Weather"],
+                ["history", "history", "History"],
                 ["profile", "profile", "Profile"],
               ].map(([next, icon, text]) => (
                 <button

@@ -224,8 +224,8 @@ export function Page({
               [
                 ["home", "Home"],
                 ["market", "Market"],
-                ["history", "History"],
                 ["weather", "Weather"],
+                ["history", "History"],
                 ["profile", "Profile"],
               ] as const
             ).map(([route, label]) => (

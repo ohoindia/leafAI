@@ -22,9 +22,17 @@ export function Weather({ api, user, lang, summary = false, onOpen }) {
   const id=++sequence.current;setBusy(true);setError("");
   navigator.geolocation.getCurrentPosition(position=>{if(id===sequence.current)void load({latitude:position.coords.latitude,longitude:position.coords.longitude});},()=>{if(id===sequence.current){setBusy(false);setError("Could not get your location. Allow location access or search for your town.");}},{timeout:15000,maximumAge:300000});
  }
- if (summary) return <section className="weather card" aria-label={localize("Five-day outlook")}><h2>{localize("Five-day outlook")}</h2>
+ if (summary) return <section className="weather card weather-summary" aria-label={localize("Five-day outlook")}>
+  <header className="weather-summary-heading"><h2>{localize("Five-day outlook")}</h2>{data && <p className="weather-location">{data.location.label}</p>}</header>
   {busy && <p role="status">{localize("Loading weather...")}</p>}{error && <p role="alert">{localize(error)}</p>}
-  {data && <><p className="weather-location">{data.location.label}</p>{forecastSummary(data.days, lang).map(text => <p key={text}>{text}</p>)}<div className="weather-highlights">{data.days.slice(1, 6).map(day => <div className="weather-highlight" key={day.time}><strong>{dayLabel(day.time, lang)}</strong><span>{localize(condition(day.weather_code))}</span><span>{localize(formatValue(day.temperature_2m_max, "\u00b0C"))} / {localize(formatValue(day.temperature_2m_min, "\u00b0C"))}</span><small>{localize("Rain chance")} {localize(formatValue(day.precipitation_probability_max, "%"))}</small></div>)}</div></>}
+  {data && <>
+   <div className="weather-summary-facts">{forecastSummary(data.days, lang).map(text => <p key={text}>{text}</p>)}</div>
+   <div className="weather-summary-days">{data.days.slice(1, 6).map(day => <div className="weather-summary-day" key={day.time}>
+    <div className="weather-summary-condition"><strong>{dayLabel(day.time, lang)}</strong><small>{localize(condition(day.weather_code))}</small></div>
+    <strong className="weather-summary-range">{localize(formatValue(day.temperature_2m_max, "\u00b0C"))} / {localize(formatValue(day.temperature_2m_min, "\u00b0C"))}</strong>
+    <small className="weather-summary-rain">{localize("Rain chance")} {localize(formatValue(day.precipitation_probability_max, "%"))}</small>
+   </div>)}</div>
+  </>}
   <button className="outline" onClick={onOpen}>{localize("View all weather")}</button>
  </section>;
  return <section className="weather card" aria-label={localize("Local weather")}>

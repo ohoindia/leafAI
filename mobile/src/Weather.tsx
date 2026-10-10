@@ -50,9 +50,16 @@ export function Weather({ summary = false }: { summary?: boolean }) {
   } catch(e) {if(id===sequence.current){setError(e instanceof Error?e.message:"Could not get your location.");setBusy(false);}}
  }
  const extra=data?Object.fromEntries(Object.entries(data.currentExtra).filter(([key])=>["soil_temperature_0cm","soil_temperature_6cm","soil_moisture_0_to_1cm","soil_moisture_3_to_9cm","uv_index","visibility","dew_point_2m","et0_fao_evapotranspiration"].includes(key))):{};
- if (summary) return <Card title={localize("Five-day outlook")}>
+ if (summary) return <Card>
+  <View style={{gap:4}}><Text style={s.heading}>{localize("Five-day outlook")}</Text>{data && <Text style={[s.muted,{fontWeight:"600"}]}>{data.location.label}</Text>}</View>
   {busy && <Text accessibilityLiveRegion="polite" style={s.muted}>{localize("Loading weather...")}</Text>}{!!error && <Text accessibilityRole="alert" style={s.error}>{localize(error)}</Text>}
-  {data && <><Text style={s.heading}>{data.location.label}</Text>{forecastSummary(data.days, a.lang).map(text => <Text key={text} style={s.body}>{text}</Text>)}<View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{data.days.slice(1, 6).map(day => <View key={day.time} style={{ flexGrow: 1, flexBasis: "45%", backgroundColor: "#edf8ff", padding: 12, borderRadius: 12, gap: 6 }}><Text style={s.heading}>{dayLabel(day.time, a.lang)}</Text><Text style={s.body}>{localize(condition(day.weather_code))}</Text><Text style={s.body}>{localize(formatValue(day.temperature_2m_max, "\u00b0C"))} / {localize(formatValue(day.temperature_2m_min, "\u00b0C"))}</Text><Text style={s.muted}>{localize("Rain chance")} {localize(formatValue(day.precipitation_probability_max, "%"))}</Text></View>)}</View></>}
+  {data && <>
+   <View style={{flexDirection:"row",flexWrap:"wrap",gap:6}}>{forecastSummary(data.days, a.lang).map(text => <View key={text} style={{flexGrow:1,flexBasis:"45%",padding:8,borderRadius:8,backgroundColor:"#f4f8fa"}}><Text style={[s.muted,{fontSize:13,lineHeight:18}]}>{text}</Text></View>)}</View>
+   <View style={{gap:6}}>{data.days.slice(1, 6).map(day => <View key={day.time} style={{flexDirection:"row",alignItems:"center",flexWrap:"wrap",gap:8,padding:10,borderRadius:10,backgroundColor:"#edf8ff"}}>
+    <View style={{flexGrow:1,flexShrink:1,flexBasis:110,gap:2}}><Text style={[s.body,{fontSize:14,lineHeight:20,fontWeight:"600"}]}>{dayLabel(day.time, a.lang)}</Text><Text style={[s.muted,{fontSize:12,lineHeight:17}]}>{localize(condition(day.weather_code))}</Text></View>
+    <View style={{flexShrink:1,gap:2,alignItems:"flex-end"}}><Text style={[s.body,{fontSize:14,lineHeight:20,fontWeight:"600"}]}>{localize(formatValue(day.temperature_2m_max, "\u00b0C"))} / {localize(formatValue(day.temperature_2m_min, "\u00b0C"))}</Text><Text style={[s.muted,{fontSize:12,lineHeight:17}]}>{localize("Rain chance")} {localize(formatValue(day.precipitation_probability_max, "%"))}</Text></View>
+   </View>)}</View>
+  </>}
   <Button secondary title={localize("View all weather")} onPress={() => a.go("weather")} />
  </Card>;
  return <Card title={localize("Local weather")}>
