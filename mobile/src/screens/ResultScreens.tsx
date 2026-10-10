@@ -1,31 +1,12 @@
 import { useState } from "react";
-import { Image, Text } from "react-native";
+import { Text } from "react-native";
 import { Redirect } from "expo-router";
-import { endpoints } from "../../../common/api.js";
 import { analysisStatus, languages, screens } from "../../../common/content.js";
-import { apiUrl } from "../api";
 import { useLeafCare } from "../state";
-import { Button, Card, Languages, Page, s } from "../ui";
+import { AnalysisPhoto, Button, Card, Languages, Page, s } from "../ui";
 function ResultPhoto() {
   const a = useLeafCare();
-  const [failed, setFailed] = useState(false);
-  return failed ? (
-    <Text style={s.muted}>Photo unavailable</Text>
-  ) : (
-    <Image
-      source={
-        a.photo
-          ? { uri: a.photo }
-          : {
-              uri: `${apiUrl}${endpoints.image(a.result!.id)}`,
-              headers: { Authorization: `Bearer ${a.token}` },
-            }
-      }
-      accessibilityLabel="Analyzed leaf"
-      style={s.image}
-      onError={() => setFailed(true)}
-    />
-  );
+  return <AnalysisPhoto id={a.result!.id} fallback={a.photo} />;
 }
 function Audit() {
   const a = useLeafCare();

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { copy } from "../../../common/copy.js";
 import { useLeafCare } from "../state";
-import { Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
+import { AuthBrand, Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
 export function AuthScreen({ register = false }: { register?: boolean }) {
   const a = useLeafCare();
   const [email, setEmail] = useState("");
@@ -10,13 +10,12 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
   const [name, setName] = useState("");
   const t = copy[a.lang];
   return (
-    <Page auth title={register ? t.register : t.login}>
+    <Page auth branding={<AuthBrand register={register} />} title={register ? t.register : t.login}>
       <Text style={s.muted}>
         {register
           ? "Join Krishi Karshak and start your plant care journey."
           : "Welcome back! Sign in to continue caring for your plants."}
       </Text>
-      <LeafLogo large />
       <Card>
         {register && <Text style={s.body}>Full name</Text>}
         {register && (
@@ -62,15 +61,16 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
               });
           }}
         />
+      </Card>
+      <Text style={s.divider}>or</Text>
         <Button
           secondary
           disabled={a.busy}
           title={register ? t.login : t.register}
           onPress={() => a.go(register ? "login" : "register")}
         />
-      </Card>
       <Languages />
-      <Text style={s.muted}>Your plants. Your care. All in one place.</Text>
+      <View style={{ alignItems: "center", gap: 8 }}><LeafLogo /><Text style={s.muted}>Your plants. Your care. All in one place.</Text></View>
     </Page>
   );
 }
@@ -88,14 +88,14 @@ export function RecoveryScreen() {
     <Card>
       {stage ? <>
         <Text style={s.body}>Recovery code</Text><Field value={token} onChangeText={setToken} autoCapitalize="none" maxLength={2048} accessibilityLabel="Recovery code" />
-        <Text style={s.body}>New password</Text><PasswordField value={password} onChangeText={setPassword} autoCapitalize="none" maxLength={128} accessibilityLabel="New password" />
-        <Text style={s.body}>Confirm password</Text><PasswordField value={confirm} onChangeText={setConfirm} autoCapitalize="none" maxLength={128} accessibilityLabel="Confirm password" />
-      </> : <><Text style={s.body}>Email address</Text><Field value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" accessibilityLabel="Email address" /></>}
+        <Text style={s.body}>New password</Text><PasswordField value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="new-password" maxLength={128} accessibilityLabel="New password" />
+        <Text style={s.body}>Confirm password</Text><PasswordField value={confirm} onChangeText={setConfirm} autoCapitalize="none" autoComplete="new-password" maxLength={128} accessibilityLabel="Confirm password" />
+      </> : <><Text style={s.body}>Email address</Text><Field value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" maxLength={255} accessibilityLabel="Email address" /></>}
       <Button disabled={a.busy} title={stage ? "Reset password" : "Send recovery code"} onPress={() => {
         if (stage) { if (password !== confirm) { a.setError("Passwords do not match."); return; } void a.resetPassword(token, password); }
         else void a.recover(email).then(ok => { if (ok) setStage(true); });
       }} />
-      <Button secondary disabled={a.busy} title={stage ? "Request a new code" : "Already have a recovery code?"} onPress={() => setStage(!stage)} />
+      <Button secondary disabled={a.busy} title={stage ? "Request a new code" : "Already have a recovery code?"} onPress={() => { a.setError(""); setStage(!stage); }} />
     </Card>
     <Button secondary disabled={a.busy} title="Back to sign in" onPress={() => a.go("login")} />
   </Page>;

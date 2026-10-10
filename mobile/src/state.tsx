@@ -22,6 +22,7 @@ function useAppState() {
   const [user, setUser] = useState<User>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const lock = useRef(false);
   const [photo, setPhoto] = useState<string>();
   const [consent, setConsent] = useState(false);
@@ -37,6 +38,7 @@ function useAppState() {
   );
   function go(screen: keyof typeof screens) {
     setError("");
+    setNotice("");
     router.push(`/${screen}`);
   }
   function change(value: Language) {
@@ -53,6 +55,7 @@ function useAppState() {
     setHistory([]);
     setPlantName("");
     setLocation("");
+    setNotice("");
     router.replace("/login");
   }
   async function run(action: () => Promise<void>) {
@@ -60,6 +63,7 @@ function useAppState() {
     lock.current = true;
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       await action();
       return true;
@@ -125,26 +129,31 @@ function useAppState() {
   }
   async function saveProfile(fullName: string) {
     return run(async () => {
+      if (fullName.trim().length < 2 || fullName.trim().length > 150) throw new Error("Enter a full name between 2 and 150 characters.");
       const data = await request<User>(endpoints.me, token, { method: "PATCH", body: JSON.stringify({ fullName: fullName.trim(), language: lang }) });
-      setUser(data); Alert.alert(brand.name, "Profile saved.");
+      setUser(data); setNotice("Profile saved.");
     });
   }
   async function recover(email: string) {
     return run(async () => {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || email.trim().length > 255) throw new Error("Enter a valid email address.");
       const data = await request<{message: string}>(endpoints.forgotPassword, "", { method: "POST", body: JSON.stringify({ email: email.trim() }) });
-      Alert.alert(brand.name, data.message);
+      setNotice(data.message);
     });
   }
   async function resetPassword(recoveryToken: string, password: string) {
     return run(async () => {
+      if (!recoveryToken.trim()) throw new Error("Enter the recovery code from your email.");
+      if (password.length < 10 || password.length > 128) throw new Error("Use a password between 10 and 128 characters.");
       await request(endpoints.resetPassword, "", { method: "POST", body: JSON.stringify({ token: recoveryToken.trim(), password }) });
-      go("login"); Alert.alert(brand.name, "Password reset. Sign in with your new password.");
+      router.replace("/login"); setNotice("Password reset. Sign in with your new password.");
     });
   }
   async function changePassword(currentPassword: string, password: string) {
     return run(async () => {
+      if (currentPassword.length < 10 || currentPassword.length > 128 || password.length < 10 || password.length > 128) throw new Error("Passwords must contain between 10 and 128 characters.");
       await request(endpoints.changePassword, token, { method: "POST", body: JSON.stringify({ currentPassword, password }) });
-      clearSession(); Alert.alert(brand.name, "Password updated. Please sign in again.");
+      clearSession(); setNotice("Password updated. Please sign in again.");
     });
   }
   async function pick(camera: boolean) {
@@ -252,25 +261,25 @@ function useAppState() {
   async function command(transcript: string) {
     await run(async () => {
       let intent = "unknown";
-      if (/history/i.test(transcript)) {
+      if (/history|చరిత్ర|इतिहास/i.test(transcript)) {
         intent = "history";
         go("history");
-      } else if (/telugu|hindi|english/i.test(transcript)) {
+      } else if (/telugu|తెలుగు|hindi|हिंदी|english/i.test(transcript)) {
         intent = "language";
-        const language = /telugu/i.test(transcript)
+        const language = /telugu|తెలుగు/i.test(transcript)
           ? "te"
-          : /hindi/i.test(transcript)
+          : /hindi|हिंदी/i.test(transcript)
             ? "hi"
             : "en";
         change(language);
-        await speak(false, language);
-      } else if (/treatment|steps/i.test(transcript)) {
+        if (result?.translations?.[language]) await speak(false, language);
+      } else if (/treat|steps|చికిత్స|उपचार/i.test(transcript)) {
         intent = "read_result";
         await speak(true);
-      } else if (/read|result/i.test(transcript)) {
+      } else if (/read|result|చదువు|पढ़/i.test(transcript)) {
         intent = "read_result";
         await speak();
-      } else if (/analy/i.test(transcript)) {
+      } else if (/analy|విశ్లేష|विश्लेष/i.test(transcript)) {
         intent = "analyze";
         go("capture");
       }
@@ -284,6 +293,7 @@ function useAppState() {
           analysisId: result?.id || null,
         }),
       });
+      if (intent === "unknown") throw new Error(`Command not recognized: ${transcript}`);
     });
   }
   async function logout() {
@@ -299,6 +309,7 @@ function useAppState() {
     user,
     busy,
     error,
+    notice,
     setError,
     photo,
     consent,

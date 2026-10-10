@@ -39,6 +39,7 @@ export type HistoryItem = {
   disease_name: string | null;
   created_at: string;
   severity?: string;
+  confidence?: number | null;
   provided_plant_name?: string;
 };
 export type User = { fullName: string; email: string; language?: Language };

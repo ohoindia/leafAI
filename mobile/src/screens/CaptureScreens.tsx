@@ -8,13 +8,13 @@ import {
   screens,
 } from "../../../common/content.js";
 import { useLeafCare } from "../state";
-import { Button, Card, Field, Page, s } from "../ui";
+import { Button, Card, Field, LeafLogo, Page, s } from "../ui";
 export function CaptureScreen() {
   const a = useLeafCare();
   return (
     <Page title={screens.capture}>
       <Card>
-        <Text style={{ fontSize: 80, textAlign: "center" }}>🌿</Text>
+        <View style={{ alignItems: "center" }}><LeafLogo large /></View>
         <Text style={s.body}>Place one leaf inside the frame</Text>
         <Text style={s.muted}>
           Your device camera opens when you tap below.

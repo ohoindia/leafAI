@@ -13,12 +13,32 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Redirect, router } from "expo-router";
+import { Redirect, router, usePathname } from "expo-router";
 import { brand, languages } from "../../common/content.js";
+import { endpoints } from "../../common/api.js";
+import { apiUrl } from "./api";
 import type { Language } from "../../common/types";
 import { useLeafCare } from "./state";
 export function LeafLogo({ large = false }: { large?: boolean }) {
   return <Image source={require("../assets/icon.png")} accessibilityLabel="Krishi Karshak leaf logo" style={{ width: large ? 88 : 38, height: large ? 88 : 38, borderRadius: large ? 22 : 10 }} />;
+}
+export function AnalysisPhoto({ id, fallback, thumbnail = false }: { id: string; fallback?: string; thumbnail?: boolean }) {
+  const a = useLeafCare();
+  const [failedSource, setFailedSource] = useState("");
+  const uri = fallback || `${apiUrl}${endpoints.image(id)}`;
+  return failedSource === uri ? (
+    <View style={[s.image, thumbnail && s.thumbnail, s.photoPlaceholder]}>
+      <LeafLogo />
+      {!thumbnail && <Text style={s.muted}>Photo unavailable</Text>}
+    </View>
+  ) : <Image source={fallback ? { uri } : { uri, headers: { Authorization: `Bearer ${a.token}` } }} accessibilityLabel="Analyzed leaf" style={[s.image, thumbnail && s.thumbnail]} onError={() => setFailedSource(uri)} />;
+}
+export function AuthBrand({ register = false }: { register?: boolean }) {
+  return <View style={s.authBrand}>
+    <LeafLogo large />
+    <Text style={s.brandTitle}>{brand.name}</Text>
+    <Text style={[s.muted, { textAlign: "center" }]}>{register ? "Grow Today\nGreener Tomorrow" : "Good Plants\nBrighter Days"}</Text>
+  </View>;
 }
 export function Button({
   title,
@@ -108,25 +128,32 @@ export function Page({
   children,
   auth = false,
   processing = false,
+  branding,
 }: {
   title: string;
   children: React.ReactNode;
   auth?: boolean;
   processing?: boolean;
+  branding?: React.ReactNode;
 }) {
   const a = useLeafCare();
+  const pathname = usePathname();
+  const [menu, setMenu] = useState(false);
+  const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : pathname;
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={[s.safe, auth && { backgroundColor: "#eaf7ff" }]}>
       <KeyboardAvoidingView
         style={s.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <View style={s.header}>
+        {!auth && <View style={s.header}>
           <Pressable
             disabled={processing}
             accessibilityLabel="Go back"
+            accessibilityRole="button"
+            style={s.iconButton}
             onPress={() =>
               router.canGoBack()
                 ? router.back()
@@ -142,18 +169,35 @@ export function Page({
           {!auth && (
             <Pressable
               disabled={processing || a.busy}
-              accessibilityLabel="Your profile"
-              onPress={() => a.go("profile")}
+              accessibilityRole="button"
+              accessibilityLabel="Account menu"
+              accessibilityState={{ expanded: menu }}
+              style={s.iconButton}
+              onPress={() => setMenu(true)}
             >
               <Text style={s.heading}>☰</Text>
             </Pressable>
           )}
-        </View>
+        </View>}
+        <Modal visible={menu && !auth} transparent animationType="fade" onRequestClose={() => setMenu(false)}>
+          <View style={s.menuBackdrop}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close account menu" onPress={() => setMenu(false)} style={StyleSheet.absoluteFill} />
+            <View accessibilityViewIsModal style={s.menuCard}>
+              <Text style={s.heading}>Your account</Text>
+              <Languages />
+              <Button secondary title="Your profile" onPress={() => { setMenu(false); a.go("profile"); }} />
+              <Button title="Sign out" disabled={a.busy} onPress={() => { setMenu(false); void a.logout(); }} />
+              <Button secondary title="Close" onPress={() => setMenu(false)} />
+            </View>
+          </View>
+        </Modal>
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={s.container}
+          contentContainerStyle={[s.container, auth && s.authContainer]}
         >
+          {branding}
           <Text style={s.title}>{title}</Text>
+          {!!a.notice && <View style={s.notice}><Text accessibilityLiveRegion="polite" style={{ color: "#185b31" }}>{a.notice}</Text></View>}
           {!!a.error && (
             <Card>
               <Text accessibilityRole="alert" style={s.error}>
@@ -176,7 +220,7 @@ export function Page({
             {(
               [
                 ["home", "Home"],
-                ["capture", "Analyze"],
+                ["capture", "Diagnose"],
                 ["history", "History"],
                 ["learn", "Learn"],
               ] as const
@@ -184,11 +228,12 @@ export function Page({
               <Pressable
                 disabled={a.busy}
                 accessibilityRole="button"
+                accessibilityState={{ selected: activeRoute === `/${route}`, disabled: a.busy }}
                 key={route}
                 onPress={() => a.go(route)}
-                style={s.navItem}
+                style={[s.navItem, activeRoute === `/${route}` && s.navSelected]}
               >
-                <Text style={s.small}>{label}</Text>
+                <Text style={[s.small, activeRoute === `/${route}` && { fontWeight: "700" }]}>{label}</Text>
               </Pressable>
             ))}
           </View>
@@ -198,6 +243,17 @@ export function Page({
   );
 }
 export const s = StyleSheet.create({
+  authContainer: { flexGrow: 1, justifyContent: "center", maxWidth: 430, paddingVertical: 28, gap: 20 },
+  authBrand: { alignItems: "center", gap: 10, marginVertical: 12 },
+  brandTitle: { fontSize: 32, fontWeight: "800", color: "#12334a", textAlign: "center" },
+  iconButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  menuBackdrop: { flex: 1, backgroundColor: "#142b4180", padding: 20, justifyContent: "center", alignItems: "center" },
+  menuCard: { width: "100%", maxWidth: 350, padding: 20, gap: 14, borderRadius: 20, backgroundColor: "#fff" },
+  notice: { backgroundColor: "#e8f6ee", padding: 16, borderRadius: 12 },
+  thumbnail: { width: 55, height: 60, borderRadius: 10, resizeMode: "cover" },
+  photoPlaceholder: { alignItems: "center", justifyContent: "center", gap: 12 },
+  navSelected: { backgroundColor: "#eaf7ff" },
+  divider: { textAlign: "center", color: "#63758a" },
   safe: { flex: 1, backgroundColor: "#f7fafc" },
   flex: { flex: 1 },
   container: {

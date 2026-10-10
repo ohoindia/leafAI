@@ -27,7 +27,7 @@ export const consentDetail: string;
 export const voiceCommands: string[];
 export const careTips: string[][];
 export function analysisStatus(
-  item: Partial<Analysis> & Partial<HistoryItem>,
+  item: Partial<Pick<Analysis, "status" | "condition" | "severity">> & Partial<Pick<HistoryItem, "disease_name">>,
 ): string;
 export function filterHistory(
   items: HistoryItem[],
