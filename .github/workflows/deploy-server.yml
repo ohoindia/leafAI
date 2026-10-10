@@ -5,6 +5,7 @@ on:
     branches: [develop]
     paths:
       - "server/**"
+      - ".github/workflows/deploy-server.yml"
 
 permissions:
   contents: read
@@ -55,6 +56,10 @@ jobs:
         run: >
           sam deploy
           --template-file template.yaml
-          --config-env default
+          --stack-name leafai
+          --region ap-south-1
+          --resolve-s3
+          --s3-prefix leafai
+          --capabilities CAPABILITY_IAM
           --no-confirm-changeset
           --no-fail-on-empty-changeset
