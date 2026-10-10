@@ -13,7 +13,12 @@ test("contact validation accepts international numbers and rejects malformed inp
 
 test("user contact and address saves are owner scoped and preserve farm and photo", async () => {
   let saved;
-  const service = new AuthService({ execute: async (sql, values) => {
+  const service = new AuthService({ transaction: async work => work({ execute: async (sql, values) => {
+      assert.match(sql, /user_details=\?/);
+      assert.doesNotMatch(sql, /farm_details=|profile_photo=/);
+      assert.equal(values.at(-1), "7");
+      saved = JSON.parse(values[2]); return [{affectedRows:1}];
+    } }), execute: async (sql, values) => {
     if (sql.startsWith("UPDATE")) {
       assert.match(sql, /user_details=\?/);
       assert.doesNotMatch(sql, /farm_details=|profile_photo=/);
@@ -21,7 +26,9 @@ test("user contact and address saves are owner scoped and preserve farm and phot
       saved = JSON.parse(values[2]);
       return [{ affectedRows: 1 }];
     }
-    return [[{ full_name: "Farmer", user_details: saved, farm_details: { village: "Farm village" } }]];
+    if (sql.includes("FROM FarmDetails")) return [[{id:"farm", village:"Farm village"}]];
+    if (sql.includes("FROM farm_crops")) return [[]];
+    return [[{ full_name: "Farmer", user_details: saved }]];
   } }, new SecurityService());
   const result = await service.updateProfile({ user: { sub: "7" }, body: { fullName: "Farmer", language: "en", userDetails: { phone: "9876543210", village: " Home village " } } });
   assert.equal(result.userDetails.village, "Home village");
@@ -31,6 +38,7 @@ test("user contact and address saves are owner scoped and preserve farm and phot
 test("profile photo is normalized, encrypted and returned only for the authenticated owner", async () => {
   let stored;
   const service = new AuthService({ execute: async (sql, values) => {
+    if (sql.includes("FROM FarmDetails") || sql.includes("FROM farm_crops")) return [[]];
     assert.equal(values.at(-1), "7");
     if (sql.startsWith("UPDATE")) {
       assert.match(sql, /profile_photo=\?/);

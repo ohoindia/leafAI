@@ -2,3 +2,5 @@ export type FarmFieldKey = "farmName" | "phone" | "village" | "district" | "stat
 export type FarmDetails = Partial<Record<FarmFieldKey, string>>;
 export type FarmField = { key: FarmFieldKey; label: string; type: string; options?: string[] };
 export const farmSections: { title: string; fields: FarmField[] }[];
+
+export type FarmRecord = { id: string; details: FarmDetails; crops: { id: string; status: "CURRENT" | "PREVIOUS"; details: FarmDetails }[] };

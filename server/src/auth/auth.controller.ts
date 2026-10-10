@@ -46,6 +46,15 @@ export class AuthController {
   @Patch("me")
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
+  @ApiBody({ schema: { type: "object", required: ["fullName", "language"], properties: {
+    fullName: { type: "string", minLength: 2, maxLength: 150 },
+    language: { type: "string", enum: ["en", "te", "hi"] },
+    farmDetails: { type: "object", description: "Farm and crop fields from the farm form" },
+    farmId: { type: "string", description: "Owned farm UUID, or new to add a farm; omitted targets the first farm" },
+    newCrop: { type: "boolean", description: "Archive the current crop and begin another season", default: false },
+    addPreviousCrop: { type: "boolean", description: "Append an optional previous crop history record", default: false },
+    userDetails: { type: "object" },
+  } } })
   updateProfile(@Req() req: ApiRequest) { return this.service.updateProfile(req); }
   @Post("me/photo")
   @ApiBearerAuth()

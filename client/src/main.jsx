@@ -189,13 +189,13 @@ function App() {
       setBusy(false);
     }
   }
-  async function saveFarmDetails(farmDetails) {
+  async function saveFarmDetails(farmDetails, farmId, newCrop = false, addPreviousCrop = false) {
     if (busy) return false;
     setBusy(true); setError(""); setNotice("");
     try {
-      const data = await api(endpoints.me, { method: "PATCH", body: JSON.stringify({ fullName: user.fullName, language: lang, farmDetails }) });
+      const data = await api(endpoints.me, { method: "PATCH", body: JSON.stringify({ fullName: user.fullName, language: lang, farmDetails, farmId, newCrop, addPreviousCrop }) });
       setUser(data); setNotice("Farm details saved.");
-      return true;
+      return farmId === "new" ? data.farms.find(f => !user.farms?.some(old => old.id === f.id))?.id || true : true;
     } catch (e) { setError(e.message); return false; }
     finally { setBusy(false); }
   }
@@ -965,7 +965,7 @@ function App() {
               <button className="text-button" onClick={() => go("profile")}>&#8592; Back to profile</button>
               <h2>{screens[screen]}</h2>
               {screen === "language" && <section className="card"><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>}
-              {screen === "farm-details" && <FarmDetails details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
+              {screen === "farm-details" && <FarmDetails farms={user?.farms || []} details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
               {screen === "account-details" && <UserDetails user={user} busy={busy} onSave={saveUserDetails} onUpload={uploadProfilePhoto} />}
               {screen === "security" && <>
                 <section className="card"><h3>Password & security</h3>

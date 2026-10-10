@@ -10,6 +10,7 @@ import { DatabaseService } from "../common/database.service.js";
 import { SecurityService } from "../common/security.service.js";
 import type { ApiRequest } from "../common/api-request.js";
 import { farmDetailsSchema } from "./farm-schema.js";
+import { readFarms, saveFarm } from "./farm-records.js";
 const creds = z.object({
   email: z
     .string()
@@ -26,11 +27,12 @@ export class AuthService {
   ) {}
   async me(req: ApiRequest) {
     const [rows] = await this.db.execute(
-      "SELECT id,full_name,email,preferred_language,role,farm_details,user_details,profile_photo FROM users WHERE id=? AND is_active=1",
+      "SELECT id,full_name,email,preferred_language,role,user_details,profile_photo FROM users WHERE id=? AND is_active=1",
       [req.user.sub],
     );
     if (!rows[0]) throw new UnauthorizedException("Session expired");
     const u = rows[0];
+    const farms = await readFarms(this.db, req.user.sub);
     return {
       id: u.id,
       fullName: u.full_name,
@@ -39,17 +41,22 @@ export class AuthService {
       role: u.role,
       userDetails: typeof u.user_details === "string" ? JSON.parse(u.user_details) : (u.user_details || {}),
       profilePhoto: this.photoData(u.profile_photo),
-      farmDetails: typeof u.farm_details === "string" ? JSON.parse(u.farm_details) : (u.farm_details || {}),
+      farms,
+      farmDetails: farms[0]?.details || {},
     };
   }
   async updateProfile(req: ApiRequest) {
-    const b = z.object({ fullName: z.string().trim().min(2).max(150), language: z.enum(["en", "te", "hi"]), farmDetails: farmDetailsSchema.optional(), userDetails: userDetailsSchema.optional() }).parse(req.body);
+    const b = z.object({ fullName: z.string().trim().min(2).max(150), language: z.enum(["en", "te", "hi"]), farmDetails: farmDetailsSchema.optional(), farmId: z.union([z.literal("new"), z.string().uuid()]).optional(), newCrop: z.boolean().optional(), addPreviousCrop: z.boolean().optional(), userDetails: userDetailsSchema.optional() }).parse(req.body);
+    if (b.newCrop && b.addPreviousCrop) throw new BadRequestException("Choose either a new current crop or a previous crop");
     const columns = ["full_name=?", "preferred_language=?"];
     const values: string[] = [b.fullName, b.language];
-    if (b.farmDetails !== undefined) { columns.push("farm_details=?"); values.push(JSON.stringify(b.farmDetails)); }
+
     if (b.userDetails !== undefined) { columns.push("user_details=?"); values.push(JSON.stringify(b.userDetails)); }
     values.push(req.user.sub);
-    await this.db.execute(`UPDATE users SET ${columns.join(",")} WHERE id=? AND is_active=1`, values);
+    await this.db.transaction(async connection => {
+      await connection.execute(`UPDATE users SET ${columns.join(",")} WHERE id=? AND is_active=1`, values);
+      if (b.farmDetails !== undefined) await saveFarm(connection, req.user.sub, b.farmDetails, b.farmId, b.newCrop, false, b.addPreviousCrop);
+    });
     return this.me(req);
   }
   private photoData(value: unknown): string | null {
@@ -180,6 +187,7 @@ export class AuthService {
       "INSERT INTO login_events(user_id,email_attempted,event_type,ip_address,user_agent) VALUES(?,?,?,INET6_ATON(?),?)",
       [u.id, b.email, "LOGIN_SUCCESS", req.ip, req.get("user-agent")],
     );
+    const farms = await readFarms(this.db, String(u.id));
     return {
       tokens,
       user: {
@@ -190,7 +198,8 @@ export class AuthService {
         role: u.role,
         userDetails: typeof u.user_details === "string" ? JSON.parse(u.user_details) : (u.user_details || {}),
       profilePhoto: this.photoData(u.profile_photo),
-      farmDetails: typeof u.farm_details === "string" ? JSON.parse(u.farm_details) : (u.farm_details || {}),
+      farms,
+      farmDetails: farms[0]?.details || {},
       },
     };
   }
