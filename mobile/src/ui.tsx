@@ -138,7 +138,7 @@ export function Page({
 }) {
   const a = useLeafCare();
   const pathname = usePathname();
-  const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : pathname;
+  const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : ["/language", "/account-details", "/security", "/farm-details"].includes(pathname) ? "/profile" : pathname;
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
   return (

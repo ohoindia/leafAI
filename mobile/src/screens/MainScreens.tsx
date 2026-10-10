@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
+  profileSettings,
   accountInitials,
   accountGreeting,
   analysisStatus,
@@ -127,12 +128,15 @@ export function LearnScreen() {
     </Page>
   );
 }
+function ProfileMenuCard({ title, subtitle, icon, onPress }: { title: string; subtitle: string; icon: string; onPress: () => void }) {
+  const a = useLeafCare();
+  return <Pressable accessibilityRole="button" disabled={a.busy} onPress={onPress} style={[s.card, s.row]}>
+    <View style={s.accountAvatar}><Text style={s.avatarText}>{icon}</Text></View>
+    <View style={s.flex}><Text style={s.heading}>{title}</Text><Text style={s.muted}>{subtitle}</Text></View><Text style={s.heading}>{"\u203a"}</Text>
+  </Pressable>;
+}
 export function ProfileScreen() {
   const a = useLeafCare();
-  const [name, setName] = useState<string>();
-  const [current, setCurrent] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
   return <Page title={screens.profile}>
     <Card>
       <View style={s.row}>
@@ -140,12 +144,27 @@ export function ProfileScreen() {
         <View style={s.flex}><Text style={s.heading}>{a.user?.fullName || "Your account"}</Text><Text style={s.muted}>{a.user?.email}</Text></View>
       </View>
     </Card>
-    <Card title="Change language"><Text style={s.muted}>Choose your preferred language</Text><Languages /></Card>
+    {profileSettings.map(item => <ProfileMenuCard key={item.route} title={item.title} subtitle={item.subtitle} icon={item.icon === "language" ? "\u25ce" : item.icon === "security" ? "\u26bf" : "\u25cb"} onPress={() => a.go(item.route)} />)}
+    <ProfileMenuCard title="Sign out" subtitle="Sign out of your account" icon="\u21aa" onPress={() => { void a.logout(); }} />
+  </Page>;
+}
+export function AccountDetailsScreen() {
+  const a = useLeafCare();
+  const [name, setName] = useState<string>();
+  return <Page title={screens["account-details"]}>
     <Card title="Account details">
       <Text style={s.body}>Full name</Text><Field value={name ?? a.user?.fullName ?? ""} onChangeText={setName} maxLength={150} autoComplete="name" accessibilityLabel="Full name" />
       <Text style={s.body}>Email address</Text><Text style={s.muted}>{a.user?.email}</Text>
       <Button title={a.busy ? "Saving..." : "Save profile"} disabled={a.busy} onPress={() => { void a.saveProfile(name ?? a.user?.fullName ?? "").then(ok => { if (ok) setName(undefined); }); }} />
     </Card>
+  </Page>;
+}
+export function SecurityScreen() {
+  const a = useLeafCare();
+  const [current, setCurrent] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  return <Page title={screens.security}>
     <Card title="Password & security">
       <Text style={s.body}>Current password</Text><PasswordField value={current} onChangeText={setCurrent} autoCapitalize="none" autoComplete="current-password" maxLength={128} accessibilityLabel="Current password" />
       <Text style={s.body}>New password</Text><PasswordField value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="new-password" maxLength={128} accessibilityLabel="New password" />
@@ -153,8 +172,10 @@ export function ProfileScreen() {
       <Text style={s.muted}>Use at least 10 characters. You will sign in again after changing your password.</Text>
       <Button title="Update password" disabled={a.busy} onPress={() => { if (password !== confirm) { a.setError("Passwords do not match."); return; } void a.changePassword(current, password); }} />
     </Card>
-    <Button secondary title="Sign out" disabled={a.busy} onPress={() => { void a.logout(); }} />
   </Page>;
+}
+export function LanguageSettingsScreen() {
+  return <Page title={screens.language}><Card title="Change language"><Text style={s.muted}>Choose your preferred language</Text><Languages /></Card></Page>;
 }
 export function VoiceScreen() {
   const a = useLeafCare();

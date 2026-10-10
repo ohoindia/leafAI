@@ -127,10 +127,10 @@ function useAppState() {
       await loadHistory(data.accessToken);
     });
   }
-  async function saveProfile(fullName: string) {
+  async function saveProfile(fullName: string, farmDetails?: User["farmDetails"]) {
     return run(async () => {
       if (fullName.trim().length < 2 || fullName.trim().length > 150) throw new Error("Enter a full name between 2 and 150 characters.");
-      const data = await request<User>(endpoints.me, token, { method: "PATCH", body: JSON.stringify({ fullName: fullName.trim(), language: lang }) });
+      const data = await request<User>(endpoints.me, token, { method: "PATCH", body: JSON.stringify({ fullName: fullName.trim(), language: lang, farmDetails }) });
       setUser(data); setNotice("Profile saved.");
     });
   }

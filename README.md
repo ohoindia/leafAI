@@ -280,3 +280,9 @@ node server/scripts/migrate-analysis-context.mjs
 The migration is safe to rerun and preserves existing rows. New databases use the updated `database/schema.sql`. The equivalent one-time SQL is in `database/migrations/001_analysis_context.sql`.
 
 For existing Lambda execution roles, include both `s3:PutObject` and `s3:GetObject` on your upload bucket's objects. The SAM template includes both. Photos remain encrypted at rest and are decrypted only by the authenticated, owner-scoped `GET /api/analyses/:id/image` route. `GET /api/auth/me` restores profile information after a page reload. Analysis requests now accept optional `plantName` (150 characters) and `location` (255 characters). New analyses include translated full guidance; old saved analyses retain their original translations and use English for any missing detailed sections.
+
+### Farmer profile
+
+Open Profile → Farm and crops on web or mobile to save farm location, area and soil, irrigation, present and previous crops, inputs and field notes. All 43 fields are optional. Data is stored with the signed-in account. The profile PATCH endpoint accepts farmDetails together with fullName and language. Omitting farmDetails preserves the saved farm; submitting an empty object clears it.
+
+Before deploying the updated server to an existing database, apply `database/migrations/002_farmer_profile.sql` using your MySQL migration workflow. Fresh databases include the column in `database/schema.sql`.

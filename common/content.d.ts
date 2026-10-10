@@ -16,6 +16,9 @@ export const screens: Record<
   | "full"
   | "history"
   | "learn"
+  | "farm-details"
+  | "account-details"
+  | "security"
   | "profile"
   | "voice",
   string
@@ -37,3 +40,5 @@ export function filterHistory(
 
 export function accountInitials(name?: string): string;
 export function accountGreeting(name?: string, hour?: number): string;
+
+export const profileSettings: { route: "farm-details" | "language" | "account-details" | "security"; title: string; subtitle: string; icon: string }[];

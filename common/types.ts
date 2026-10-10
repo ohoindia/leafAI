@@ -42,4 +42,4 @@ export type HistoryItem = {
   confidence?: number | null;
   provided_plant_name?: string;
 };
-export type User = { fullName: string; email: string; language?: Language };
+export type User = { fullName: string; email: string; language?: Language; farmDetails?: import("./farm").FarmDetails };

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
-import { accountInitials, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
+import { FarmDetails } from "./FarmDetails";
+import { profileSettings, accountInitials, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
 import { endpoints, uploadRules, requestApi } from '../../common/api.js';
 function Leaf({ large = false }) {
   return <img className={large ? "leaf large" : "leaf"} src="/leaf-logo.svg" alt="" />;
@@ -12,6 +13,8 @@ function Icon({ name }) {
     camera: "M3 7h5l2-3h4l2 3h5v13H3Z M16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
     gallery: "M3 3h18v18H3Z m0 14 5-5 4 4 4-6 5 7 M8 7h.01",
     history: "M4 5v5h5 M4 10a8 8 0 1 1 0 5 M12 7v5l3 2",
+    language: "M3 12h18 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 3c-5 5-5 13 0 18 5-5 5-13 0-18",
+    security: "M5 10h14v11H5Z M8 10V7a4 4 0 0 1 8 0v3",
     profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21v-2a8 8 0 0 1 16 0v2",
     learn: "M12 5C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Zm0 0v16",
     search: "M16 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0 m-2 4 7 7",
@@ -185,14 +188,24 @@ function App() {
       setBusy(false);
     }
   }
+  async function saveFarmDetails(farmDetails) {
+    if (busy) return false;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const data = await api(endpoints.me, { method: "PATCH", body: JSON.stringify({ fullName: user.fullName, language: lang, farmDetails }) });
+      setUser(data); setNotice("Farm details saved.");
+      return true;
+    } catch (e) { setError(e.message); return false; }
+    finally { setBusy(false); }
+  }
   async function account(e, action) {
     e.preventDefault(); if (busy) return;
     const b = Object.fromEntries(new FormData(e.currentTarget));
     if (b.confirmPassword !== undefined && b.password !== b.confirmPassword) return setError("Passwords do not match.");
     setBusy(true); setError(""); setNotice("");
     try {
-      const data = await api(action === "profile" ? endpoints.me : endpoints[action], { method: action === "profile" ? "PATCH" : "POST", body: JSON.stringify(action === "profile" ? { fullName: b.fullName, language: lang } : b) });
-      if (action === "profile") { setUser(data); setNotice("Profile saved."); }
+      const data = await api(["profile", "farm"].includes(action) ? endpoints.me : endpoints[action], { method: ["profile", "farm"].includes(action) ? "PATCH" : "POST", body: JSON.stringify(action === "farm" ? { fullName: user.fullName, language: lang, farmDetails: b } : action === "profile" ? { fullName: b.fullName, language: lang } : b) });
+      if (["profile", "farm"].includes(action)) { setUser(data); setNotice("Profile saved."); }
       else if (action === "forgotPassword") { go("reset"); setNotice(data.message); }
       else { clear(); setNotice(data.message); }
     } catch (e) { setError(e.message); } finally { setBusy(false); }
@@ -914,14 +927,26 @@ function App() {
                 ))}
               </>
             )}
-            {screen === "profile" && (
-              <>
-                <h2>{screens.profile}</h2>
+            {screen === "profile" && <>
+              <h2>{screens.profile}</h2>
                 <section className="profile-hero card">
                   <div className="account-avatar profile-avatar">{accountInitials(user?.fullName)}</div>
                   <div><h3>{user?.fullName || "Your account"}</h3><p className="muted">{user?.email}</p></div>
                 </section>
-                <section className="card"><h3>Change language</h3><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>
+              <div className="profile-menu">
+                {profileSettings.map(item => <button key={item.route} className="profile-menu-card" onClick={() => go(item.route)}>
+                  <span className="profile-menu-icon"><Icon name={item.icon} /></span>
+                  <span className="profile-menu-copy"><strong>{item.title}</strong><small>{item.subtitle}</small></span><span aria-hidden="true">&#8250;</span>
+                </button>)}
+              </div>
+              <button className="profile-menu-card" disabled={busy} onClick={logout}><span className="profile-menu-icon">&#8618;</span><span className="profile-menu-copy"><strong>Sign out</strong><small>Sign out of your account</small></span><span aria-hidden="true">&#8250;</span></button>
+            </>}
+            {["language", "account-details", "security", "farm-details"].includes(screen) && <>
+              <button className="text-button" onClick={() => go("profile")}>&#8592; Back to profile</button>
+              <h2>{screens[screen]}</h2>
+              {screen === "language" && <section className="card"><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>}
+              {screen === "farm-details" && <FarmDetails details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
+              {screen === "account-details" && <>
                 <section className="card"><h3>Account details</h3>
                   <form key={user?.fullName} onSubmit={e => account(e, "profile")}>
                     <label>Full name<input name="fullName" defaultValue={user?.fullName} autoComplete="name" required minLength={2} maxLength={150} /></label>
@@ -929,6 +954,8 @@ function App() {
                     <button disabled={busy}>{busy ? "Saving..." : "Save profile"}</button>
                   </form>
                 </section>
+              </>}
+              {screen === "security" && <>
                 <section className="card"><h3>Password & security</h3>
                   <form onSubmit={e => account(e, "changePassword")}>
                     <label>Current password<PasswordField name="currentPassword" autoComplete="current-password" required minLength={10} maxLength={128} /></label>
@@ -937,11 +964,9 @@ function App() {
                     <button disabled={busy}>Update password</button>
                   </form>
                 </section>
-                <button className="outline" onClick={logout}>
-                  Sign out
-                </button>
-              </>
-            )}
+              </>}
+            </>}
+
           </main>
           {!isAuth && screen !== "processing" && (
             <nav aria-label="Main navigation">
@@ -953,8 +978,8 @@ function App() {
               ].map(([next, icon, text]) => (
                 <button
                   key={next}
-                  className={screen === next ? "active" : ""}
-                  aria-current={screen === next ? "page" : undefined}
+                  className={(screen === next || (next === "profile" && ["language", "account-details", "security", "farm-details"].includes(screen))) ? "active" : ""}
+                  aria-current={(screen === next || (next === "profile" && ["language", "account-details", "security", "farm-details"].includes(screen))) ? "page" : undefined}
                   onClick={() => go(next)}
                 >
                   <Icon name={icon} />

@@ -6,6 +6,7 @@ CREATE TABLE users (
   email VARCHAR(255) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   full_name VARCHAR(150) NOT NULL,
+  farm_details JSON NULL,
   preferred_language ENUM('en','te','hi') NOT NULL DEFAULT 'en',
   role ENUM('USER','AGRONOMIST','ADMIN') NOT NULL DEFAULT 'USER',
   is_active BOOLEAN NOT NULL DEFAULT TRUE,

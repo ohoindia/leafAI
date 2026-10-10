@@ -7,6 +7,7 @@ import { env } from "../config.js";
 import { DatabaseService } from "../common/database.service.js";
 import { SecurityService } from "../common/security.service.js";
 import type { ApiRequest } from "../common/api-request.js";
+import { farmDetailsSchema } from "./farm-schema.js";
 const creds = z.object({
   email: z
     .string()
@@ -23,7 +24,7 @@ export class AuthService {
   ) {}
   async me(req: ApiRequest) {
     const [rows] = await this.db.execute(
-      "SELECT id,full_name,email,preferred_language,role FROM users WHERE id=? AND is_active=1",
+      "SELECT id,full_name,email,preferred_language,role,farm_details FROM users WHERE id=? AND is_active=1",
       [req.user.sub],
     );
     if (!rows[0]) throw new UnauthorizedException("Session expired");
@@ -34,11 +35,16 @@ export class AuthService {
       email: u.email,
       language: u.preferred_language,
       role: u.role,
+      farmDetails: typeof u.farm_details === "string" ? JSON.parse(u.farm_details) : (u.farm_details || {}),
     };
   }
   async updateProfile(req: ApiRequest) {
-    const b = z.object({ fullName: z.string().trim().min(2).max(150), language: z.enum(["en", "te", "hi"]) }).parse(req.body);
-    await this.db.execute("UPDATE users SET full_name=?,preferred_language=? WHERE id=? AND is_active=1", [b.fullName, b.language, req.user.sub]);
+    const b = z.object({ fullName: z.string().trim().min(2).max(150), language: z.enum(["en", "te", "hi"]), farmDetails: farmDetailsSchema.optional() }).parse(req.body);
+    if (b.farmDetails !== undefined) {
+      await this.db.execute("UPDATE users SET full_name=?,preferred_language=?,farm_details=? WHERE id=? AND is_active=1", [b.fullName, b.language, JSON.stringify(b.farmDetails), req.user.sub]);
+    } else {
+      await this.db.execute("UPDATE users SET full_name=?,preferred_language=? WHERE id=? AND is_active=1", [b.fullName, b.language, req.user.sub]);
+    }
     return this.me(req);
   }
   async forgotPassword(req: ApiRequest) {
@@ -158,6 +164,7 @@ export class AuthService {
         email: u.email,
         language: u.preferred_language,
         role: u.role,
+        farmDetails: typeof u.farm_details === "string" ? JSON.parse(u.farm_details) : (u.farm_details || {}),
       },
     };
   }
