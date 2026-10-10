@@ -89,45 +89,11 @@ function useAppState() {
   async function loadHistory(accessToken = token) {
     setHistory(await request<HistoryItem[]>(endpoints.analyses, accessToken));
   }
-  async function authenticate(
-    email: string,
-    password: string,
-    fullName: string,
-    register: boolean,
-  ) {
+  async function authenticate(guid: string, pin: string) {
     return run(async () => {
-      if (
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ||
-        password.length < 10 ||
-        password.length > 128 ||
-        (register && fullName.trim().length < 2)
-      )
-        throw new Error(
-          "Enter a valid email, password (10-128 characters), and name when registering.",
-        );
-      if (register)
-        await request(endpoints.register, "", {
-          method: "POST",
-          body: JSON.stringify({
-            email: email.trim(),
-            password,
-            fullName: fullName.trim(),
-            language: lang,
-          }),
-        });
-      const data = await request<{ accessToken: string; user: User }>(
-        endpoints.login,
-        "",
-        {
-          method: "POST",
-          body: JSON.stringify({ email: email.trim(), password }),
-        },
-      );
-      setToken(data.accessToken);
-      setUser(data.user);
-      change(data.user.language || lang);
-      router.replace("/home");
-      await loadHistory(data.accessToken);
+      const data = await request<{ accessToken: string; user: User }>(endpoints.login, "", { method: "POST", body: JSON.stringify({ guid, pin, language: lang }) });
+      setToken(data.accessToken); setUser(data.user); change(data.user.language || lang);
+      router.replace("/home"); await loadHistory(data.accessToken);
     });
   }
   async function saveProfile(fullName: string, farmDetails?: User["farmDetails"], userDetails?: User["userDetails"], farmId?: string, newCrop = false, addPreviousCrop = false) {

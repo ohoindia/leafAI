@@ -1,4 +1,6 @@
 export const endpoints: {
+  requestOtp: string;
+  verifyOtp: string;
   forgotPassword: string;
   resetPassword: string;
   changePassword: string;

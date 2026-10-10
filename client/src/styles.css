@@ -1024,3 +1024,18 @@ textarea:focus-visible { outline: 2px solid #007ca8; }
 .crop-accordion { border-top: 1px solid #e0e9ef; padding: 12px 0; }
 .crop-accordion > summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
 .farm-accordion summary:focus-visible, .crop-accordion summary:focus-visible { outline: 2px solid #007ca8; outline-offset: 4px; border-radius: 4px; }
+
+/* Customer-app login treatment stays in a mobile column on every viewport. */
+.botanical .auth-content { width: 100%; max-width: 430px; padding: 28px 20px; justify-content: flex-start; gap: 26px; }
+.botanical .brand { margin: 4px 0 0; }
+.mobile-auth-card { min-width: 0; background: #fff; border: 1px solid #e0e9ef; border-radius: 24px; padding: 26px 22px; box-shadow: 0 14px 40px rgb(20 35 68 / 7%); display: flex; flex-direction: column; gap: 16px; }
+.mobile-auth-card h2 { font-size: 22px; line-height: 1.3; }
+.mobile-auth-card > .muted { font-size: 13px; line-height: 1.7; }
+.auth-eyebrow { color: #007ca8; font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; }
+.required-marker { color: #b42318; }
+.mobile-phone-input { display: flex; align-items: center; min-width: 0; min-height: 54px; padding: 0 14px; background: #f8fafc; border: 1px solid #d6e2ec; border-radius: 12px; }
+.country-prefix { flex-shrink: 0; padding-right: 12px; margin-right: 12px; border-right: 1px solid #d6e2ec; font-size: 16px; color: #142b41; }
+.mobile-phone-input input { min-width: 0; flex: 1; border: 0; padding: 14px 0; background: transparent; border-radius: 0; font-size: 16px; }
+.mobile-phone-input:focus-within { outline: 2px solid #007ca8; outline-offset: 2px; }
+.mobile-phone-input input:focus-visible { outline: none; }
+.mobile-auth-card .auth-security { border-top: 1px solid #e0e9ef; padding-top: 16px; text-align: center; font-size: 12px; }

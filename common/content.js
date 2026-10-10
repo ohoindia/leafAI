@@ -22,7 +22,7 @@ export const screens = {
   profile: "Your profile",
   "account-details": "Account details",
   "farm-details": "Farm and crops",
-  security: "Password & security",
+  security: "PIN & security",
   voice: "Voice assistant",
 };
 export const photoChecks = [
@@ -96,5 +96,5 @@ export function accountGreeting(name = "", hour = new Date().getHours()) {
 export const profileSettings = [
   { route: "language", title: "Change language", subtitle: "Choose your preferred language", icon: "language" },
   { route: "account-details", title: "Account details", subtitle: "View and update your personal details", icon: "profile" },
-  { route: "security", title: "Password & security", subtitle: "Manage your account password", icon: "security" },
+  { route: "security", title: "PIN & security", subtitle: "Manage your account PIN", icon: "security" },
 ];

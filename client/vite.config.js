@@ -5,8 +5,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target:
-          "https://wxyvchvnwrpmwwyyfrvy6e2d6q0kclvz.lambda-url.ap-south-1.on.aws",
+        target: "http://127.0.0.1:8080",
         changeOrigin: true,
       },
     },

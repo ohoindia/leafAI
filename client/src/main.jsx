@@ -172,21 +172,24 @@ function App() {
     },
     [preview],
   );
+  const [authMobile, setAuthMobile] = useState("");
+  const [authStage, setAuthStage] = useState("mobile");
+  const [otpChallenge, setOtpChallenge] = useState(null);
   async function auth(e) {
     e.preventDefault();
     setBusy(true);
     setError("");
     const b = Object.fromEntries(new FormData(e.currentTarget));
     try {
-      if (screen === "register")
-        await api(endpoints.register, {
-          method: "POST",
-          body: JSON.stringify({ ...b, language: lang }),
-        });
-      const x = await api(endpoints.login, {
-        method: "POST",
-        body: JSON.stringify({ email: b.email, password: b.password }),
-      });
+      if (authStage === "mobile") {
+        setOtpChallenge(await api(endpoints.requestOtp, { method: "POST", body: JSON.stringify({ mobileNumber: authMobile }) })); setAuthStage("otp"); return;
+      }
+      if (authStage === "otp") {
+        await api(endpoints.verifyOtp, { method: "POST", body: JSON.stringify({ ...b, guid: otpChallenge.guid }) }); setAuthStage("pin"); return;
+      }
+      if (b.pin !== b.confirmPin) throw Error("PINs do not match.");
+      const x = await api(endpoints.login, { method: "POST", body: JSON.stringify({ guid: otpChallenge.guid, pin: b.pin, language: lang }) });
+      setAuthStage("mobile"); setOtpChallenge(null);
       tokenRef.current = x.accessToken;
       setToken(x.accessToken);
       setUser(x.user);
@@ -457,83 +460,37 @@ function App() {
                     )}
                   </p>
                 </div>
-                <h2>{screen === "login" ? screens.login : screens.register}</h2>
-                <p className="muted">
-                  {localize(screen === "login"
-                    ? "Welcome back! Sign in to continue caring for your plants."
-                    : "Join Krishi Karshak and start your plant care journey.")}
-                </p>
-                <form onSubmit={auth}>
-                  {screen === "register" && (
-                    <input
-                      name="fullName"
-                      autoComplete="name"
-                      aria-label={localize("Full name")}
-                      placeholder={localize("Full name")}
-                      required
-                      minLength={2}
-                      maxLength={150}
-                    />
-                  )}
-                  <label htmlFor="auth-email">{localize("Email address")}</label>
-                  <input id="auth-email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    aria-label={localize("Email")}
-                    placeholder={localize("Email")}
-                    required
-                    maxLength={255}
-                  />
-                  <label htmlFor="auth-password">{localize("Password")}</label>
-                  <PasswordField id="auth-password"
-                    name="password"
-                    autoComplete={
-                      screen === "register"
-                        ? "new-password"
-                        : "current-password"
-                    }
-                    aria-label={localize("Password")}
-                    placeholder={localize("Password (10+ characters)")}
-                    required
-                    minLength={10}
-                    maxLength={128}
-                  />
-                  {screen === "login" && <button type="button" className="text-button" onClick={() => go("forgot")}>{localize("Forgot password?")}</button>}
-                  <button disabled={busy}>
-                    {localize(busy
-                      ? "Please wait…"
-                      : screen === "login"
-                        ? "Sign in"
-                        : "Create account")}
-                  </button>
+                <section className="mobile-auth-card">
+                <span className="auth-eyebrow">{localize("Account access")}</span>
+                <h2>{localize(authStage === "mobile" ? "Welcome to Krishi Karshak" : authStage === "otp" ? "Verify OTP and enter name" : "Set your PIN")}</h2>
+                <p className="muted">{localize(authStage === "mobile" ? "Enter your mobile number to continue caring for your plants." : authStage === "otp" ? "Enter the six-digit code sent to your mobile number." : "Choose a four-digit PIN to secure your account.")}</p>
+                <form key={authStage} onSubmit={auth}>
+                  {authStage === "mobile" && <>
+                    <label htmlFor="mobile-number">{localize("Enter mobile number")} <span className="required-marker" aria-hidden="true">*</span></label>
+                    <div className="mobile-phone-input">
+                      <span className="country-prefix" aria-label="Country code +91">+91</span>
+                      <input id="mobile-number" name="mobileNumber" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder={localize("Enter mobile number")} maxLength={11} pattern="[6-9][0-9]{4} ?[0-9]{5}" value={authMobile.replace(/(\d{5})(\d+)/, "$1 $2")} onChange={e => { setAuthMobile(e.target.value.replace(/\D/g, "").slice(0, 10)); setError(""); }} disabled={busy} required />
+                    </div>
+                  </>}
+
+                  {authStage === "otp" && <>
+                    <label>{localize("OTP")}<input name="otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required /></label>
+                    <label>{localize("Full name")}<input name="fullName" autoComplete="name" minLength={2} maxLength={150} required /></label>
+                    {!otpChallenge.deliveryEnabled && <p>{localize("SMS delivery is disabled. Contact your administrator for the test OTP.")}</p>}
+                  </>}
+                  {authStage === "pin" && <>
+                    <label>{localize("Set 4-digit PIN")}<PasswordField name="pin" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required /></label>
+                    <label>{localize("Confirm PIN")}<PasswordField name="confirmPin" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required /></label>
+                  </>}
+                  <button disabled={busy}>{localize(authStage === "mobile" ? "Request OTP" : authStage === "otp" ? "Verify OTP" : "Save and sign in")}</button>
                 </form>
-                <div className="divider">{localize("or")}</div>
-                <button
-                  className="outline"
-                  disabled={busy}
-                  onClick={() => go(screen === "login" ? "register" : "login")}
-                >
-                  {localize(screen === "login" ? "Create account" : "Sign in")}
-                </button>
+                {authStage !== "mobile" && <button className="outline" disabled={busy} onClick={() => { setAuthStage("mobile"); setOtpChallenge(null); setError(""); }}>{localize("Change number / request new OTP")}</button>}
                 <Language lang={lang} change={change} />
+                <p className="auth-security muted">{localize("Your plants. Your care. All in one place.")}</p>
+                </section>
                 <Footer text="Your plants. Your care. All in one place." />
               </>
             )}
-            {["forgot", "reset"].includes(screen) && <section className="account-card">
-              <Leaf large /><h1>{localize(screen === "forgot" ? "Forgot your password?" : "Create a new password")}</h1>
-              <p className="muted">{localize(screen === "forgot" ? "Enter your account email to receive a recovery code valid for 15 minutes." : "Paste the code from your email. Choose a password with at least 10 characters.")}</p>
-              <form onSubmit={e => account(e, screen === "forgot" ? "forgotPassword" : "resetPassword")}>
-                {screen === "forgot" ? <label>{localize("Email address")}<input name="email" type="email" autoComplete="email" required maxLength={255} /></label> : <>
-                  <label>{localize("Recovery code")}<input name="token" autoComplete="one-time-code" required maxLength={2048} /></label>
-                  <label>{localize("New password")}<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
-                  <label>{localize("Confirm password")}<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
-                </>}
-                <button disabled={busy}>{localize(busy ? "Please wait..." : screen === "forgot" ? "Send recovery code" : "Reset password")}</button>
-              </form>
-              {screen === "forgot" && <button className="text-button" onClick={() => go("reset")}>{localize("Already have a recovery code?")}</button>}
-              <button className="outline" disabled={busy} onClick={() => go("login")}>{localize("Back to sign in")}</button>
-            </section>}
             {screen === "home" && (
               <>
                 <section className="greeting">
@@ -920,16 +877,11 @@ function App() {
               {screen === "language" && <section className="card"><p className="muted">{localize("Choose your preferred language")}</p><Language lang={lang} change={change} /></section>}
               {screen === "farm-details" && <FarmDetails creationOnly onCreated={() => go("farm")} farms={user?.farms || []} details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
               {screen === "account-details" && <UserDetails user={user} busy={busy} onSave={saveUserDetails} onUpload={uploadProfilePhoto} />}
-              {screen === "security" && <>
-                <section className="card"><h3>{localize("Password & security")}</h3>
-                  <form onSubmit={e => account(e, "changePassword")}>
-                    <label>{localize("Current password")}<PasswordField name="currentPassword" autoComplete="current-password" required minLength={10} maxLength={128} /></label>
-                    <label>{localize("New password")}<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
-                    <label>{localize("Confirm password")}<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
-                    <button disabled={busy}>{localize("Update password")}</button>
-                  </form>
-                </section>
-              </>}
+              {screen === "security" && <section className="card"><h3>{localize("PIN & security")}</h3>
+                <p>{localize("Verify your mobile number with OTP to set a new PIN.")}</p>
+                <button disabled={busy} onClick={async () => { await api(endpoints.logout, { method: "POST" }); clear(); }}>{localize("Set PIN with OTP")}</button>
+              </section>}
+
             </>}
 
           </main>

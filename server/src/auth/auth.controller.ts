@@ -18,20 +18,6 @@ import { AuthService } from "./auth.service.js";
 import { AuthGuard } from "./auth.guard.js";
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-const credentials = {
-  email: {
-    type: "string" as const,
-    format: "email",
-    example: "you@example.com",
-  },
-  password: {
-    type: "string" as const,
-    minLength: 10,
-    maxLength: 128,
-    format: "password",
-  },
-};
-
 @Controller("auth")
 @ApiTags("Authentication")
 export class AuthController {
@@ -61,17 +47,6 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor("photo", { storage: memoryStorage(), limits: { fileSize: 4 * 1024 * 1024, files: 1 } }))
   uploadPhoto(@Req() req: ApiRequest) { return this.service.uploadPhoto(req); }
-  @Post("forgot-password")
-  @HttpCode(200)
-  forgotPassword(@Req() req: ApiRequest) { return this.service.forgotPassword(req); }
-  @Post("reset-password")
-  @HttpCode(200)
-  resetPassword(@Req() req: ApiRequest) { return this.service.resetPassword(req); }
-  @Post("change-password")
-  @HttpCode(200)
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  changePassword(@Req() req: ApiRequest) { return this.service.changePassword(req); }
   private setRefreshCookie(res: Response, token: string) {
     res.cookie("refreshToken", token, {
       httpOnly: true,
@@ -81,34 +56,16 @@ export class AuthController {
       maxAge: 7 * 864e5,
     });
   }
-  @Post("register")
-  @ApiBody({
-    schema: {
-      type: "object",
-      required: ["email", "password", "fullName"],
-      properties: {
-        ...credentials,
-        fullName: { type: "string", minLength: 2, maxLength: 150 },
-        language: { type: "string", enum: ["en", "te", "hi"], default: "en" },
-      },
-    },
-  })
-  register(@Req() req: ApiRequest) {
-    return this.service.register(req);
-  }
-  @Post("login")
-  @ApiBody({
-    schema: {
-      type: "object",
-      required: ["email", "password"],
-      properties: credentials,
-    },
-  })
+  @Post("request-otp")
   @HttpCode(200)
-  async login(
-    @Req() req: ApiRequest,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  requestOtp(@Req() req: ApiRequest) { return this.service.requestOtp(req); }
+  @Post("verify-otp")
+  @HttpCode(200)
+  verifyOtp(@Req() req: ApiRequest) { return this.service.verifyOtp(req); }
+  @Post("login")
+  @HttpCode(200)
+  @ApiBody({ schema: { type: "object", required: ["guid", "pin"], properties: { guid: { type: "string", format: "uuid" }, pin: { type: "string", pattern: "^[0-9]{4}$" }, language: { type: "string", enum: ["en", "te", "hi"] } } } })
+  async login(@Req() req: ApiRequest, @Res({ passthrough: true }) res: Response) {
     const { tokens, user } = await this.service.login(req);
     this.setRefreshCookie(res, tokens.refreshToken);
     return { accessToken: tokens.accessToken, user };

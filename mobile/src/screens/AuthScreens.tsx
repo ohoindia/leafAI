@@ -1,105 +1,55 @@
 import { useLocale } from "../locale";
 import { useState } from "react";
-import { Text, View } from "react-native";
-import { copy } from "../../../common/copy.js";
+import { Text, TextInput, View } from "react-native";
+import { endpoints } from "../../../common/api.js";
+import { request } from "../api";
 import { useLeafCare } from "../state";
-import { AuthBrand, Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
+import { AuthBrand, Button, Card, Field, PasswordField, Languages, Page, s } from "../ui";
 export function AuthScreen({ register = false }: { register?: boolean }) {
-  const localize = useLocale();
-  const a = useLeafCare();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const t = copy[a.lang];
-  return (
-    <Page auth branding={<AuthBrand register={register} />} title={localize(register ? t.register : t.login)}>
-      <Text style={s.muted}>
-        {localize(register
-          ? "Join Krishi Karshak and start your plant care journey."
-          : "Welcome back! Sign in to continue caring for your plants.")}
-      </Text>
-      <Card>
-        {register && <Text style={s.body}>{localize("Full name")}</Text>}
-        {register && (
-          <Field
-            accessibilityLabel={localize("Full name")}
-            placeholder={localize("Full name")}
-            value={name}
-            onChangeText={setName}
-            autoComplete="name"
-            maxLength={150}
-          />
-        )}
-        <Text style={s.body}>{localize("Email address")}</Text>
-        <Field
-          accessibilityLabel={localize("Email")}
-          placeholder={localize("Email")}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-          maxLength={255}
-        />
-        <Text style={s.body}>{localize("Password")}</Text>
-        <PasswordField
-          accessibilityLabel={localize("Password")}
-          placeholder={localize("Password (10+ characters)")}
-          value={password}
-          onChangeText={setPassword}
-          autoCapitalize="none"
-          autoComplete={register ? "new-password" : "current-password"}
-          maxLength={128}
-        />
-        {!register && <Button secondary title={localize("Forgot password?")} onPress={() => a.go("forgot")} />}
-        <Button
-          disabled={a.busy}
-          title={localize(register ? t.register : t.login)}
-          onPress={() => {
-            void a
-              .authenticate(email, password, name, register)
-              .then((success) => {
-                if (success) setPassword("");
-              });
-          }}
-        />
-      </Card>
-      <Text style={s.divider}>{localize("or")}</Text>
-        <Button
-          secondary
-          disabled={a.busy}
-          title={localize(register ? t.login : t.register)}
-          onPress={() => a.go(register ? "login" : "register")}
-        />
-      <Languages />
-      <View style={{ alignItems: "center", gap: 8 }}><LeafLogo /><Text style={s.muted}>{localize("Your plants. Your care. All in one place.")}</Text></View>
-    </Page>
-  );
-}
-
-export function RecoveryScreen() {
-  const localize = useLocale();
-  const a = useLeafCare();
-  const [stage, setStage] = useState(false);
-  const [email, setEmail] = useState("");
-  const [token, setToken] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  return <Page auth title={localize(stage ? "Create a new password" : "Forgot your password?")}>
-    <LeafLogo large />
-    <Text style={s.muted}>{localize(stage ? "Paste the recovery code from your email. Your new password needs at least 10 characters." : "Enter your account email to receive a recovery code valid for 15 minutes.")}</Text>
+  const localize = useLocale(); const a = useLeafCare();
+  const [stage, setStage] = useState("mobile");
+  const [mobileNumber, setMobile] = useState(""); const [otp, setOtp] = useState("");
+  const [name, setName] = useState(""); const [pin, setPin] = useState(""); const [confirm, setConfirm] = useState("");
+  const [guid, setGuid] = useState(""); const [delivery, setDelivery] = useState(true);
+  const title = stage === "mobile" ? "Enter mobile number" : stage === "otp" ? "Verify OTP and enter name" : "Set your PIN";
+  async function next() {
+    if (stage === "pin") { if (pin !== confirm) { a.setError("PINs do not match."); return; } await a.authenticate(guid, pin); return; }
+    await a.run(async () => {
+      if (stage === "mobile") {
+        const result = await request<{ guid: string; deliveryEnabled: boolean }>(endpoints.requestOtp, "", { method: "POST", body: JSON.stringify({ mobileNumber }) });
+        setGuid(result.guid); setDelivery(result.deliveryEnabled); setStage("otp");
+      } else {
+        await request(endpoints.verifyOtp, "", { method: "POST", body: JSON.stringify({ guid, otp, fullName: name }) });
+        setOtp(""); setStage("pin");
+      }
+    });
+  }
+  return <Page auth branding={<AuthBrand register={register} />} title={localize(title)}>
     <Card>
-      {stage ? <>
-        <Text style={s.body}>{localize("Recovery code")}</Text><Field value={token} onChangeText={setToken} autoCapitalize="none" maxLength={2048} accessibilityLabel={localize("Recovery code")} />
-        <Text style={s.body}>{localize("New password")}</Text><PasswordField value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="new-password" maxLength={128} accessibilityLabel={localize("New password")} />
-        <Text style={s.body}>{localize("Confirm password")}</Text><PasswordField value={confirm} onChangeText={setConfirm} autoCapitalize="none" autoComplete="new-password" maxLength={128} accessibilityLabel={localize("Confirm password")} />
-      </> : <><Text style={s.body}>{localize("Email address")}</Text><Field value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" maxLength={255} accessibilityLabel={localize("Email address")} /></>}
-      <Button disabled={a.busy} title={localize(stage ? "Reset password" : "Send recovery code")} onPress={() => {
-        if (stage) { if (password !== confirm) { a.setError("Passwords do not match."); return; } void a.resetPassword(token, password); }
-        else void a.recover(email).then(ok => { if (ok) setStage(true); });
-      }} />
-      <Button secondary disabled={a.busy} title={localize(stage ? "Request a new code" : "Already have a recovery code?")} onPress={() => { a.setError(""); setStage(!stage); }} />
-    </Card>
-    <Button secondary disabled={a.busy} title={localize("Back to sign in")} onPress={() => a.go("login")} />
+      {stage === "mobile" && <>
+        <Text style={s.small}>{localize("Account access")}</Text>
+        <Text style={s.heading}>{localize("Welcome to Krishi Karshak")}</Text>
+        <Text style={s.muted}>{localize("Enter your mobile number to continue caring for your plants.")}</Text>
+        <Text style={s.body}>{localize("Enter mobile number")} <Text style={{ color: "#b42318" }}>*</Text></Text>
+        <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1, borderColor: "#d6e2ec", borderRadius: 12, paddingHorizontal: 14, minHeight: 54 }}>
+          <Text accessibilityLabel="Country code +91" style={{ color: "#142b41", fontSize: 16, borderRightWidth: 1, borderRightColor: "#d6e2ec", paddingRight: 12, marginRight: 12 }}>+91</Text>
+          <TextInput style={{ flex: 1, minWidth: 0, paddingVertical: 14, color: "#142b41", fontSize: 16 }} value={mobileNumber.replace(/(\d{5})(\d+)/, "$1 $2")} onChangeText={value => { setMobile(value.replace(/\D/g, "").slice(0, 10)); a.setError(""); }} keyboardType="phone-pad" autoComplete="tel-national" maxLength={11} placeholder={localize("Enter mobile number")} placeholderTextColor="#63758a" editable={!a.busy} accessibilityLabel={localize("Mobile number")} />
+        </View>
+      </>}
+
+      {stage === "otp" && <>
+        <Text style={s.body}>{localize("OTP")}</Text><Field value={otp} onChangeText={setOtp} keyboardType="number-pad" autoComplete="sms-otp" maxLength={6} accessibilityLabel={localize("OTP")} />
+        <Text style={s.body}>{localize("Full name")}</Text><Field value={name} onChangeText={setName} maxLength={150} autoComplete="name" accessibilityLabel={localize("Full name")} />
+        {!delivery && <Text style={s.muted}>{localize("SMS delivery is disabled. Contact your administrator for the test OTP.")}</Text>}
+      </>}
+      {stage === "pin" && <>
+        <Text style={s.body}>{localize("Set 4-digit PIN")}</Text><PasswordField value={pin} onChangeText={setPin} keyboardType="number-pad" maxLength={4} accessibilityLabel={localize("Set 4-digit PIN")} />
+        <Text style={s.body}>{localize("Confirm PIN")}</Text><PasswordField value={confirm} onChangeText={setConfirm} keyboardType="number-pad" maxLength={4} accessibilityLabel={localize("Confirm PIN")} />
+      </>}
+      <Button disabled={a.busy} title={localize(stage === "mobile" ? "Request OTP" : stage === "otp" ? "Verify OTP" : "Save and sign in")} onPress={() => void next()} />
+      {stage !== "mobile" && <Button secondary disabled={a.busy} title={localize("Change number / request new OTP")} onPress={() => { setStage("mobile"); setGuid(""); setOtp(""); setPin(""); setConfirm(""); a.setError(""); }} />}
+    </Card><Languages />
   </Page>;
 }
+
+export function RecoveryScreen() { return <AuthScreen />; }

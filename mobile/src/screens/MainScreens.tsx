@@ -12,7 +12,7 @@ import {
   voiceCommands,
 } from "../../../common/content.js";
 import { useLeafCare } from "../state";
-import { UserAvatar, AnalysisPhoto, Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
+import { UserAvatar, AnalysisPhoto, Button, Card, Field, Languages, Page, LeafLogo, s } from "../ui";
 import { userDetailSections, type UserDetails } from "../../../common/profile.js";
 
 export function HomeScreen() {
@@ -182,20 +182,11 @@ export function AccountDetailsScreen() {
   </Page>;
 }
 export function SecurityScreen() {
-  const localize = useLocale();
-  const a = useLeafCare();
-  const [current, setCurrent] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  return <Page title={localize(screens.security)}>
-    <Card title={localize("Password & security")}>
-      <Text style={s.body}>{localize("Current password")}</Text><PasswordField value={current} onChangeText={setCurrent} autoCapitalize="none" autoComplete="current-password" maxLength={128} accessibilityLabel={localize("Current password")} />
-      <Text style={s.body}>{localize("New password")}</Text><PasswordField value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="new-password" maxLength={128} accessibilityLabel={localize("New password")} />
-      <Text style={s.body}>{localize("Confirm password")}</Text><PasswordField value={confirm} onChangeText={setConfirm} autoCapitalize="none" autoComplete="new-password" maxLength={128} accessibilityLabel={localize("Confirm password")} />
-      <Text style={s.muted}>{localize("Use at least 10 characters. You will sign in again after changing your password.")}</Text>
-      <Button title={localize("Update password")} disabled={a.busy} onPress={() => { if (password !== confirm) { a.setError("Passwords do not match."); return; } void a.changePassword(current, password); }} />
-    </Card>
-  </Page>;
+  const localize = useLocale(); const a = useLeafCare();
+  return <Page title={localize("PIN & security")}><Card>
+    <Text style={s.body}>{localize("Verify your mobile number with OTP to set a new PIN.")}</Text>
+    <Button title={localize("Set PIN with OTP")} disabled={a.busy} onPress={() => void a.logout()} />
+  </Card></Page>;
 }
 export function LanguageSettingsScreen() {
   const localize = useLocale();
