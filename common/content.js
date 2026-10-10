@@ -1,5 +1,5 @@
 export const brand = {
-  name: "LeafCare AI",
+  name: "Krishi Karshak",
   tagline: "Healthier Plants. Brighter Tomorrows.",
 };
 export const languages = { en: "English", te: "తెలుగు", hi: "हिंदी" };
@@ -7,6 +7,7 @@ export const speechLanguages = { en: "en-IN", te: "te-IN", hi: "hi-IN" };
 export const screens = {
   language: "Choose your language",
   login: "Sign in",
+  forgot: "Password recovery",
   register: "Create account",
   home: "Home",
   capture: "Capture leaf photo",

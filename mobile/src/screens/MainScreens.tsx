@@ -9,7 +9,7 @@ import {
   voiceCommands,
 } from "../../../common/content.js";
 import { useLeafCare } from "../state";
-import { Button, Card, Field, Languages, Page, s } from "../ui";
+import { Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
 export function HomeScreen() {
   const a = useLeafCare();
   const hour = new Date().getHours();
@@ -24,7 +24,7 @@ export function HomeScreen() {
       }
     >
       <Text style={s.body}>Healthy plants make a happier you.</Text>
-      <LinearGradient colors={["#357b35", "#185b31"]} style={s.hero}>
+      <LinearGradient colors={["#007ca8", "#005e80"]} style={s.hero}>
         <Text style={[s.title, { color: "#fff" }]}>Analyze a leaf</Text>
         <Text style={[s.body, { color: "#fff" }]}>
           Take a photo or choose from your gallery to detect plant issues, get
@@ -136,26 +136,27 @@ export function LearnScreen() {
 }
 export function ProfileScreen() {
   const a = useLeafCare();
-  return (
-    <Page title={screens.profile}>
-      <Card>
-        <Text style={s.title}>
-          🌿 {a.user?.fullName || "Signed-in plant carer"}
-        </Text>
-        <Text style={s.muted}>{a.user?.email}</Text>
-        <Text style={s.body}>App language</Text>
-        <Languages />
-      </Card>
-      <Button
-        secondary
-        title="Sign out"
-        disabled={a.busy}
-        onPress={() => {
-          void a.logout();
-        }}
-      />
-    </Page>
-  );
+  const [name, setName] = useState(a.user?.fullName || "");
+  const [current, setCurrent] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  return <Page title={screens.profile}>
+    <LeafLogo large />
+    <Card title="Account details">
+      <Text style={s.body}>Full name</Text><Field value={name} onChangeText={setName} maxLength={150} autoComplete="name" accessibilityLabel="Full name" />
+      <Text style={s.body}>Email address</Text><Text style={s.muted}>{a.user?.email}</Text>
+      <Text style={s.body}>Preferred language</Text><Languages />
+      <Button title="Save profile" disabled={a.busy} onPress={() => { void a.saveProfile(name); }} />
+    </Card>
+    <Card title="Password & security">
+      <Text style={s.body}>Current password</Text><PasswordField value={current} onChangeText={setCurrent} autoCapitalize="none" maxLength={128} accessibilityLabel="Current password" />
+      <Text style={s.body}>New password</Text><PasswordField value={password} onChangeText={setPassword} autoCapitalize="none" maxLength={128} accessibilityLabel="New password" />
+      <Text style={s.body}>Confirm password</Text><PasswordField value={confirm} onChangeText={setConfirm} autoCapitalize="none" maxLength={128} accessibilityLabel="Confirm password" />
+      <Text style={s.muted}>Use at least 10 characters. You will sign in again after changing your password.</Text>
+      <Button title="Update password" disabled={a.busy} onPress={() => { if (password !== confirm) { a.setError("Passwords do not match."); return; } void a.changePassword(current, password); }} />
+    </Card>
+    <Button secondary title="Sign out" disabled={a.busy} onPress={() => { void a.logout(); }} />
+  </Page>;
 }
 export function VoiceScreen() {
   const a = useLeafCare();

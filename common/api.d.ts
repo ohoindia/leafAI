@@ -1,4 +1,7 @@
 export const endpoints: {
+  forgotPassword: string;
+  resetPassword: string;
+  changePassword: string;
   register: string;
   login: string;
   refresh: string;

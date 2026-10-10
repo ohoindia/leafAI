@@ -5,6 +5,7 @@ export const speechLanguages: Record<Language, string>;
 export const screens: Record<
   | "language"
   | "login"
+  | "forgot"
   | "register"
   | "home"
   | "capture"

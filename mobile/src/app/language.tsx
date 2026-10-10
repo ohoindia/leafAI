@@ -1,1 +1,2 @@
-export { LanguageScreen as default } from "../screens/AuthScreens";
+import { Redirect } from "expo-router";
+export default function Language() { return <Redirect href="/login" />; }

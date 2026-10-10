@@ -7,6 +7,8 @@ const schema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  RESET_EMAIL_WEBHOOK_URL: z.preprocess(value => value === "" ? undefined : value, z.string().url().startsWith("https://").optional()),
+  RESET_EMAIL_WEBHOOK_SECRET: z.preprocess(value => value === "" ? undefined : value, z.string().min(32).optional()),
   PORT: z.coerce.number().default(8080),
   DB_HOST: z.string(),
   DB_PORT: z.coerce.number().default(3306),

@@ -123,6 +123,30 @@ function useAppState() {
       await loadHistory(data.accessToken);
     });
   }
+  async function saveProfile(fullName: string) {
+    return run(async () => {
+      const data = await request<User>(endpoints.me, token, { method: "PATCH", body: JSON.stringify({ fullName: fullName.trim(), language: lang }) });
+      setUser(data); Alert.alert(brand.name, "Profile saved.");
+    });
+  }
+  async function recover(email: string) {
+    return run(async () => {
+      const data = await request<{message: string}>(endpoints.forgotPassword, "", { method: "POST", body: JSON.stringify({ email: email.trim() }) });
+      Alert.alert(brand.name, data.message);
+    });
+  }
+  async function resetPassword(recoveryToken: string, password: string) {
+    return run(async () => {
+      await request(endpoints.resetPassword, "", { method: "POST", body: JSON.stringify({ token: recoveryToken.trim(), password }) });
+      go("login"); Alert.alert(brand.name, "Password reset. Sign in with your new password.");
+    });
+  }
+  async function changePassword(currentPassword: string, password: string) {
+    return run(async () => {
+      await request(endpoints.changePassword, token, { method: "POST", body: JSON.stringify({ currentPassword, password }) });
+      clearSession(); Alert.alert(brand.name, "Password updated. Please sign in again.");
+    });
+  }
   async function pick(camera: boolean) {
     await run(async () => {
       if (
@@ -289,6 +313,10 @@ function useAppState() {
     run,
     loadHistory,
     authenticate,
+    saveProfile,
+    recover,
+    resetPassword,
+    changePassword,
     pick,
     analyze,
     openHistory,

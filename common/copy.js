@@ -1,6 +1,6 @@
 export const copy = {
   en: {
-    title: "LeafCare AI",
+    title: "Krishi Karshak",
     sub: "Understand your plant leaf in seconds",
     upload: "Upload or capture a leaf",
     analyze: "Analyze leaf",
@@ -12,7 +12,7 @@ export const copy = {
     tip: "For best results: one leaf, natural light, both sides, plain background.",
   },
   te: {
-    title: "లీఫ్‌కేర్ AI",
+    title: "Krishi Karshak",
     sub: "మీ మొక్క ఆకును క్షణాల్లో అర్థం చేసుకోండి",
     upload: "ఆకు ఫోటోను అప్‌లోడ్ చేయండి",
     analyze: "ఆకును విశ్లేషించండి",
@@ -25,7 +25,7 @@ export const copy = {
     tip: "మంచి ఫలితాల కోసం: ఒక ఆకు, సహజ కాంతి, రెండు వైపులు, సాధారణ నేపథ్యం.",
   },
   hi: {
-    title: "लीफकेयर AI",
+    title: "Krishi Karshak",
     sub: "अपने पौधे की पत्ती को कुछ सेकंड में समझें",
     upload: "पत्ती की फोटो अपलोड करें",
     analyze: "पत्ती का विश्लेषण करें",

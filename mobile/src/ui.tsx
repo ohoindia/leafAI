@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Image,
+  Modal,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +17,9 @@ import { Redirect, router } from "expo-router";
 import { brand, languages } from "../../common/content.js";
 import type { Language } from "../../common/types";
 import { useLeafCare } from "./state";
+export function LeafLogo({ large = false }: { large?: boolean }) {
+  return <Image source={require("../assets/icon.png")} accessibilityLabel="Krishi Karshak leaf logo" style={{ width: large ? 88 : 38, height: large ? 88 : 38, borderRadius: large ? 22 : 10 }} />;
+}
 export function Button({
   title,
   onPress,
@@ -38,7 +43,7 @@ export function Button({
         (disabled || pressed) && { opacity: 0.55 },
       ]}
     >
-      <Text style={[s.buttonText, secondary && { color: "#185b31" }]}>
+      <Text style={[s.buttonText, secondary && { color: "#005e80" }]}>
         {title}
       </Text>
     </Pressable>
@@ -60,28 +65,43 @@ export function Card({
 }
 export function Field(props: React.ComponentProps<typeof TextInput>) {
   return (
-    <TextInput placeholderTextColor="#708078" {...props} style={s.input} />
+    <TextInput placeholderTextColor="#63758a" {...props} style={s.input} />
   );
+}
+export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
+  const [visible, setVisible] = useState(false);
+  return <View style={{ position: "relative" }}>
+    <TextInput placeholderTextColor="#63758a" {...props} secureTextEntry={!visible} style={[s.input, { paddingRight: 56 }]} />
+    <Pressable accessibilityRole="button" accessibilityLabel={visible ? "Hide password" : "Show password"} accessibilityState={{ checked: visible }} onPress={() => setVisible(!visible)} style={{ position: "absolute", right: 4, top: 0, bottom: 0, width: 44, alignItems: "center", justifyContent: "center" }}>
+      <View accessible={false} style={{ width: 23, height: 15, borderWidth: 1.8, borderColor: "#63758a", borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 7, height: 7, borderWidth: 1.5, borderColor: "#63758a", borderRadius: 4 }} />
+        {visible && <View style={{ position: "absolute", width: 29, height: 2, backgroundColor: "#63758a", transform: [{ rotate: "45deg" }] }} />}
+      </View>
+    </Pressable>
+  </View>;
 }
 export function Languages() {
   const a = useLeafCare();
-  return (
-    <View style={s.row}>
-      {(Object.keys(languages) as Language[]).map((id) => (
-        <Pressable
-          key={id}
-          accessibilityRole="button"
-          accessibilityState={{ selected: a.lang === id }}
-          onPress={() => a.change(id)}
-          style={[s.language, a.lang === id && s.selected]}
-        >
-          <Text style={{ color: a.lang === id ? "#fff" : "#185b31" }}>
-            {languages[id]}
-          </Text>
-        </Pressable>
-      ))}
-    </View>
-  );
+  const [open, setOpen] = useState(false);
+  return <>
+    <Button secondary title={`Change language: ${languages[a.lang]}`} onPress={() => setOpen(true)} />
+    <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#142b4180", padding: 20 }}>
+        <Pressable accessibilityLabel="Close language selection" onPress={() => setOpen(false)} style={StyleSheet.absoluteFill} />
+        <View accessibilityViewIsModal style={{ width: "100%", maxWidth: 350, backgroundColor: "#fff", borderRadius: 20, padding: 20, gap: 14 }}>
+          <View style={[s.row, { justifyContent: "space-between" }]}>
+            <Text style={s.heading}>Choose your language</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close language selection" onPress={() => setOpen(false)} style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}><Text style={s.heading}>×</Text></Pressable>
+          </View>
+          <Text style={s.muted}>Select your preferred language.</Text>
+          {(Object.keys(languages) as Language[]).map(id => <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: a.lang === id }} onPress={() => { a.change(id); setOpen(false); }} style={[s.language, a.lang === id && s.selected, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
+            <View><Text style={[s.body, { fontWeight: "600" }]}>{languages[id]}</Text><Text style={s.muted}>{id === "en" ? "English" : id === "te" ? "Telugu" : "Hindi"}</Text></View>
+            <Text style={{ color: "#007ca8", fontSize: 20 }}>{a.lang === id ? "✓" : "○"}</Text>
+          </Pressable>)}
+        </View>
+      </View>
+    </Modal>
+  </>;
 }
 export function Page({
   title,
@@ -110,13 +130,13 @@ export function Page({
             onPress={() =>
               router.canGoBack()
                 ? router.back()
-                : a.go(auth ? "language" : "home")
+                : a.go(auth ? "login" : "home")
             }
           >
             <Text style={s.heading}>←</Text>
           </Pressable>
           <View style={s.flex}>
-            <Text style={s.heading}>🌿 {brand.name}</Text>
+            <View style={s.row}><LeafLogo /><Text style={s.heading}>{brand.name}</Text></View>
             <Text style={s.small}>{brand.tagline}</Text>
           </View>
           {!auth && (
@@ -148,7 +168,7 @@ export function Page({
           )}
           {children}
           {a.busy && (
-            <ActivityIndicator accessibilityLabel="Working" color="#357b35" />
+            <ActivityIndicator accessibilityLabel="Working" color="#007ca8" />
           )}
         </ScrollView>
         {!auth && !processing && (
@@ -178,7 +198,7 @@ export function Page({
   );
 }
 export const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f4f8ee" },
+  safe: { flex: 1, backgroundColor: "#f7fafc" },
   flex: { flex: 1 },
   container: {
     padding: 22,
@@ -194,17 +214,17 @@ export const s = StyleSheet.create({
     gap: 14,
     padding: 16,
     borderBottomWidth: 1,
-    borderColor: "#dce7dc",
+    borderColor: "#e0e9ef",
   },
-  title: { fontSize: 28, fontWeight: "800", color: "#15392e" },
-  heading: { fontSize: 19, fontWeight: "700", color: "#15392e" },
-  body: { color: "#15392e", fontSize: 16, lineHeight: 24 },
-  muted: { color: "#708078", fontSize: 14, lineHeight: 22 },
-  small: { color: "#357b35", fontSize: 12 },
+  title: { fontSize: 28, fontWeight: "800", color: "#142b41" },
+  heading: { fontSize: 19, fontWeight: "700", color: "#142b41" },
+  body: { color: "#142b41", fontSize: 16, lineHeight: 24 },
+  muted: { color: "#63758a", fontSize: 14, lineHeight: 22 },
+  small: { color: "#007ca8", fontSize: 12 },
   card: {
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#dce7dc",
+    borderColor: "#e0e9ef",
     borderRadius: 20,
     padding: 20,
     gap: 12,
@@ -220,40 +240,43 @@ export const s = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 14,
     borderWidth: 1,
-    borderColor: "#cbd8cd",
+    borderColor: "#d6e2ec",
     borderRadius: 12,
     fontSize: 16,
-    color: "#15392e",
+    color: "#142b41",
   },
   button: {
-    backgroundColor: "#357b35",
+    backgroundColor: "#007ca8",
     padding: 15,
     borderRadius: 14,
     alignItems: "center",
     minHeight: 48,
   },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
-  secondary: { backgroundColor: "#e4f0df" },
+  secondary: { backgroundColor: "#edf8ff" },
   language: {
     minHeight: 48,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: "#e4f0df",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#d6e2ec",
+    gap: 5,
   },
-  selected: { backgroundColor: "#357b35" },
+  selected: { backgroundColor: "#edf8ff", borderColor: "#007ca8", borderWidth: 2 },
   image: {
     width: "100%",
     height: 280,
     borderRadius: 20,
     resizeMode: "contain",
-    backgroundColor: "#e4f0df",
+    backgroundColor: "#edf8ff",
   },
   error: { color: "#a12c22" },
   nav: {
     flexDirection: "row",
     backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderColor: "#dce7dc",
+    borderColor: "#e0e9ef",
   },
   navItem: { flex: 1, paddingVertical: 18, alignItems: "center" },
 });

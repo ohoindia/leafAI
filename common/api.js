@@ -1,4 +1,7 @@
 export const endpoints = {
+  forgotPassword: "/api/auth/forgot-password",
+  resetPassword: "/api/auth/reset-password",
+  changePassword: "/api/auth/change-password",
   register: "/api/auth/register",
   login: "/api/auth/login",
   refresh: "/api/auth/refresh",

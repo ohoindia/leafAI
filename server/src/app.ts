@@ -58,11 +58,11 @@ export async function createApplication() {
     rateLimit({ windowMs: 60_000, limit: 100, standardHeaders: "draft-8" }),
   );
   const authLimit = rateLimit({ windowMs: 15 * 60_000, limit: 10 });
-  server.post(["/api/auth/register", "/api/auth/login"], authLimit);
+  server.post(["/api/auth/register", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/change-password"], authLimit);
   app.setGlobalPrefix("api");
   app.useGlobalFilters(new ApiExceptionFilter());
   const swaggerConfig = new DocumentBuilder()
-    .setTitle("LeafCare AI API")
+    .setTitle("Krishi Karshak API")
     .setDescription("Sign in through /api/auth/login, then paste accessToken into Authorize to test protected endpoints.")
     .setVersion("1.0")
     .addBearerAuth()

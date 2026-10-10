@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   HttpCode,
   Req,
   Res,
@@ -38,6 +39,21 @@ export class AuthController {
   me(@Req() req: ApiRequest) {
     return this.service.me(req);
   }
+  @Patch("me")
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  updateProfile(@Req() req: ApiRequest) { return this.service.updateProfile(req); }
+  @Post("forgot-password")
+  @HttpCode(200)
+  forgotPassword(@Req() req: ApiRequest) { return this.service.forgotPassword(req); }
+  @Post("reset-password")
+  @HttpCode(200)
+  resetPassword(@Req() req: ApiRequest) { return this.service.resetPassword(req); }
+  @Post("change-password")
+  @HttpCode(200)
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  changePassword(@Req() req: ApiRequest) { return this.service.changePassword(req); }
   private setRefreshCookie(res: Response, token: string) {
     res.cookie("refreshToken", token, {
       httpOnly: true,

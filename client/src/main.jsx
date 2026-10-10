@@ -1,20 +1,10 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
 import { endpoints, uploadRules, requestApi } from '../../common/api.js';
 function Leaf({ large = false }) {
-  return (
-    <svg
-      className={large ? "leaf large" : "leaf"}
-      viewBox="0 0 80 80"
-      aria-hidden="true"
-    >
-      <path d="M37 67C23 40 41 13 70 6c4 29-4 54-33 61Z" fill="#387d36" />
-      <path d="M34 67C8 66 5 43 7 28c22 2 33 14 27 39Z" fill="#69a24c" />
-      <path d="m25 75 31-49M34 61 17 43" stroke="white" strokeWidth="3" />
-    </svg>
-  );
+  return <img className={large ? "leaf large" : "leaf"} src="/leaf-logo.svg" alt="" />;
 }
 function Icon({ name }) {
   const paths = {
@@ -42,22 +32,37 @@ function Icon({ name }) {
   );
 }
 function Language({ lang, change }) {
-  return (
-    <select
-      aria-label="Preferred language"
-      value={lang}
-      onChange={(e) => change(e.target.value)}
-    >
-      {Object.entries(languages).map(([id, text]) => (
-        <option key={id} value={id}>
-          {text}
-        </option>
-      ))}
-    </select>
-  );
+  const dialog = useRef(null);
+  return <>
+    <button type="button" className="language-action" aria-haspopup="dialog" onClick={() => dialog.current.showModal()}>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18M5 6.5h14M5 17.5h14" /></svg>
+      Change language <span>{languages[lang]}</span>
+    </button>
+    <dialog ref={dialog} className="language-popup" aria-label="Choose your language" onClick={e => { if (e.target === e.currentTarget) dialog.current.close(); }}>
+      <div className="language-popup-header"><h2>Choose your language</h2><button type="button" className="icon-button" aria-label="Close language selection" onClick={() => dialog.current.close()}>×</button></div>
+      <p className="muted">Select your preferred language.</p>
+      <div className="language-options">
+        {Object.entries(languages).map(([id, text]) => <button type="button" key={id} lang={id} aria-pressed={lang === id} className={`language-option ${lang === id ? "selected" : ""}`} onClick={() => { change(id); dialog.current.close(); }}>
+          <span className="language-glyph">{id === "en" ? "A" : id === "te" ? "అ" : "अ"}</span><span>{text}</span><span className="chevron">{lang === id ? "✓" : "○"}</span>
+        </button>)}
+      </div>
+    </dialog>
+  </>;
+}
+function PasswordField(props) {
+  const [visible, setVisible] = useState(false);
+  return <div className="password-field">
+    <input {...props} type={visible ? "text" : "password"} />
+    <button type="button" className="password-eye" aria-label={visible ? "Hide password" : "Show password"} aria-pressed={visible} onClick={() => setVisible(!visible)}>
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />
+        {visible && <path d="m3 3 18 18" />}
+      </svg>
+    </button>
+  </div>;
 }
 function App() {
-  const [screen, setScreen] = useState("language"),
+  const [screen, setScreen] = useState("login"),
     [lang, setLang] = useState(localStorage.getItem("leaf-language") || "en"),
     [token, setToken] = useState(""),
     [user, setUser] = useState(null),
@@ -77,6 +82,7 @@ function App() {
     [listening, setListening] = useState(false),
     [menu, setMenu] = useState(false),
     [tab, setTab] = useState("analysis");
+  const [notice, setNotice] = useState("");
   const camera = useRef(),
     gallery = useRef(),
     recognition = useRef(),
@@ -84,6 +90,7 @@ function App() {
     refreshRef = useRef(null);
   function go(next) {
     setError("");
+    setNotice("");
     setMenu(false);
     setScreen(next);
     window.scrollTo(0, 0);
@@ -178,6 +185,18 @@ function App() {
     } finally {
       setBusy(false);
     }
+  }
+  async function account(e, action) {
+    e.preventDefault(); if (busy) return;
+    const b = Object.fromEntries(new FormData(e.currentTarget));
+    if (b.confirmPassword !== undefined && b.password !== b.confirmPassword) return setError("Passwords do not match.");
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const data = await api(action === "profile" ? endpoints.me : endpoints[action], { method: action === "profile" ? "PATCH" : "POST", body: JSON.stringify(action === "profile" ? { fullName: b.fullName, language: lang } : b) });
+      if (action === "profile") { setUser(data); setNotice("Profile saved."); }
+      else if (action === "forgotPassword") { go("reset"); setNotice(data.message); }
+      else { clear(); setNotice(data.message); }
+    } catch (e) { setError(e.message); } finally { setBusy(false); }
   }
   async function choose(e) {
     const f = e.target.files?.[0];
@@ -328,7 +347,7 @@ function App() {
       setError(e.message);
     }
   }
-  const isAuth = ["language", "login", "register"].includes(screen),
+  const isAuth = ["login", "register", "forgot", "reset"].includes(screen),
     out = result?.translations?.[lang];
   const status = analysisStatus;
   const shown = filterHistory(history, query, filter);
@@ -352,30 +371,12 @@ function App() {
       {restoring ? (
         <main className="restore">
           <Leaf large />
-          <p>Opening LeafCare AI…</p>
+          <p>Opening Krishi Karshak…</p>
         </main>
       ) : (
         <>
           {!isAuth && (
-            <header>
-              <button
-                className="icon-button"
-                aria-label={screen === "home" ? "Open menu" : "Go back"}
-                disabled={busy && screen === "processing"}
-                onClick={() =>
-                  screen === "home"
-                    ? setMenu(!menu)
-                    : go(
-                        screen === "full"
-                          ? "result"
-                          : screen === "details"
-                            ? "review"
-                            : "home",
-                      )
-                }
-              >
-                {screen === "home" ? "☰" : "←"}
-              </button>
+            <header>             
               <div className="brand-inline">
                 <Leaf />
                 <div>
@@ -401,6 +402,7 @@ function App() {
               <button onClick={logout}>Sign out</button>
             </section>
           )}
+          {notice && <div className="notice" role="status">{notice}</div>}
           {error && (
             <div className="alert" role="alert">
               {error}
@@ -414,47 +416,8 @@ function App() {
             </div>
           )}
           <main className={isAuth ? "auth-content" : "content"}>
-            {screen === "language" && (
-              <>
-                <div className="brand">
-                  <Leaf large />
-                  <h1>{brand.name}</h1>
-                  <p>
-                    Healthier Plants
-                    <br />
-                    Happier Tomorrows
-                  </p>
-                </div>
-                <h2 className="center">{screens.language}</h2>
-                <div className="language-options">
-                  {Object.entries(languages).map(([id, text]) => (
-                    <button
-                      key={id}
-                      aria-pressed={lang === id}
-                      className={`language-option ${lang === id ? "selected" : ""}`}
-                      onClick={() => change(id)}
-                    >
-                      <span>{id === "en" ? "🇬🇧" : "🇮🇳"}</span>
-                      {text}
-                      <span className="chevron">›</span>
-                    </button>
-                  ))}
-                </div>
-                <button onClick={() => go("login")}>Continue →</button>
-                <Footer text="Plants understand care in every language" />
-              </>
-            )}
             {["login", "register"].includes(screen) && (
-              <>
-                <button
-                  className="icon-button back-auth"
-                  aria-label="Go back"
-                  onClick={() =>
-                    go(screen === "register" ? "login" : "language")
-                  }
-                >
-                  ←
-                </button>
+              <>                
                 <div className="brand">
                   <Leaf large />
                   <h1>{brand.name}</h1>
@@ -478,7 +441,7 @@ function App() {
                 <p className="muted">
                   {screen === "login"
                     ? "Welcome back! Sign in to continue caring for your plants."
-                    : "Join LeafCare AI and start your plant care journey."}
+                    : "Join Krishi Karshak and start your plant care journey."}
                 </p>
                 <form onSubmit={auth}>
                   {screen === "register" && (
@@ -492,7 +455,8 @@ function App() {
                       maxLength={150}
                     />
                   )}
-                  <input
+                  <label htmlFor="auth-email">Email address</label>
+                  <input id="auth-email"
                     name="email"
                     type="email"
                     autoComplete="email"
@@ -501,9 +465,9 @@ function App() {
                     required
                     maxLength={255}
                   />
-                  <input
+                  <label htmlFor="auth-password">Password</label>
+                  <PasswordField id="auth-password"
                     name="password"
-                    type="password"
                     autoComplete={
                       screen === "register"
                         ? "new-password"
@@ -515,9 +479,7 @@ function App() {
                     minLength={10}
                     maxLength={128}
                   />
-                  {screen === "register" && (
-                    <Language lang={lang} change={change} />
-                  )}
+                  {screen === "login" && <button type="button" className="text-button" onClick={() => go("forgot")}>Forgot password?</button>}
                   <button disabled={busy}>
                     {busy
                       ? "Please wait…"
@@ -534,9 +496,24 @@ function App() {
                 >
                   {screen === "login" ? "Create account" : "Sign in"}
                 </button>
-                <Footer text="Same planet. More green tomorrows." />
+                <Language lang={lang} change={change} />
+                <Footer text="Your plants. Your care. All in one place." />
               </>
             )}
+            {["forgot", "reset"].includes(screen) && <section className="account-card">
+              <Leaf large /><h1>{screen === "forgot" ? "Forgot your password?" : "Create a new password"}</h1>
+              <p className="muted">{screen === "forgot" ? "Enter your account email to receive a recovery code valid for 15 minutes." : "Paste the code from your email. Choose a password with at least 10 characters."}</p>
+              <form onSubmit={e => account(e, screen === "forgot" ? "forgotPassword" : "resetPassword")}>
+                {screen === "forgot" ? <label>Email address<input name="email" type="email" autoComplete="email" required maxLength={255} /></label> : <>
+                  <label>Recovery code<input name="token" autoComplete="one-time-code" required maxLength={2048} /></label>
+                  <label>New password<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                  <label>Confirm password<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                </>}
+                <button disabled={busy}>{busy ? "Please wait..." : screen === "forgot" ? "Send recovery code" : "Reset password"}</button>
+              </form>
+              {screen === "forgot" && <button className="text-button" onClick={() => go("reset")}>Already have a recovery code?</button>}
+              <button className="outline" disabled={busy} onClick={() => go("login")}>Back to sign in</button>
+            </section>}
             {screen === "home" && (
               <>
                 <section className="greeting">
@@ -959,12 +936,22 @@ function App() {
               <>
                 <Leaf large />
                 <h2>{screens.profile}</h2>
-                <p>{user?.fullName || "Signed-in plant carer"}</p>
-                {user?.email && <p className="muted">{user.email}</p>}
-                <label>
-                  App language
-                  <Language lang={lang} change={change} />
-                </label>
+                <section className="card"><h3>Account details</h3>
+                  <form key={user?.fullName} onSubmit={e => account(e, "profile")}>
+                    <label>Full name<input name="fullName" defaultValue={user?.fullName} autoComplete="name" required minLength={2} maxLength={150} /></label>
+                    <label>Email address<input value={user?.email || ""} readOnly /></label>
+                    <label>Preferred language<Language lang={lang} change={change} /></label>
+                    <button disabled={busy}>{busy ? "Saving..." : "Save profile"}</button>
+                  </form>
+                </section>
+                <section className="card"><h3>Password & security</h3>
+                  <form onSubmit={e => account(e, "changePassword")}>
+                    <label>Current password<PasswordField name="currentPassword" autoComplete="current-password" required minLength={10} maxLength={128} /></label>
+                    <label>New password<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                    <label>Confirm password<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                    <button disabled={busy}>Update password</button>
+                  </form>
+                </section>
                 <button className="outline" onClick={logout}>
                   Sign out
                 </button>

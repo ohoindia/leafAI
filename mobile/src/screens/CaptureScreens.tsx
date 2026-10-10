@@ -116,7 +116,7 @@ export function ProcessingScreen() {
   return (
     <Page processing title={screens.processing}>
       {a.photo && <Image source={{ uri: a.photo }} style={s.image} />}
-      <ActivityIndicator size="large" color="#357b35" />
+      <ActivityIndicator size="large" color="#007ca8" />
       <Text accessibilityLiveRegion="polite" style={s.body}>
         Checking the photo and assessing visible plant health.
       </Text>

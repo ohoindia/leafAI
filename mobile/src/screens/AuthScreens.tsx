@@ -1,24 +1,8 @@
 import { useState } from "react";
-import { Text, View } from "react-native";
-import { brand, screens } from "../../../common/content.js";
+import { Text } from "react-native";
 import { copy } from "../../../common/copy.js";
 import { useLeafCare } from "../state";
-import { Button, Card, Field, Languages, Page, s } from "../ui";
-export function LanguageScreen() {
-  const a = useLeafCare();
-  return (
-    <Page auth title={screens.language}>
-      <View style={{ alignItems: "center", gap: 16 }}>
-        <Text style={{ fontSize: 70 }}>🌿</Text>
-        <Text style={s.title}>{brand.name}</Text>
-        <Text style={s.body}>Healthier Plants. Happier Tomorrows.</Text>
-      </View>
-      <Languages />
-      <Button title="Continue →" onPress={() => a.go("login")} />
-      <Text style={s.muted}>Plants understand care in every language</Text>
-    </Page>
-  );
-}
+import { Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
 export function AuthScreen({ register = false }: { register?: boolean }) {
   const a = useLeafCare();
   const [email, setEmail] = useState("");
@@ -29,11 +13,12 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
     <Page auth title={register ? t.register : t.login}>
       <Text style={s.muted}>
         {register
-          ? "Join LeafCare AI and start your plant care journey."
+          ? "Join Krishi Karshak and start your plant care journey."
           : "Welcome back! Sign in to continue caring for your plants."}
       </Text>
-      <Languages />
+      <LeafLogo large />
       <Card>
+        {register && <Text style={s.body}>Full name</Text>}
         {register && (
           <Field
             accessibilityLabel="Full name"
@@ -44,6 +29,7 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
             maxLength={150}
           />
         )}
+        <Text style={s.body}>Email address</Text>
         <Field
           accessibilityLabel="Email"
           placeholder="Email"
@@ -54,16 +40,17 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
           autoComplete="email"
           maxLength={255}
         />
-        <Field
+        <Text style={s.body}>Password</Text>
+        <PasswordField
           accessibilityLabel="Password"
           placeholder="Password (10+ characters)"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
           autoCapitalize="none"
           autoComplete={register ? "new-password" : "current-password"}
           maxLength={128}
         />
+        {!register && <Button secondary title="Forgot password?" onPress={() => a.go("forgot")} />}
         <Button
           disabled={a.busy}
           title={register ? t.register : t.login}
@@ -82,7 +69,34 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
           onPress={() => a.go(register ? "login" : "register")}
         />
       </Card>
-      <Text style={s.muted}>Same planet. More green tomorrows.</Text>
+      <Languages />
+      <Text style={s.muted}>Your plants. Your care. All in one place.</Text>
     </Page>
   );
+}
+
+export function RecoveryScreen() {
+  const a = useLeafCare();
+  const [stage, setStage] = useState(false);
+  const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  return <Page auth title={stage ? "Create a new password" : "Forgot your password?"}>
+    <LeafLogo large />
+    <Text style={s.muted}>{stage ? "Paste the recovery code from your email. Your new password needs at least 10 characters." : "Enter your account email to receive a recovery code valid for 15 minutes."}</Text>
+    <Card>
+      {stage ? <>
+        <Text style={s.body}>Recovery code</Text><Field value={token} onChangeText={setToken} autoCapitalize="none" maxLength={2048} accessibilityLabel="Recovery code" />
+        <Text style={s.body}>New password</Text><PasswordField value={password} onChangeText={setPassword} autoCapitalize="none" maxLength={128} accessibilityLabel="New password" />
+        <Text style={s.body}>Confirm password</Text><PasswordField value={confirm} onChangeText={setConfirm} autoCapitalize="none" maxLength={128} accessibilityLabel="Confirm password" />
+      </> : <><Text style={s.body}>Email address</Text><Field value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" accessibilityLabel="Email address" /></>}
+      <Button disabled={a.busy} title={stage ? "Reset password" : "Send recovery code"} onPress={() => {
+        if (stage) { if (password !== confirm) { a.setError("Passwords do not match."); return; } void a.resetPassword(token, password); }
+        else void a.recover(email).then(ok => { if (ok) setStage(true); });
+      }} />
+      <Button secondary disabled={a.busy} title={stage ? "Request a new code" : "Already have a recovery code?"} onPress={() => setStage(!stage)} />
+    </Card>
+    <Button secondary disabled={a.busy} title="Back to sign in" onPress={() => a.go("login")} />
+  </Page>;
 }

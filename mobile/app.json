@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "LeafCare AI",
+    "name": "Krishi Karshak",
     "slug": "leafcare-ai",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -29,7 +29,7 @@
     "android": {
       "package": "com.leafcareai.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#edf8ff",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

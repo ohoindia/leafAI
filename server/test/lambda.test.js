@@ -86,7 +86,7 @@ test("Swagger UI, assets, and API schema are available", async () => {
   const response = await handler(event("/api/docs-json"), {});
   assert.equal(response.statusCode, 200);
   const doc = JSON.parse(response.body);
-  assert.equal(doc.info.title, "LeafCare AI API");
+  assert.equal(doc.info.title, "Krishi Karshak API");
   assert.equal(doc.components.securitySchemes.bearer.scheme, "bearer");
   assert.ok(doc.paths["/api/health"].get);
   assert.ok(
@@ -160,6 +160,8 @@ test("Function URL cookies support refresh and emit secure same-origin cookies",
 });
 
 test("base64 multipart upload enforces the Lambda-safe size limit", async () => {
+  const execute = mock.method(db, "execute", async () => [[{ id: "active-session" }]]);
+  try {
   const token = issueTokens(
     { id: 1, role: "USER" },
     crypto.randomUUID(),
@@ -186,6 +188,7 @@ test("base64 multipart upload enforces the Lambda-safe size limit", async () => 
   );
   assert.equal(result.statusCode, 400);
   assert.equal(JSON.parse(result.body).error, "File too large");
+  } finally { execute.mock.restore(); }
 });
 
 test("encrypted upload bytes are written to the private S3 bucket", async () => {
@@ -214,6 +217,7 @@ test("saved photo endpoint returns decrypted binary only for its owner", async (
   const data = encrypt(plain),
     id = crypto.randomUUID();
   const execute = mock.method(db, "execute", async (sql, args) => {
+    if (sql.startsWith("SELECT s.id FROM user_sessions")) return [[{id: "active-session"}]];
     assert.match(sql, /a.user_id=\?/);
     assert.deepEqual(args, [id, "7"]);
     return [
