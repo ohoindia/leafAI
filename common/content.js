@@ -10,6 +10,7 @@ export const screens = {
   forgot: "Password recovery",
   register: "Create account",
   home: "Home",
+  farm: "Farm and crops",
   capture: "Capture leaf photo",
   review: "Review photo",
   details: "Add details & consent",
@@ -93,7 +94,6 @@ export function accountGreeting(name = "", hour = new Date().getHours()) {
 }
 
 export const profileSettings = [
-  { route: "farm-details", title: "Farm and crops", subtitle: "Farm details, present crop and previous crop", icon: "profile" },
   { route: "language", title: "Change language", subtitle: "Choose your preferred language", icon: "language" },
   { route: "account-details", title: "Account details", subtitle: "View and update your personal details", icon: "profile" },
   { route: "security", title: "Password & security", subtitle: "Manage your account password", icon: "security" },

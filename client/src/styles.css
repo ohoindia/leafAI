@@ -295,13 +295,14 @@ nav {
   z-index: 5;
 }
 nav button {
+  flex: 1;
+  min-width: 0;
   background: transparent;
   color: #78857c;
   padding: 4px 10px;
   font-weight: 400;
   flex-direction: column;
   gap: 0;
-  min-width: 65px;
 }
 nav button > span {
   font-size: 24px;
@@ -1016,3 +1017,10 @@ textarea:focus-visible { outline: 2px solid #007ca8; }
 .user-photo-panel h3 { align-self: flex-start; }
 .profile-camera { width: 100%; display: grid; gap: 12px; }
 .profile-camera video { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 16px; background: #142b41; }
+
+.farm-accordion > summary { cursor: pointer; padding: 8px 0; min-height: 44px; }
+.farm-accordion > summary span { display: block; margin-top: 6px; }
+.farm-accordion[open] > summary { margin-bottom: 16px; }
+.crop-accordion { border-top: 1px solid #e0e9ef; padding: 12px 0; }
+.crop-accordion > summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
+.farm-accordion summary:focus-visible, .crop-accordion summary:focus-visible { outline: 2px solid #007ca8; outline-offset: 4px; border-radius: 4px; }

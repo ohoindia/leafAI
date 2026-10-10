@@ -145,7 +145,7 @@ export function Page({
 }) {
   const a = useLeafCare();
   const pathname = usePathname();
-  const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : ["/language", "/account-details", "/security", "/farm-details"].includes(pathname) ? "/profile" : pathname;
+  const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : ["/language", "/account-details", "/security"].includes(pathname) ? "/profile" : pathname;
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
   return (
@@ -215,6 +215,7 @@ export function Page({
                 ["home", "Home"],
                 ["capture", "Diagnose"],
                 ["history", "History"],
+                ["farm", "Farm"],
                 ["profile", "Profile"],
               ] as const
             ).map(([route, label]) => (
@@ -222,13 +223,13 @@ export function Page({
                 disabled={a.busy}
                 accessibilityRole="button"
                 accessibilityLabel={label}
-                accessibilityState={{ selected: activeRoute === `/${route}`, disabled: a.busy }}
+                accessibilityState={{ selected: (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")), disabled: a.busy }}
                 key={route}
                 onPress={() => a.go(route)}
-                style={[s.navItem, activeRoute === `/${route}` && s.navSelected]}
+                style={[s.navItem, (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")) && s.navSelected]}
               >
-                <NavigationIcon route={route} selected={activeRoute === `/${route}`} />
-                <Text style={[s.small, { color: "#63758a" }, activeRoute === `/${route}` && { color: "#007ca8", fontWeight: "700" }]}>{label}</Text>
+                <NavigationIcon route={route} selected={(activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details"))} />
+                <Text style={[s.small, { color: "#63758a" }, (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")) && { color: "#007ca8", fontWeight: "700" }]}>{label}</Text>
               </Pressable>
             ))}
           </View>

@@ -16,6 +16,7 @@ export function FarmDetailsScreen() {
   const farm = farms.find(f => f.id === selected) || (selected === "new" ? undefined : farms[0]);
   const details = farm?.details || (selected === "new" ? {} : a.user?.farmDetails || {});
   return <Page title="Farm and crops">
+    <Button secondary title="Back to Farm" onPress={() => a.go("farm")} />
     <Card title="Your farms">
       {farms.map(f => <Button key={f.id} secondary={f.id !== farm?.id} title={f.details.farmName || "Unnamed farm"} disabled={a.busy || editing !== null} onPress={() => { setSelected(f.id); setNewCrop(false); }} />)}
       <Button secondary title="Add a farm" disabled={a.busy || editing !== null} onPress={() => { setSelected("new"); setNewCrop(false); }} />

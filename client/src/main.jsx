@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { UserDetails, UserAvatar } from "./UserDetails";
+import { FarmOverview } from "./FarmOverview";
 import { FarmDetails } from "./FarmDetails";
 import { profileSettings, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
 import { endpoints, uploadRules, requestApi } from '../../common/api.js';
@@ -10,6 +11,7 @@ function Leaf({ large = false }) {
 }
 function Icon({ name }) {
   const paths = {
+    farm: "M3 21h18M4 17l8-5 8 5M4 12l8-5 8 5M12 3v18",
     home: "m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9",
     camera: "M3 7h5l2-3h4l2 3h5v13H3Z M16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
     gallery: "M3 3h18v18H3Z m0 14 5-5 4 4 4-6 5 7 M8 7h.01",
@@ -947,6 +949,7 @@ function App() {
                 ))}
               </>
             )}
+            {screen === "farm" && <><h2>{screens.farm}</h2><FarmOverview user={user} onManage={() => go("farm-details")} /></>}
             {screen === "profile" && <>
               <h2>{screens.profile}</h2>
                 <section className="profile-hero card">
@@ -962,7 +965,7 @@ function App() {
               <button className="profile-menu-card" disabled={busy} onClick={logout}><span className="profile-menu-icon">&#8618;</span><span className="profile-menu-copy"><strong>Sign out</strong><small>Sign out of your account</small></span><span aria-hidden="true">&#8250;</span></button>
             </>}
             {["language", "account-details", "security", "farm-details"].includes(screen) && <>
-              <button className="text-button" onClick={() => go("profile")}>&#8592; Back to profile</button>
+              <button className="text-button" onClick={() => go(screen === "farm-details" ? "farm" : "profile")}>&#8592; {screen === "farm-details" ? "Back to Farm" : "Back to profile"}</button>
               <h2>{screens[screen]}</h2>
               {screen === "language" && <section className="card"><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>}
               {screen === "farm-details" && <FarmDetails farms={user?.farms || []} details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
@@ -986,12 +989,13 @@ function App() {
                 ["home", "home", "Home"],
                 ["capture", "search", "Diagnose"],
                 ["history", "history", "History"],
+                ["farm", "farm", "Farm"],
                 ["profile", "profile", "Profile"],
               ].map(([next, icon, text]) => (
                 <button
                   key={next}
-                  className={(screen === next || (next === "profile" && ["language", "account-details", "security", "farm-details"].includes(screen))) ? "active" : ""}
-                  aria-current={(screen === next || (next === "profile" && ["language", "account-details", "security", "farm-details"].includes(screen))) ? "page" : undefined}
+                  className={(screen === next || (next === "farm" && screen === "farm-details") || (next === "profile" && ["language", "account-details", "security"].includes(screen))) ? "active" : ""}
+                  aria-current={(screen === next || (next === "farm" && screen === "farm-details") || (next === "profile" && ["language", "account-details", "security"].includes(screen))) ? "page" : undefined}
                   onClick={() => go(next)}
                 >
                   <Icon name={icon} />
