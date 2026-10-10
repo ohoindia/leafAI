@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
+  accountInitials,
+  accountGreeting,
   analysisStatus,
   careTips,
   filterHistory,
@@ -12,16 +14,9 @@ import { useLeafCare } from "../state";
 import { AnalysisPhoto, Button, Card, Field, PasswordField, Languages, Page, LeafLogo, s } from "../ui";
 export function HomeScreen() {
   const a = useLeafCare();
-  const hour = new Date().getHours();
   return (
     <Page
-      title={
-        hour < 12
-          ? "Good morning!"
-          : hour < 18
-            ? "Good afternoon!"
-            : "Good evening!"
-      }
+      title={accountGreeting(a.user?.fullName)}
     >
       <Text style={s.body}>Healthy plants make a happier you.</Text>
       <LinearGradient colors={["#007ca8", "#005e80"]} style={s.hero}>
@@ -139,11 +134,16 @@ export function ProfileScreen() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   return <Page title={screens.profile}>
-    <LeafLogo large />
+    <Card>
+      <View style={s.row}>
+        <View style={s.accountAvatar}><Text style={s.avatarText}>{accountInitials(a.user?.fullName)}</Text></View>
+        <View style={s.flex}><Text style={s.heading}>{a.user?.fullName || "Your account"}</Text><Text style={s.muted}>{a.user?.email}</Text></View>
+      </View>
+    </Card>
+    <Card title="Change language"><Text style={s.muted}>Choose your preferred language</Text><Languages /></Card>
     <Card title="Account details">
       <Text style={s.body}>Full name</Text><Field value={name ?? a.user?.fullName ?? ""} onChangeText={setName} maxLength={150} autoComplete="name" accessibilityLabel="Full name" />
       <Text style={s.body}>Email address</Text><Text style={s.muted}>{a.user?.email}</Text>
-      <Text style={s.body}>Preferred language</Text><Languages />
       <Button title={a.busy ? "Saving..." : "Save profile"} disabled={a.busy} onPress={() => { void a.saveProfile(name ?? a.user?.fullName ?? "").then(ok => { if (ok) setName(undefined); }); }} />
     </Card>
     <Card title="Password & security">

@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Redirect, router, usePathname } from "expo-router";
-import { brand, languages } from "../../common/content.js";
+import { accountInitials, brand, languages } from "../../common/content.js";
 import { endpoints } from "../../common/api.js";
 import { apiUrl } from "./api";
 import type { Language } from "../../common/types";
@@ -138,7 +138,6 @@ export function Page({
 }) {
   const a = useLeafCare();
   const pathname = usePathname();
-  const [menu, setMenu] = useState(false);
   const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : pathname;
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
@@ -170,27 +169,14 @@ export function Page({
             <Pressable
               disabled={processing || a.busy}
               accessibilityRole="button"
-              accessibilityLabel="Account menu"
-              accessibilityState={{ expanded: menu }}
-              style={s.iconButton}
-              onPress={() => setMenu(true)}
+              accessibilityLabel={`Open profile for ${a.user?.fullName || "your account"}`}
+              style={s.accountAvatar}
+              onPress={() => a.go("profile")}
             >
-              <Text style={s.heading}>☰</Text>
+              <Text style={s.avatarText}>{accountInitials(a.user?.fullName)}</Text>
             </Pressable>
           )}
         </View>}
-        <Modal visible={menu && !auth} transparent animationType="fade" onRequestClose={() => setMenu(false)}>
-          <View style={s.menuBackdrop}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close account menu" onPress={() => setMenu(false)} style={StyleSheet.absoluteFill} />
-            <View accessibilityViewIsModal style={s.menuCard}>
-              <Text style={s.heading}>Your account</Text>
-              <Languages />
-              <Button secondary title="Your profile" onPress={() => { setMenu(false); a.go("profile"); }} />
-              <Button title="Sign out" disabled={a.busy} onPress={() => { setMenu(false); void a.logout(); }} />
-              <Button secondary title="Close" onPress={() => setMenu(false)} />
-            </View>
-          </View>
-        </Modal>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[s.container, auth && s.authContainer]}
@@ -222,7 +208,7 @@ export function Page({
                 ["home", "Home"],
                 ["capture", "Diagnose"],
                 ["history", "History"],
-                ["learn", "Learn"],
+                ["profile", "Profile"],
               ] as const
             ).map(([route, label]) => (
               <Pressable
@@ -334,5 +320,7 @@ export const s = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#e0e9ef",
   },
+  accountAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#eaf7ff", borderWidth: 1, borderColor: "#c6e5f4", alignItems: "center", justifyContent: "center" },
+  avatarText: { color: "#007ca8", fontSize: 18, fontWeight: "700" },
   navItem: { flex: 1, paddingVertical: 18, alignItems: "center" },
 });

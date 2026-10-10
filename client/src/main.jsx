@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
-import { languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
+import { accountInitials, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
 import { endpoints, uploadRules, requestApi } from '../../common/api.js';
 function Leaf({ large = false }) {
   return <img className={large ? "leaf large" : "leaf"} src="/leaf-logo.svg" alt="" />;
@@ -12,6 +12,7 @@ function Icon({ name }) {
     camera: "M3 7h5l2-3h4l2 3h5v13H3Z M16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
     gallery: "M3 3h18v18H3Z m0 14 5-5 4 4 4-6 5 7 M8 7h.01",
     history: "M4 5v5h5 M4 10a8 8 0 1 1 0 5 M12 7v5l3 2",
+    profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21v-2a8 8 0 0 1 16 0v2",
     learn: "M12 5C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Zm0 0v16",
     search: "M16 10a6 6 0 1 1-12 0 6 6 0 0 1 12 0 m-2 4 7 7",
     mic: "M9 5a3 3 0 0 1 6 0v7a3 3 0 0 1-6 0Zm-3 6a6 6 0 0 0 12 0M12 17v5m-4 0h8",
@@ -80,7 +81,6 @@ function App() {
     [filter, setFilter] = useState("all"),
     [voiceOpen, setVoiceOpen] = useState(false),
     [listening, setListening] = useState(false),
-    [menu, setMenu] = useState(false),
     [tab, setTab] = useState("analysis");
   const [notice, setNotice] = useState("");
   const camera = useRef(),
@@ -91,7 +91,6 @@ function App() {
   function go(next) {
     setError("");
     setNotice("");
-    setMenu(false);
     setScreen(next);
     window.scrollTo(0, 0);
   }
@@ -384,23 +383,10 @@ function App() {
                   <small>{brand.tagline}</small>
                 </div>
               </div>
-              <button
-                className="icon-button"
-                aria-label="Account menu"
-                onClick={() => setMenu(!menu)}
-              >
-                ☰
+              <button className="account-avatar" aria-label={`Open profile for ${user?.fullName || "your account"}`} onClick={() => go("profile")}>
+                {accountInitials(user?.fullName)}
               </button>
             </header>
-          )}
-          {menu && (
-            <section className="menu card">
-              <Language lang={lang} change={change} />
-              <button className="outline" onClick={() => go("profile")}>
-                Your profile
-              </button>
-              <button onClick={logout}>Sign out</button>
-            </section>
           )}
           {notice && <div className="notice" role="status">{notice}</div>}
           {error && (
@@ -519,11 +505,7 @@ function App() {
                 <section className="greeting">
                   <span className="sun">☀</span>
                   <h1>
-                    {new Date().getHours() < 12
-                      ? "Good morning!"
-                      : new Date().getHours() < 18
-                        ? "Good afternoon!"
-                        : "Good evening!"}
+                    {accountGreeting(user?.fullName)}
                   </h1>
                   <p>
                     Healthy plants make
@@ -934,13 +916,16 @@ function App() {
             )}
             {screen === "profile" && (
               <>
-                <Leaf large />
                 <h2>{screens.profile}</h2>
+                <section className="profile-hero card">
+                  <div className="account-avatar profile-avatar">{accountInitials(user?.fullName)}</div>
+                  <div><h3>{user?.fullName || "Your account"}</h3><p className="muted">{user?.email}</p></div>
+                </section>
+                <section className="card"><h3>Change language</h3><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>
                 <section className="card"><h3>Account details</h3>
                   <form key={user?.fullName} onSubmit={e => account(e, "profile")}>
                     <label>Full name<input name="fullName" defaultValue={user?.fullName} autoComplete="name" required minLength={2} maxLength={150} /></label>
                     <label>Email address<input value={user?.email || ""} readOnly /></label>
-                    <label>Preferred language<Language lang={lang} change={change} /></label>
                     <button disabled={busy}>{busy ? "Saving..." : "Save profile"}</button>
                   </form>
                 </section>
@@ -964,7 +949,7 @@ function App() {
                 ["home", "home", "Home"],
                 ["capture", "search", "Diagnose"],
                 ["history", "history", "History"],
-                ["learn", "learn", "Learn"],
+                ["profile", "profile", "Profile"],
               ].map(([next, icon, text]) => (
                 <button
                   key={next}

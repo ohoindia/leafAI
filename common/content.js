@@ -79,3 +79,12 @@ export function filterHistory(items, query, filter) {
           : x.status === "REVIEW_REQUIRED")),
   );
 }
+
+export function accountInitials(name = "") {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return (parts.length > 1 ? parts.slice(0, 2).map(part => Array.from(part)[0]).join("") : Array.from(parts[0] || "").slice(0, 2).join("")).toLocaleUpperCase() || "KK";
+}
+export function accountGreeting(name = "", hour = new Date().getHours()) {
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return `${greeting}${name.trim() ? `, ${name.trim()}` : ""}!`;
+}

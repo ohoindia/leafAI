@@ -961,3 +961,9 @@ label > .password-field { margin-top: 7px; }
 .language-popup .language-options { margin-top: 16px; }
 .language-popup .language-option { font-size: 16px; padding: 12px; }
 .language-popup .language-glyph { width: 36px; height: 36px; font-size: 20px; }
+
+.account-avatar { width: 48px; height: 48px; min-width: 48px; border-radius: 50%; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #eaf7ff; color: #007ca8; border: 1px solid #c6e5f4; font-weight: 700; }
+.profile-hero { display: flex; align-items: center; gap: 16px; }
+.profile-hero > div:last-child { min-width: 0; overflow-wrap: anywhere; }
+.profile-avatar { width: 64px; height: 64px; min-width: 64px; font-size: 22px; }
+.greeting h1 { overflow-wrap: anywhere; }

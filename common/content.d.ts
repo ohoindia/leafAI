@@ -34,3 +34,6 @@ export function filterHistory(
   query: string,
   filter: string,
 ): HistoryItem[];
+
+export function accountInitials(name?: string): string;
+export function accountGreeting(name?: string, hour?: number): string;
