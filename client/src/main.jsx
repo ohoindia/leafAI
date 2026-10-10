@@ -949,7 +949,7 @@ function App() {
                 ))}
               </>
             )}
-            {screen === "farm" && <><h2>{screens.farm}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onManage={() => go("farm-details")} /></>}
+            {screen === "farm" && <><h2>{screens.farm}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onAdd={() => go("farm-details")} /></>}
             {screen === "profile" && <>
               <h2>{screens.profile}</h2>
                 <section className="profile-hero card">
@@ -968,7 +968,7 @@ function App() {
               <button className="text-button" onClick={() => go(screen === "farm-details" ? "farm" : "profile")}>&#8592; {screen === "farm-details" ? "Back to Farm" : "Back to profile"}</button>
               <h2>{screens[screen]}</h2>
               {screen === "language" && <section className="card"><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>}
-              {screen === "farm-details" && <FarmDetails farms={user?.farms || []} details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
+              {screen === "farm-details" && <FarmDetails creationOnly onCreated={() => go("farm")} farms={user?.farms || []} details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
               {screen === "account-details" && <UserDetails user={user} busy={busy} onSave={saveUserDetails} onUpload={uploadProfilePhoto} />}
               {screen === "security" && <>
                 <section className="card"><h3>Password & security</h3>

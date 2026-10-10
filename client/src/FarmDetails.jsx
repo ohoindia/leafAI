@@ -3,28 +3,28 @@ import { farmSections } from "../../common/farm.js";
 
 import { farmPresentation, farmPlaceholders, farmDisplayValue, farmSectionSummary } from "../../common/farm-presentation.js";
 
-export function FarmDetails({ details: fallback = {}, farms = [], busy, onSave, embedded = false }) {
-  const [selected, setSelected] = useState(null);
+export function FarmDetails({ details: fallback = {}, farms = [], busy, onSave, embedded = false, creationOnly = false, onCreated }) {
+  const [selected, setSelected] = useState(creationOnly ? "choose" : null);
   const [newCrop, setNewCrop] = useState(false);
-  const farm = farms.find(f => f.id === selected) || (selected === "new" ? null : farms[0]);
-  const details = farm?.details || (selected === "new" ? {} : fallback);
+  const farm = farms.find(f => f.id === selected) || (["new", "choose"].includes(selected) ? null : farms[0]);
+  const details = farm?.details || (["new", "choose"].includes(selected) ? {} : fallback);
   async function save(values, addPreviousCrop = false) {
     if (!addPreviousCrop) values = Object.fromEntries(Object.entries(values).filter(([key]) => !key.startsWith("previous") && key !== "residueManagement"));
     const result = await onSave(values, selected || farm?.id, newCrop, addPreviousCrop);
-    if (result) { setNewCrop(false); if (selected === "new") setSelected(typeof result === "string" ? result : null); }
+    if (result) { setNewCrop(false); if (selected === "new") setSelected(typeof result === "string" ? result : null); if (creationOnly) onCreated?.(); }
     return result;
   }
   const [editing, setEditing] = useState(null);
   const [expanded, setExpanded] = useState({});
   return <div className="farm-sections">
-    {!embedded && <section className="card"><label>Choose farm <select value={selected || farm?.id || "new"} disabled={busy || editing !== null} onChange={e => { setSelected(e.target.value); setNewCrop(false); }}>{farms.map(f => <option key={f.id} value={f.id}>{f.details.farmName || "Unnamed farm"}</option>)}<option value="new">Add a farm</option></select></label>
-      <button type="button" disabled={busy || editing !== null || !farm} onClick={() => { setNewCrop(true); setEditing("Present crop"); }}>Start a new crop</button>
+    {!embedded && <section className="card">{creationOnly && <><h3>Add a farm or crop</h3><p className="muted">Choose an existing farm to enter a new crop, or add a new farm.</p></>}<label>{creationOnly ? "Add crop to" : "Choose farm"} <select value={selected || farm?.id || "new"} disabled={busy || editing !== null} onChange={e => { const next = e.target.value; setSelected(next); setNewCrop(creationOnly && next !== "new"); if (creationOnly) setEditing(next === "new" ? "Farm details" : "Present crop"); }}>{creationOnly && <option value="choose" disabled>Choose a farm or add a new farm</option>}{farms.map(f => <option key={f.id} value={f.id}>{f.details.farmName || "Unnamed farm"}</option>)}<option value="new">Add a farm</option></select></label>
+      {!creationOnly && <button type="button" disabled={busy || editing !== null || !farm} onClick={() => { setNewCrop(true); setEditing("Present crop"); }}>Start a new crop</button>}
       {newCrop && <p>The current crop will be saved in history when you save the new crop.</p>}
     </section>}
     {embedded && <button type="button" disabled={busy || editing !== null || !farm} onClick={() => { setNewCrop(true); setEditing("Present crop"); }}>Start a new crop</button>}
     {embedded && newCrop && <p>The current crop will be saved in history when you save the new crop.</p>}
-    {!embedded && <section className="farm-overview"><span className="farm-eyebrow">YOUR FARM RECORD</span><h3>{details.farmName || "Build your farm profile"}</h3><p>{[details.village, details.district, details.state].filter(Boolean).join(", ") || "Keep your land and seasonal crop information in one place."}</p><div className="farm-status">Keep your farm and seasonal crop records up to date.</div></section>}
-    {[...farmSections.filter(s => s.title !== "Previous crop"), farmSections.find(s => s.title === "Previous crop")].map(section => {
+    {selected !== "choose" && !embedded && <section className="farm-overview"><span className="farm-eyebrow">YOUR FARM RECORD</span><h3>{details.farmName || "Build your farm profile"}</h3><p>{[details.village, details.district, details.state].filter(Boolean).join(", ") || "Keep your land and seasonal crop information in one place."}</p><div className="farm-status">Keep your farm and seasonal crop records up to date.</div></section>}
+    {selected !== "choose" && [...farmSections.filter(s => s.title !== "Previous crop"), farmSections.find(s => s.title === "Previous crop")].map(section => {
       const isHistory = section.title === "Previous crop";
       const sectionDetails = isHistory ? {} : details;
       const meta = farmPresentation[section.title];

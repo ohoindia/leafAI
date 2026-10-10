@@ -24,10 +24,10 @@ export function FarmOverviewScreen() {
   return <Page title="Farm and crops">
     <Card title="Your farms and crops">
       <Text style={s.muted}>{farms.length} {farms.length === 1 ? "farm" : "farms"} saved. Expand a farm to view its land details and crops.</Text>
-      <Button title={farms.length ? "Manage farms and crops" : "Start your farm details"} onPress={() => a.go("farm-details")} />
+      <Button title="Add New Crop" onPress={() => a.go("farm-details")} />
     </Card>
     {!farms.length && <Card title="Start tracking your farm"><Text style={s.muted}>Add your farm details and first crop for easy tracking of your land, growing seasons, and crop history.</Text></Card>}
-    {!!farms.length && !hasCrops && <Card title="Start tracking your crops"><Text style={s.muted}>Your farm details are ready. Add your first crop to track its growth, season, and harvest in one place.</Text><Button title="Add crop details" onPress={() => a.go("farm-details")} /></Card>}
+    {!!farms.length && !hasCrops && <Card title="Start tracking your crops"><Text style={s.muted}>Your farm details are ready. Add your first crop to track its growth, season, and harvest in one place.</Text><Button title="Add New Crop" onPress={() => a.go("farm-details")} /></Card>}
     {farms.map(farm => <Card key={farm.id}>
       <Disclosure title={farm.details.farmName || "Unnamed farm"} subtitle={`${[farm.details.village, farm.details.district, farm.details.state].filter(Boolean).join(", ") || "Location not specified"}\n${farm.details.presentCrop || "No current crop"} · ${overviewCrops(farm).length} crop records`}>
         {!overviewCrops(farm).length && <Text style={s.muted}>Add your first crop to this farm to track its growth, season, and harvest in one place.</Text>}

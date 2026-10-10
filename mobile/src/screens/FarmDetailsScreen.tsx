@@ -5,32 +5,33 @@ import { useLeafCare } from "../state";
 import { Button, Card, Field, Page, s } from "../ui";
 import { farmPresentation, farmPlaceholders, farmDisplayValue, farmSectionSummary } from "../../../common/farm-presentation.js";
 
-export function FarmDetailsForm({ farmId, embedded = false }: { farmId?: string; embedded?: boolean }) {
+export function FarmDetailsForm({ farmId, embedded = false, creationOnly = false }: { farmId?: string; embedded?: boolean; creationOnly?: boolean }) {
   const a = useLeafCare();
   const [draft, setDraft] = useState<FarmDetails>({});
   const [editing, setEditing] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [selected, setSelected] = useState<string | null>(farmId || null);
+  const [selected, setSelected] = useState<string | null>(farmId || (creationOnly ? "choose" : null));
   const [sectionsOpen, setSectionsOpen] = useState<Record<string, boolean>>({});
   const [newCrop, setNewCrop] = useState(false);
   const farms = a.user?.farms || [];
-  const farm = farms.find(f => f.id === selected) || (selected === "new" ? undefined : farms[0]);
-  const details = farm?.details || (selected === "new" ? {} : a.user?.farmDetails || {});
+  const farm = farms.find(f => f.id === selected) || (["new", "choose"].includes(selected || "") ? undefined : farms[0]);
+  const details = farm?.details || (["new", "choose"].includes(selected || "") ? {} : a.user?.farmDetails || {});
   const content = <>
     {!embedded && <Button secondary title="Back to Farm" onPress={() => a.go("farm")} />}
-    <Card title={embedded ? "Crop actions" : "Your farms"}>
-      {!embedded && farms.map(f => <Button key={f.id} secondary={f.id !== farm?.id} title={f.details.farmName || "Unnamed farm"} disabled={a.busy || editing !== null} onPress={() => { setSelected(f.id); setNewCrop(false); }} />)}
-      {!embedded && <Button secondary title="Add a farm" disabled={a.busy || editing !== null} onPress={() => { setSelected("new"); setNewCrop(false); }} />}
-      <Button title="Start a new crop" disabled={a.busy || editing !== null || !farm} onPress={() => { setNewCrop(true); setDraft(Object.fromEntries(farmSections.find(s => s.title === "Present crop")!.fields.map(f => [f.key, ""]))); setEditing("Present crop"); }} />
+    <Card title={embedded ? "Crop actions" : creationOnly ? "Add a farm or crop" : "Your farms"}>
+      {creationOnly && <Text style={s.muted}>Choose an existing farm to enter a new crop, or add a new farm.</Text>}
+      {!embedded && farms.map(f => <Button key={f.id} secondary={f.id !== farm?.id} title={f.details.farmName || "Unnamed farm"} disabled={a.busy || editing !== null} onPress={() => { setSelected(f.id); setNewCrop(creationOnly); if (creationOnly) { setDraft(Object.fromEntries(farmSections.find(s => s.title === "Present crop")!.fields.map(field => [field.key, ""]))); setEditing("Present crop"); } }} />)}
+      {!embedded && <Button secondary title="Add a farm" disabled={a.busy || editing !== null} onPress={() => { setSelected("new"); setNewCrop(false); if (creationOnly) { setDraft({}); setEditing("Farm details"); } }} />}
+      {!creationOnly && <Button title="Start a new crop" disabled={a.busy || editing !== null || !farm} onPress={() => { setNewCrop(true); setDraft(Object.fromEntries(farmSections.find(s => s.title === "Present crop")!.fields.map(f => [f.key, ""]))); setEditing("Present crop"); }} />}
       {newCrop && <Text style={s.muted}>Saving will keep the current crop in history.</Text>}
     </Card>
-    {!embedded && <View style={{ backgroundColor: "#eaf7ff", padding: 22, borderRadius: 20, gap: 8 }}>
+    {selected !== "choose" && !embedded && <View style={{ backgroundColor: "#eaf7ff", padding: 22, borderRadius: 20, gap: 8 }}>
       <Text style={[s.small, { fontWeight: "700", letterSpacing: 1.5 }]}>YOUR FARM RECORD</Text>
       <Text style={s.heading}>{details.farmName || "Build your farm profile"}</Text>
       <Text style={s.muted}>{[details.village, details.district, details.state].filter(Boolean).join(", ") || "Keep your land and seasonal crop information in one place."}</Text>
       <Text style={s.small}>Keep your farm and seasonal crop records up to date.</Text>
     </View>}
-    {[...farmSections.filter(s => s.title !== "Previous crop"), farmSections.find(s => s.title === "Previous crop")!].map(section => {
+    {selected !== "choose" && [...farmSections.filter(s => s.title !== "Previous crop"), farmSections.find(s => s.title === "Previous crop")!].map(section => {
       const isHistory = section.title === "Previous crop";
       const sectionDetails: FarmDetails = isHistory ? {} : details;
       const meta = farmPresentation[section.title];
@@ -69,7 +70,7 @@ export function FarmDetailsForm({ farmId, embedded = false }: { farmId?: string;
       <Text style={s.muted}>Enter what you know. You can complete the rest later.</Text>
       <Button title={a.busy ? "Saving..." : isHistory ? "Save previous crop" : "Save details"} disabled={a.busy} onPress={() => {
         void a.saveProfile(a.user?.fullName || "", isHistory ? draft : Object.fromEntries(Object.entries({ ...details, ...draft }).filter(([key]) => !key.startsWith("previous") && key !== "residueManagement")), undefined, selected || farm?.id, newCrop, isHistory).then(saved => {
-          if (saved) { setEditing(null); setDraft({}); setNewCrop(false); if (selected === "new") setSelected(null); }
+          if (saved) { setEditing(null); setDraft({}); setNewCrop(false); if (selected === "new") setSelected(null); if (creationOnly) a.go("farm"); }
         });
       }} />
       <Button secondary title="Cancel" disabled={a.busy} onPress={() => { setEditing(null); setDraft({}); setNewCrop(false); a.setError(""); }} />
@@ -82,5 +83,5 @@ export function FarmDetailsForm({ farmId, embedded = false }: { farmId?: string;
 }
 
 export function FarmDetailsScreen() {
-  return <FarmDetailsForm />;
+  return <FarmDetailsForm creationOnly />;
 }
