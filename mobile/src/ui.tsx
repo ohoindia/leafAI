@@ -19,6 +19,7 @@ import { endpoints } from "../../common/api.js";
 import { apiUrl } from "./api";
 import type { Language } from "../../common/types";
 import { useLeafCare } from "./state";
+import { NavigationIcon } from "./NavigationIcon";
 export function UserAvatar({ large = false }: { large?: boolean }) {
   const a = useLeafCare();
   const [failed, setFailed] = useState<string>();
@@ -220,12 +221,14 @@ export function Page({
               <Pressable
                 disabled={a.busy}
                 accessibilityRole="button"
+                accessibilityLabel={label}
                 accessibilityState={{ selected: activeRoute === `/${route}`, disabled: a.busy }}
                 key={route}
                 onPress={() => a.go(route)}
                 style={[s.navItem, activeRoute === `/${route}` && s.navSelected]}
               >
-                <Text style={[s.small, activeRoute === `/${route}` && { fontWeight: "700" }]}>{label}</Text>
+                <NavigationIcon route={route} selected={activeRoute === `/${route}`} />
+                <Text style={[s.small, { color: "#63758a" }, activeRoute === `/${route}` && { color: "#007ca8", fontWeight: "700" }]}>{label}</Text>
               </Pressable>
             ))}
           </View>
@@ -321,6 +324,7 @@ export const s = StyleSheet.create({
   },
   error: { color: "#a12c22" },
   nav: {
+    flexShrink: 0,
     flexDirection: "row",
     backgroundColor: "#fff",
     borderTopWidth: 1,
@@ -328,5 +332,5 @@ export const s = StyleSheet.create({
   },
   accountAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#eaf7ff", borderWidth: 1, borderColor: "#c6e5f4", alignItems: "center", justifyContent: "center" },
   avatarText: { color: "#007ca8", fontSize: 18, fontWeight: "700" },
-  navItem: { flex: 1, paddingVertical: 18, alignItems: "center" },
+  navItem: { flex: 1, minHeight: 64, paddingVertical: 10, gap: 4, alignItems: "center", justifyContent: "center" },
 });
