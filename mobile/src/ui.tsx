@@ -1,3 +1,4 @@
+import { useLocale } from "./locale";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -21,30 +22,34 @@ import type { Language } from "../../common/types";
 import { useLeafCare } from "./state";
 import { NavigationIcon } from "./NavigationIcon";
 export function UserAvatar({ large = false }: { large?: boolean }) {
+  const localize = useLocale();
   const a = useLeafCare();
   const [failed, setFailed] = useState<string>();
   const size = large ? 96 : 48;
-  return a.user?.profilePhoto && failed !== a.user.profilePhoto ? <Image accessibilityLabel="Your profile photo" source={{ uri: a.user.profilePhoto }} style={{ width: size, height: size, borderRadius: size / 2 }} onError={() => setFailed(a.user?.profilePhoto || "")} /> : <View style={[s.accountAvatar, { width: size, height: size, borderRadius: size / 2 }]}><Text style={[s.avatarText, large && { fontSize: 30 }]}>{accountInitials(a.user?.fullName)}</Text></View>;
+  return a.user?.profilePhoto && failed !== a.user.profilePhoto ? <Image accessibilityLabel={localize("Your profile photo")} source={{ uri: a.user.profilePhoto }} style={{ width: size, height: size, borderRadius: size / 2 }} onError={() => setFailed(a.user?.profilePhoto || "")} /> : <View style={[s.accountAvatar, { width: size, height: size, borderRadius: size / 2 }]}><Text style={[s.avatarText, large && { fontSize: 30 }]}>{accountInitials(a.user?.fullName)}</Text></View>;
 }
 export function LeafLogo({ large = false }: { large?: boolean }) {
-  return <Image source={require("../assets/icon.png")} accessibilityLabel="Krishi Karshak leaf logo" style={{ width: large ? 88 : 38, height: large ? 88 : 38, borderRadius: large ? 22 : 10 }} />;
+  const localize = useLocale();
+  return <Image source={require("../assets/icon.png")} accessibilityLabel={localize("Krishi Karshak leaf logo")} style={{ width: large ? 88 : 38, height: large ? 88 : 38, borderRadius: large ? 22 : 10 }} />;
 }
 export function AnalysisPhoto({ id, fallback, thumbnail = false }: { id: string; fallback?: string; thumbnail?: boolean }) {
+  const localize = useLocale();
   const a = useLeafCare();
   const [failedSource, setFailedSource] = useState("");
   const uri = fallback || `${apiUrl}${endpoints.image(id)}`;
   return failedSource === uri ? (
     <View style={[s.image, thumbnail && s.thumbnail, s.photoPlaceholder]}>
       <LeafLogo />
-      {!thumbnail && <Text style={s.muted}>Photo unavailable</Text>}
+      {!thumbnail && <Text style={s.muted}>{localize("Photo unavailable")}</Text>}
     </View>
-  ) : <Image source={fallback ? { uri } : { uri, headers: { Authorization: `Bearer ${a.token}` } }} accessibilityLabel="Analyzed leaf" style={[s.image, thumbnail && s.thumbnail]} onError={() => setFailedSource(uri)} />;
+  ) : <Image source={fallback ? { uri } : { uri, headers: { Authorization: `Bearer ${a.token}` } }} accessibilityLabel={localize("Analyzed leaf")} style={[s.image, thumbnail && s.thumbnail]} onError={() => setFailedSource(uri)} />;
 }
 export function AuthBrand({ register = false }: { register?: boolean }) {
+  const localize = useLocale();
   return <View style={s.authBrand}>
     <LeafLogo large />
     <Text style={s.brandTitle}>{brand.name}</Text>
-    <Text style={[s.muted, { textAlign: "center" }]}>{register ? "Grow Today\nGreener Tomorrow" : "Good Plants\nBrighter Days"}</Text>
+    <Text style={[s.muted, { textAlign: "center" }]}>{localize(register ? "Grow Today\nGreener Tomorrow" : "Good Plants\nBrighter Days")}</Text>
   </View>;
 }
 export function Button({
@@ -58,6 +63,7 @@ export function Button({
   secondary?: boolean;
   disabled?: boolean;
 }) {
+  const localize = useLocale();
   return (
     <Pressable
       accessibilityRole="button"
@@ -71,7 +77,7 @@ export function Button({
       ]}
     >
       <Text style={[s.buttonText, secondary && { color: "#005e80" }]}>
-        {title}
+        {localize(title)}
       </Text>
     </Pressable>
   );
@@ -83,9 +89,10 @@ export function Card({
   title?: string;
   children?: React.ReactNode;
 }) {
+  const localize = useLocale();
   return (
     <View style={s.card}>
-      {title && <Text style={s.heading}>{title}</Text>}
+      {title && <Text style={s.heading}>{localize(title)}</Text>}
       {children}
     </View>
   );
@@ -96,10 +103,11 @@ export function Field(props: React.ComponentProps<typeof TextInput>) {
   );
 }
 export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
+  const localize = useLocale();
   const [visible, setVisible] = useState(false);
   return <View style={{ position: "relative" }}>
     <TextInput placeholderTextColor="#63758a" {...props} secureTextEntry={!visible} style={[s.input, { paddingRight: 56 }]} />
-    <Pressable accessibilityRole="button" accessibilityLabel={visible ? "Hide password" : "Show password"} accessibilityState={{ checked: visible }} onPress={() => setVisible(!visible)} style={{ position: "absolute", right: 4, top: 0, bottom: 0, width: 44, alignItems: "center", justifyContent: "center" }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={localize(visible ? "Hide password" : "Show password")} accessibilityState={{ checked: visible }} onPress={() => setVisible(!visible)} style={{ position: "absolute", right: 4, top: 0, bottom: 0, width: 44, alignItems: "center", justifyContent: "center" }}>
       <View accessible={false} style={{ width: 23, height: 15, borderWidth: 1.8, borderColor: "#63758a", borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
         <View style={{ width: 7, height: 7, borderWidth: 1.5, borderColor: "#63758a", borderRadius: 4 }} />
         {visible && <View style={{ position: "absolute", width: 29, height: 2, backgroundColor: "#63758a", transform: [{ rotate: "45deg" }] }} />}
@@ -108,22 +116,23 @@ export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
   </View>;
 }
 export function Languages() {
+  const localize = useLocale();
   const a = useLeafCare();
   const [open, setOpen] = useState(false);
   return <>
-    <Button secondary title={`Change language: ${languages[a.lang]}`} onPress={() => setOpen(true)} />
+    <Button secondary title={`${localize("Change language")}: ${languages[a.lang]}`} onPress={() => setOpen(true)} />
     <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#142b4180", padding: 20 }}>
-        <Pressable accessibilityLabel="Close language selection" onPress={() => setOpen(false)} style={StyleSheet.absoluteFill} />
+        <Pressable accessibilityLabel={localize("Close language selection")} onPress={() => setOpen(false)} style={StyleSheet.absoluteFill} />
         <View accessibilityViewIsModal style={{ width: "100%", maxWidth: 350, backgroundColor: "#fff", borderRadius: 20, padding: 20, gap: 14 }}>
           <View style={[s.row, { justifyContent: "space-between" }]}>
-            <Text style={s.heading}>Choose your language</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close language selection" onPress={() => setOpen(false)} style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}><Text style={s.heading}>×</Text></Pressable>
+            <Text style={s.heading}>{localize("Choose your language")}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={localize("Close language selection")} onPress={() => setOpen(false)} style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}><Text style={s.heading}>×</Text></Pressable>
           </View>
-          <Text style={s.muted}>Select your preferred language.</Text>
+          <Text style={s.muted}>{localize("Select your preferred language.")}</Text>
           {(Object.keys(languages) as Language[]).map(id => <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: a.lang === id }} onPress={() => { a.change(id); setOpen(false); }} style={[s.language, a.lang === id && s.selected, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
-            <View><Text style={[s.body, { fontWeight: "600" }]}>{languages[id]}</Text><Text style={s.muted}>{id === "en" ? "English" : id === "te" ? "Telugu" : "Hindi"}</Text></View>
-            <Text style={{ color: "#007ca8", fontSize: 20 }}>{a.lang === id ? "✓" : "○"}</Text>
+            <View><Text style={[s.body, { fontWeight: "600" }]}>{languages[id]}</Text><Text style={s.muted}>{localize(id === "en" ? "English" : id === "te" ? "Telugu" : "Hindi")}</Text></View>
+            <Text style={{ color: "#007ca8", fontSize: 20 }}>{localize(a.lang === id ? "✓" : "○")}</Text>
           </Pressable>)}
         </View>
       </View>
@@ -143,6 +152,7 @@ export function Page({
   processing?: boolean;
   branding?: React.ReactNode;
 }) {
+  const localize = useLocale();
   const a = useLeafCare();
   const pathname = usePathname();
   const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : ["/language", "/account-details", "/security"].includes(pathname) ? "/profile" : pathname;
@@ -157,7 +167,7 @@ export function Page({
         {!auth && <View style={s.header}>
           <Pressable
             disabled={processing}
-            accessibilityLabel="Go back"
+            accessibilityLabel={localize("Go back")}
             accessibilityRole="button"
             style={s.iconButton}
             onPress={() =>
@@ -170,13 +180,13 @@ export function Page({
           </Pressable>
           <View style={s.flex}>
             <View style={s.row}><LeafLogo /><Text style={s.heading}>{brand.name}</Text></View>
-            <Text style={s.small}>{brand.tagline}</Text>
+            <Text style={s.small}>{localize(brand.tagline)}</Text>
           </View>
           {!auth && (
             <Pressable
               disabled={processing || a.busy}
               accessibilityRole="button"
-              accessibilityLabel={`Open profile for ${a.user?.fullName || "your account"}`}
+              accessibilityLabel={localize(`Open profile for ${a.user?.fullName || "your account"}`)}
               style={s.accountAvatar}
               onPress={() => a.go("profile")}
             >
@@ -189,7 +199,7 @@ export function Page({
           contentContainerStyle={[s.container, auth && s.authContainer]}
         >
           {branding}
-          <Text style={s.title}>{title}</Text>
+          <Text style={s.title}>{localize(title)}</Text>
           {!!a.notice && <View style={s.notice}><Text accessibilityLiveRegion="polite" style={{ color: "#185b31" }}>{a.notice}</Text></View>}
           {!!a.error && (
             <Card>
@@ -198,14 +208,14 @@ export function Page({
               </Text>
               <Button
                 secondary
-                title="Dismiss"
+                title={localize("Dismiss")}
                 onPress={() => a.setError("")}
               />
             </Card>
           )}
           {children}
           {a.busy && (
-            <ActivityIndicator accessibilityLabel="Working" color="#007ca8" />
+            <ActivityIndicator accessibilityLabel={localize("Working")} color="#007ca8" />
           )}
         </ScrollView>
         {!auth && !processing && (
@@ -222,14 +232,14 @@ export function Page({
               <Pressable
                 disabled={a.busy}
                 accessibilityRole="button"
-                accessibilityLabel={label}
+                accessibilityLabel={localize(label)}
                 accessibilityState={{ selected: (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")), disabled: a.busy }}
                 key={route}
                 onPress={() => a.go(route)}
                 style={[s.navItem, (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")) && s.navSelected]}
               >
                 <NavigationIcon route={route} selected={(activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details"))} />
-                <Text style={[s.small, { color: "#63758a" }, (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")) && { color: "#007ca8", fontWeight: "700" }]}>{label}</Text>
+                <Text style={[s.small, { color: "#63758a" }, (activeRoute === `/${route}` || (route === "farm" && activeRoute === "/farm-details")) && { color: "#007ca8", fontWeight: "700" }]}>{localize(label)}</Text>
               </Pressable>
             ))}
           </View>

@@ -15,6 +15,7 @@ import { request, ApiError } from "./api";
 import { endpoints, uploadRules } from "../../common/api.js";
 import { speechLanguages, brand, screens } from "../../common/content.js";
 import type { Analysis, HistoryItem, Language, User } from "../../common/types";
+import { normalizeLanguage } from "../../common/locale.js";
 
 function useAppState() {
   const [lang, setLang] = useState<Language>("en");
@@ -43,7 +44,7 @@ function useAppState() {
     router.push(`/${screen}`);
   }
   function change(value: Language) {
-    setLang(value);
+    setLang(normalizeLanguage(value));
     void Speech.stop();
   }
   function clearSession() {

@@ -1,16 +1,19 @@
+import { useLocale } from "./locale";
 import { useEffect, useRef, useState } from "react";
 import { userDetailSections } from "../../common/profile.js";
 import { accountInitials } from "../../common/content.js";
 import { uploadRules } from "../../common/api.js";
 
 export function UserAvatar({ user, large = false }) {
+  const localize = useLocale();
   const [failed, setFailed] = useState("");
   return user?.profilePhoto && failed !== user.profilePhoto
-    ? <img className={`user-photo ${large ? "user-photo-large" : ""}`} src={user.profilePhoto} alt="Your profile photo" onError={() => setFailed(user.profilePhoto)} />
+    ? <img className={`user-photo ${large ? "user-photo-large" : ""}`} src={user.profilePhoto} alt={localize("Your profile photo")} onError={() => setFailed(user.profilePhoto)} />
     : <span className={`account-avatar ${large ? "user-photo-large" : ""}`}>{accountInitials(user?.fullName)}</span>;
 }
 
 export function UserDetails({ user, busy, onSave, onUpload }) {
+  const localize = useLocale();
   const [editing, setEditing] = useState(false);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState("");
@@ -65,29 +68,29 @@ export function UserDetails({ user, busy, onSave, onUpload }) {
   }
   return <>
     <section className="card user-photo-panel">
-      <h3>Profile photo</h3>
-      {preview ? <img className="user-photo user-photo-large" src={preview} alt="Selected profile photo preview" /> : <UserAvatar user={user} large />}
-      <p className="muted">Use a clear photo of yourself. Review it before uploading.</p>
+      <h3>{localize("Profile photo")}</h3>
+      {preview ? <img className="user-photo user-photo-large" src={preview} alt={localize("Selected profile photo preview")} /> : <UserAvatar user={user} large />}
+      <p className="muted">{localize("Use a clear photo of yourself. Review it before uploading.")}</p>
       <input ref={gallery} hidden type="file" accept="image/jpeg,image/png,image/webp" onChange={event => { select(event.target.files?.[0]); event.target.value = ""; }} />
-      {camera && <div className="profile-camera"><video ref={video} muted playsInline onLoadedData={() => setReady(true)} aria-label="Profile camera preview" /><button type="button" disabled={!ready} onClick={capture}>Capture photo</button><button type="button" className="secondary" onClick={() => setCamera(false)}>Close camera</button></div>}
-      <div className="farm-section-actions"><button type="button" className="secondary" disabled={busy || camera} onClick={() => { setError(""); setCamera(true); }}>Take photo</button><button type="button" className="secondary" disabled={busy || camera} onClick={() => gallery.current.click()}>Choose from gallery</button></div>
-      {file && <div className="farm-section-actions"><button type="button" disabled={busy || camera} onClick={async () => { if (await onUpload(file)) setFile(null); }}>{busy ? "Uploading..." : "Upload photo"}</button><button type="button" className="secondary" disabled={busy} onClick={() => setFile(null)}>Cancel photo</button></div>}
+      {camera && <div className="profile-camera"><video ref={video} muted playsInline onLoadedData={() => setReady(true)} aria-label={localize("Profile camera preview")} /><button type="button" disabled={!ready} onClick={capture}>{localize("Capture photo")}</button><button type="button" className="secondary" onClick={() => setCamera(false)}>{localize("Close camera")}</button></div>}
+      <div className="farm-section-actions"><button type="button" className="secondary" disabled={busy || camera} onClick={() => { setError(""); setCamera(true); }}>{localize("Take photo")}</button><button type="button" className="secondary" disabled={busy || camera} onClick={() => gallery.current.click()}>{localize("Choose from gallery")}</button></div>
+      {file && <div className="farm-section-actions"><button type="button" disabled={busy || camera} onClick={async () => { if (await onUpload(file)) setFile(null); }}>{localize(busy ? "Uploading..." : "Upload photo")}</button><button type="button" className="secondary" disabled={busy} onClick={() => setFile(null)}>{localize("Cancel photo")}</button></div>}
       {error && <p role="alert" className="error">{error}</p>}
     </section>
     {!editing ? <>
-      <section className="card"><h3>Personal details</h3><dl className="farm-summary"><div><dt>Full name</dt><dd>{user?.fullName || "Not specified"}</dd></div><div><dt>Email address</dt><dd>{user?.email || "Not specified"}</dd></div></dl></section>
-      {userDetailSections.map(section => <section className="card" key={section.title}><h3>{section.title}</h3><dl className="farm-summary">{section.fields.map(field => <div key={field.key} className={field.key.startsWith("addressLine") ? "farm-wide" : ""}><dt>{field.label}</dt><dd>{user?.userDetails?.[field.key] || "Not specified"}</dd></div>)}</dl></section>)}
-      <button type="button" disabled={busy} onClick={() => setEditing(true)}>Edit</button>
+      <section className="card"><h3>{localize("Personal details")}</h3><dl className="farm-summary"><div><dt>{localize("Full name")}</dt><dd>{user?.fullName || "Not specified"}</dd></div><div><dt>{localize("Email address")}</dt><dd>{user?.email || "Not specified"}</dd></div></dl></section>
+      {userDetailSections.map(section => <section className="card" key={section.title}><h3>{localize(section.title)}</h3><dl className="farm-summary">{section.fields.map(field => <div key={field.key} className={field.key.startsWith("addressLine") ? "farm-wide" : ""}><dt>{localize(field.label)}</dt><dd>{user?.userDetails?.[field.key] || "Not specified"}</dd></div>)}</dl></section>)}
+      <button type="button" disabled={busy} onClick={() => setEditing(true)}>{localize("Edit")}</button>
     </> : <form onSubmit={async event => {
       event.preventDefault();
       if (busy) return;
       const { fullName, ...userDetails } = Object.fromEntries(new FormData(event.currentTarget));
       if (await onSave(fullName, userDetails)) setEditing(false);
     }}>
-      <section className="card"><h3>Personal details</h3><label>Full name<input name="fullName" defaultValue={user?.fullName} disabled={busy} autoComplete="name" required minLength={2} maxLength={150} /></label><label>Email address<input value={user?.email || ""} readOnly /></label></section>
-      {userDetailSections.map(section => <section className="card" key={section.title}><h3>{section.title}</h3><div className="farm-field-grid">{section.fields.map(field => <label key={field.key} className={field.key.startsWith("addressLine") ? "farm-wide" : ""}>{field.label}<input name={field.key} defaultValue={user?.userDetails?.[field.key] || ""} placeholder={field.placeholder} disabled={busy} type={field.key.toLowerCase().includes("phone") ? "tel" : "text"} maxLength={field.key.toLowerCase().includes("phone") ? 30 : field.key === "postalCode" ? 20 : 300} /></label>)}</div></section>)}
-      <small className="muted">Your personal address is saved separately from your farm address. Contact and address fields are optional.</small>
-      <div className="farm-section-actions"><button disabled={busy}>{busy ? "Saving..." : "Save user details"}</button><button type="button" className="secondary" disabled={busy} onClick={() => setEditing(false)}>Cancel</button></div>
+      <section className="card"><h3>{localize("Personal details")}</h3><label>{localize("Full name")}<input name="fullName" defaultValue={user?.fullName} disabled={busy} autoComplete="name" required minLength={2} maxLength={150} /></label><label>{localize("Email address")}<input value={user?.email || ""} readOnly /></label></section>
+      {userDetailSections.map(section => <section className="card" key={section.title}><h3>{localize(section.title)}</h3><div className="farm-field-grid">{section.fields.map(field => <label key={field.key} className={field.key.startsWith("addressLine") ? "farm-wide" : ""}>{localize(field.label)}<input name={field.key} defaultValue={user?.userDetails?.[field.key] || ""} placeholder={localize(field.placeholder)} disabled={busy} type={field.key.toLowerCase().includes("phone") ? "tel" : "text"} maxLength={field.key.toLowerCase().includes("phone") ? 30 : field.key === "postalCode" ? 20 : 300} /></label>)}</div></section>)}
+      <small className="muted">{localize("Your personal address is saved separately from your farm address. Contact and address fields are optional.")}</small>
+      <div className="farm-section-actions"><button disabled={busy}>{localize(busy ? "Saving..." : "Save user details")}</button><button type="button" className="secondary" disabled={busy} onClick={() => setEditing(false)}>{localize("Cancel")}</button></div>
     </form>}
   </>;
 }

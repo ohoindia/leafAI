@@ -1,3 +1,5 @@
+import { normalizeLanguage, translate } from '../../common/locale.js';
+import { useLocale, LocaleContext } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
@@ -7,7 +9,8 @@ import { FarmDetails } from "./FarmDetails";
 import { profileSettings, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
 import { endpoints, uploadRules, requestApi } from '../../common/api.js';
 function Leaf({ large = false }) {
-  return <img className={large ? "leaf large" : "leaf"} src="/leaf-logo.svg" alt="" />;
+  const localize = useLocale();
+  return <img className={large ? "leaf large" : "leaf"} src="/leaf-logo.svg" alt={localize("")} />;
 }
 function Icon({ name }) {
   const paths = {
@@ -39,28 +42,29 @@ function Icon({ name }) {
   );
 }
 function Language({ lang, change }) {
+  const localize = useLocale();
   const dialog = useRef(null);
   return <>
     <button type="button" className="language-action" aria-haspopup="dialog" onClick={() => dialog.current.showModal()}>
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18M5 6.5h14M5 17.5h14" /></svg>
-      Change language <span>{languages[lang]}</span>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18M5 6.5h14M5 17.5h14" /></svg>{localize("Change language")}<span>{languages[lang]}</span>
     </button>
-    <dialog ref={dialog} className="language-popup" aria-label="Choose your language" onClick={e => { if (e.target === e.currentTarget) dialog.current.close(); }}>
-      <div className="language-popup-header"><h2>Choose your language</h2><button type="button" className="icon-button" aria-label="Close language selection" onClick={() => dialog.current.close()}>×</button></div>
-      <p className="muted">Select your preferred language.</p>
+    <dialog ref={dialog} className="language-popup" aria-label={localize("Choose your language")} onClick={e => { if (e.target === e.currentTarget) dialog.current.close(); }}>
+      <div className="language-popup-header"><h2>{localize("Choose your language")}</h2><button type="button" className="icon-button" aria-label={localize("Close language selection")} onClick={() => dialog.current.close()}>×</button></div>
+      <p className="muted">{localize("Select your preferred language.")}</p>
       <div className="language-options">
         {Object.entries(languages).map(([id, text]) => <button type="button" key={id} lang={id} aria-pressed={lang === id} className={`language-option ${lang === id ? "selected" : ""}`} onClick={() => { change(id); dialog.current.close(); }}>
-          <span className="language-glyph">{id === "en" ? "A" : id === "te" ? "అ" : "अ"}</span><span>{text}</span><span className="chevron">{lang === id ? "✓" : "○"}</span>
+          <span className="language-glyph">{localize(id === "en" ? "A" : id === "te" ? "అ" : "अ")}</span><span>{localize(text)}</span><span className="chevron">{localize(lang === id ? "✓" : "○")}</span>
         </button>)}
       </div>
     </dialog>
   </>;
 }
 function PasswordField(props) {
+  const localize = useLocale();
   const [visible, setVisible] = useState(false);
   return <div className="password-field">
     <input {...props} type={visible ? "text" : "password"} />
-    <button type="button" className="password-eye" aria-label={visible ? "Hide password" : "Show password"} aria-pressed={visible} onClick={() => setVisible(!visible)}>
+    <button type="button" className="password-eye" aria-label={localize(visible ? "Hide password" : "Show password")} aria-pressed={visible} onClick={() => setVisible(!visible)}>
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />
         {visible && <path d="m3 3 18 18" />}
@@ -69,8 +73,9 @@ function PasswordField(props) {
   </div>;
 }
 function App() {
+  const localize = text => translate(lang, text);
   const [screen, setScreen] = useState("login"),
-    [lang, setLang] = useState(localStorage.getItem("leaf-language") || "en"),
+    [lang, setLang] = useState(() => normalizeLanguage(localStorage.getItem("leaf-language"))),
     [token, setToken] = useState(""),
     [user, setUser] = useState(null),
     [error, setError] = useState(""),
@@ -101,10 +106,12 @@ function App() {
     window.scrollTo(0, 0);
   }
   function change(next) {
-    setLang(next);
-    localStorage.setItem("leaf-language", next);
-    document.documentElement.lang = next;
+    setLang(normalizeLanguage(next));
   }
+  useEffect(() => {
+    localStorage.setItem("leaf-language", lang);
+    document.documentElement.lang = lang;
+  }, [lang]);
   function clear() {
     tokenRef.current = "";
     setToken("");
@@ -386,7 +393,7 @@ function App() {
   const status = analysisStatus;
   const shown = filterHistory(history, query, filter);
   return (
-    <div className={`phone ${isAuth ? "botanical" : ""}`}>
+    <LocaleContext.Provider value={lang}><div className={`phone ${isAuth ? "botanical" : ""}`}>
       <input
         ref={camera}
         hidden
@@ -405,7 +412,7 @@ function App() {
       {restoring ? (
         <main className="restore">
           <Leaf large />
-          <p>Opening Krishi Karshak…</p>
+          <p>{localize("Opening Krishi Karshak…")}</p>
         </main>
       ) : (
         <>
@@ -415,10 +422,10 @@ function App() {
                 <Leaf />
                 <div>
                   <b>{brand.name}</b>
-                  <small>{brand.tagline}</small>
+                  <small>{localize(brand.tagline)}</small>
                 </div>
               </div>
-              <button className="account-avatar" aria-label={`Open profile for ${user?.fullName || "your account"}`} onClick={() => go("profile")}>
+              <button className="account-avatar" aria-label={localize(`Open profile for ${user?.fullName || "your account"}`)} onClick={() => go("profile")}>
                 <UserAvatar user={user} />
               </button>
             </header>
@@ -429,7 +436,7 @@ function App() {
               {error}
               <button
                 className="icon-button"
-                aria-label="Dismiss error"
+                aria-label={localize("Dismiss error")}
                 onClick={() => setError("")}
               >
                 ×
@@ -444,49 +451,41 @@ function App() {
                   <h1>{brand.name}</h1>
                   <p>
                     {screen === "login" ? (
-                      <>
-                        Good Plants
-                        <br />
-                        Brighter Days
-                      </>
+                      <>{localize("Good Plants")}<br />{localize("Brighter Days")}</>
                     ) : (
-                      <>
-                        Grow Today
-                        <br />
-                        Greener Tomorrow
-                      </>
+                      <>{localize("Grow Today")}<br />{localize("Greener Tomorrow")}</>
                     )}
                   </p>
                 </div>
                 <h2>{screen === "login" ? screens.login : screens.register}</h2>
                 <p className="muted">
-                  {screen === "login"
+                  {localize(screen === "login"
                     ? "Welcome back! Sign in to continue caring for your plants."
-                    : "Join Krishi Karshak and start your plant care journey."}
+                    : "Join Krishi Karshak and start your plant care journey.")}
                 </p>
                 <form onSubmit={auth}>
                   {screen === "register" && (
                     <input
                       name="fullName"
                       autoComplete="name"
-                      aria-label="Full name"
-                      placeholder="Full name"
+                      aria-label={localize("Full name")}
+                      placeholder={localize("Full name")}
                       required
                       minLength={2}
                       maxLength={150}
                     />
                   )}
-                  <label htmlFor="auth-email">Email address</label>
+                  <label htmlFor="auth-email">{localize("Email address")}</label>
                   <input id="auth-email"
                     name="email"
                     type="email"
                     autoComplete="email"
-                    aria-label="Email"
-                    placeholder="Email"
+                    aria-label={localize("Email")}
+                    placeholder={localize("Email")}
                     required
                     maxLength={255}
                   />
-                  <label htmlFor="auth-password">Password</label>
+                  <label htmlFor="auth-password">{localize("Password")}</label>
                   <PasswordField id="auth-password"
                     name="password"
                     autoComplete={
@@ -494,93 +493,85 @@ function App() {
                         ? "new-password"
                         : "current-password"
                     }
-                    aria-label="Password"
-                    placeholder="Password (10+ characters)"
+                    aria-label={localize("Password")}
+                    placeholder={localize("Password (10+ characters)")}
                     required
                     minLength={10}
                     maxLength={128}
                   />
-                  {screen === "login" && <button type="button" className="text-button" onClick={() => go("forgot")}>Forgot password?</button>}
+                  {screen === "login" && <button type="button" className="text-button" onClick={() => go("forgot")}>{localize("Forgot password?")}</button>}
                   <button disabled={busy}>
-                    {busy
+                    {localize(busy
                       ? "Please wait…"
                       : screen === "login"
                         ? "Sign in"
-                        : "Create account"}
+                        : "Create account")}
                   </button>
                 </form>
-                <div className="divider">or</div>
+                <div className="divider">{localize("or")}</div>
                 <button
                   className="outline"
                   disabled={busy}
                   onClick={() => go(screen === "login" ? "register" : "login")}
                 >
-                  {screen === "login" ? "Create account" : "Sign in"}
+                  {localize(screen === "login" ? "Create account" : "Sign in")}
                 </button>
                 <Language lang={lang} change={change} />
                 <Footer text="Your plants. Your care. All in one place." />
               </>
             )}
             {["forgot", "reset"].includes(screen) && <section className="account-card">
-              <Leaf large /><h1>{screen === "forgot" ? "Forgot your password?" : "Create a new password"}</h1>
-              <p className="muted">{screen === "forgot" ? "Enter your account email to receive a recovery code valid for 15 minutes." : "Paste the code from your email. Choose a password with at least 10 characters."}</p>
+              <Leaf large /><h1>{localize(screen === "forgot" ? "Forgot your password?" : "Create a new password")}</h1>
+              <p className="muted">{localize(screen === "forgot" ? "Enter your account email to receive a recovery code valid for 15 minutes." : "Paste the code from your email. Choose a password with at least 10 characters.")}</p>
               <form onSubmit={e => account(e, screen === "forgot" ? "forgotPassword" : "resetPassword")}>
-                {screen === "forgot" ? <label>Email address<input name="email" type="email" autoComplete="email" required maxLength={255} /></label> : <>
-                  <label>Recovery code<input name="token" autoComplete="one-time-code" required maxLength={2048} /></label>
-                  <label>New password<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
-                  <label>Confirm password<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                {screen === "forgot" ? <label>{localize("Email address")}<input name="email" type="email" autoComplete="email" required maxLength={255} /></label> : <>
+                  <label>{localize("Recovery code")}<input name="token" autoComplete="one-time-code" required maxLength={2048} /></label>
+                  <label>{localize("New password")}<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                  <label>{localize("Confirm password")}<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
                 </>}
-                <button disabled={busy}>{busy ? "Please wait..." : screen === "forgot" ? "Send recovery code" : "Reset password"}</button>
+                <button disabled={busy}>{localize(busy ? "Please wait..." : screen === "forgot" ? "Send recovery code" : "Reset password")}</button>
               </form>
-              {screen === "forgot" && <button className="text-button" onClick={() => go("reset")}>Already have a recovery code?</button>}
-              <button className="outline" disabled={busy} onClick={() => go("login")}>Back to sign in</button>
+              {screen === "forgot" && <button className="text-button" onClick={() => go("reset")}>{localize("Already have a recovery code?")}</button>}
+              <button className="outline" disabled={busy} onClick={() => go("login")}>{localize("Back to sign in")}</button>
             </section>}
             {screen === "home" && (
               <>
                 <section className="greeting">
                   <span className="sun">☀</span>
                   <h1>
-                    {accountGreeting(user?.fullName)}
+                    {localize(accountGreeting(user?.fullName))}
                   </h1>
-                  <p>
-                    Healthy plants make
-                    <br />a happier you.
-                  </p>
+                  <p>{localize("Healthy plants make")}<br />{localize("a happier you.")}</p>
                 </section>
                 <section className="analyze-card">
                   <span className="camera-circle">
                     <Icon name="camera" />
                   </span>
-                  <h2>Analyze a leaf</h2>
-                  <p>
-                    Take a photo or choose from your gallery to detect plant
-                    issues, get insights and care recommendations.
-                  </p>
+                  <h2>{localize("Analyze a leaf")}</h2>
+                  <p>{localize("Take a photo or choose from your gallery to detect plant issues, get insights and care recommendations.")}</p>
                   <button className="light" onClick={() => go("capture")}>
-                    <Icon name="camera" /> Take photo
-                  </button>
+                    <Icon name="camera" />{localize("Take photo")}</button>
                   <button
                     className="glass"
                     onClick={() => gallery.current.click()}
                   >
-                    <Icon name="gallery" /> Choose from gallery
-                  </button>
+                    <Icon name="gallery" />{localize("Choose from gallery")}</button>
                 </section>
                 <button className="feature card" onClick={() => go("history")}>
                   <span className="feature-icon">
                     <Icon name="history" />
                   </span>
                   <span>
-                    <b>Recent analyses</b>
-                    <small>View your past leaf analyses and results</small>
+                    <b>{localize("Recent analyses")}</b>
+                    <small>{localize("View your past leaf analyses and results")}</small>
                   </span>
                   <span>›</span>
                 </button>
                 <button className="feature card" onClick={() => go("learn")}>
                   <span className="feature-icon yellow">☀</span>
                   <span>
-                    <b>Plant care tips</b>
-                    <small>Everyday habits for healthier, happier plants</small>
+                    <b>{localize("Plant care tips")}</b>
+                    <small>{localize("Everyday habits for healthier, happier plants")}</small>
                   </span>
                   <span>›</span>
                 </button>
@@ -588,84 +579,74 @@ function App() {
             )}
             {screen === "capture" && (
               <>
-                <h2>{screens.capture}</h2>
+                <h2>{localize(screens.capture)}</h2>
                 <div className="camera-guide">
                   <Leaf large />
                   <div className="frame" />
-                  <p>Place one leaf inside the frame</p>
-                  <small>Your device camera opens when you tap below.</small>
+                  <p>{localize("Place one leaf inside the frame")}</p>
+                  <small>{localize("Your device camera opens when you tap below.")}</small>
                 </div>
                 <section className="soft card">
-                  <h3>A clearer photo helps</h3>
+                  <h3>{localize("A clearer photo helps")}</h3>
                   <p>
-                    {photoTip}
+                    {localize(photoTip)}
                   </p>
                 </section>
-                <button onClick={() => camera.current.click()}>
-                  Open camera
-                </button>
+                <button onClick={() => camera.current.click()}>{localize("Open camera")}</button>
                 <button
                   className="outline"
                   onClick={() => gallery.current.click()}
-                >
-                  Choose from gallery
-                </button>
+                >{localize("Choose from gallery")}</button>
               </>
             )}
             {screen === "review" && (
               <>
-                <h2>{screens.review}</h2>
+                <h2>{localize(screens.review)}</h2>
                 <img
                   className="photo review-photo"
                   src={preview}
-                  alt="Selected leaf for review"
+                  alt={localize("Selected leaf for review")}
                 />
                 <section className="soft card">
-                  <h3>Check your photo</h3>
-                  <p>Confirm these before continuing:</p>
+                  <h3>{localize("Check your photo")}</h3>
+                  <p>{localize("Confirm these before continuing:")}</p>
                   {photoChecks.map((text) => (
                     <p className="quality" key={text}>
                       <span>✓</span>
-                      {text}
+                      {localize(text)}
                     </p>
                   ))}
                 </section>
                 <div className="button-row">
-                  <button className="outline" onClick={() => go("capture")}>
-                    Retake
-                  </button>
-                  <button onClick={() => go("details")}>Use photo</button>
+                  <button className="outline" onClick={() => go("capture")}>{localize("Retake")}</button>
+                  <button onClick={() => go("details")}>{localize("Use photo")}</button>
                 </div>
               </>
             )}
             {screen === "details" && (
               <>
-                <h2>{screens.details}</h2>
+                <h2>{localize(screens.details)}</h2>
                 <div className="ready soft card">
-                  <img src={preview} alt="Leaf ready to analyze" />
+                  <img src={preview} alt={localize("Leaf ready to analyze")} />
                   <div>
-                    <h3>Ready to analyze</h3>
-                    <p>
-                      Add a few details (optional) for more helpful results.
-                    </p>
+                    <h3>{localize("Ready to analyze")}</h3>
+                    <p>{localize("Add a few details (optional) for more helpful results.")}</p>
                   </div>
                 </div>
-                <label>
-                  Plant name <span className="muted">(optional)</span>
+                <label>{localize("Plant name")}<span className="muted">{localize("(optional)")}</span>
                   <input
                     value={plantName}
                     onChange={(e) => setPlantName(e.target.value)}
                     maxLength={150}
-                    placeholder="e.g. Tomato"
+                    placeholder={localize("e.g. Tomato")}
                   />
                 </label>
-                <label>
-                  Location <span className="muted">(optional)</span>
+                <label>{localize("Location")}<span className="muted">{localize("(optional)")}</span>
                   <input
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     maxLength={255}
-                    placeholder="e.g. Garden, Balcony, Indoors"
+                    placeholder={localize("e.g. Garden, Balcony, Indoors")}
                   />
                 </label>
                 <label className="consent">
@@ -675,35 +656,29 @@ function App() {
                     onChange={(e) => setConsent(e.target.checked)}
                   />
                   <span>
-                    {consentText}
+                    {localize(consentText)}
                     <small>
-                      {consentDetail}
+                      {localize(consentDetail)}
                     </small>
                   </span>
                 </label>
-                <button disabled={!consent || busy} onClick={analyze}>
-                  Analyze leaf
-                </button>
+                <button disabled={!consent || busy} onClick={analyze}>{localize("Analyze leaf")}</button>
               </>
             )}
             {screen === "processing" && (
               <div className="processing" role="status" aria-live="polite">
                 <div className="scanner">
-                  <img src={preview} alt="Leaf being analyzed" />
+                  <img src={preview} alt={localize("Leaf being analyzed")} />
                   <div className="scan-line" />
                 </div>
-                <h2>Analyzing your leaf…</h2>
-                <p>Checking the photo and assessing visible plant health.</p>
+                <h2>{localize("Analyzing your leaf…")}</h2>
+                <p>{localize("Checking the photo and assessing visible plant health.")}</p>
                 <ol className="steps">
-                  <li>Image received</li>
-                  <li className="active">AI analysis in progress</li>
-                  <li>Preparing recommendations</li>
+                  <li>{localize("Image received")}</li>
+                  <li className="active">{localize("AI analysis in progress")}</li>
+                  <li>{localize("Preparing recommendations")}</li>
                 </ol>
-                <div className="soft card">
-                  This may take a few moments.
-                  <br />
-                  Good plant care is worth the wait!
-                </div>
+                <div className="soft card">{localize("This may take a few moments.")}<br />{localize("Good plant care is worth the wait!")}</div>
               </div>
             )}
             {screen === "result" && result && (
@@ -712,31 +687,30 @@ function App() {
                 <div className="status-banner">
                   <b>{status(result)}</b>
                   <small>
-                    {result.status === "REVIEW_REQUIRED"
+                    {localize(result.status === "REVIEW_REQUIRED"
                       ? "The image or confidence needs closer review. Consider a clearer photo."
-                      : "AI screening based on visible evidence."}
+                      : "AI screening based on visible evidence.")}
                   </small>
                 </div>
                 {out ? (
                   <>
                     <div className="metrics">
                       <div>
-                        <small>Likely condition</small>
+                        <small>{localize("Likely condition")}</small>
                         <h2>{result.condition}</h2>
                       </div>
                       <div>
-                        <small>Confidence</small>
+                        <small>{localize("Confidence")}</small>
                         <h2>{Math.round(result.confidence * 100)}%</h2>
                       </div>
                     </div>
-                    <p className="severity">
-                      Severity <b>{result.severity}</b>
+                    <p className="severity">{localize("Severity")}<b>{result.severity}</b>
                     </p>
                     <section className="soft card">
-                      <h3>Summary</h3>
+                      <h3>{localize("Summary")}</h3>
                       <p>{out.summary}</p>
                     </section>
-                    <p className="small">Select language for results</p>
+                    <p className="small">{localize("Select language for results")}</p>
                     <div className="result-languages">
                       {Object.entries(languages).map(([id, text]) => (
                         <button
@@ -745,7 +719,7 @@ function App() {
                           aria-pressed={lang === id}
                           onClick={() => change(id)}
                         >
-                          {text}
+                          {localize(text)}
                         </button>
                       ))}
                     </div>
@@ -753,29 +727,25 @@ function App() {
                       <button
                         className="outline"
                         onClick={() => setVoiceOpen(true)}
-                      >
-                        ◖ Listen
-                      </button>
+                      >{localize("◖ Listen")}</button>
                       <button
                         onClick={() => {
                           setTab("analysis");
                           go("full");
                         }}
-                      >
-                        View full analysis →
-                      </button>
+                      >{localize("View full analysis →")}</button>
                     </div>
                     <p className="disclaimer">ⓘ {out.disclaimer}</p>
                   </>
                 ) : (
                   <section className="card">
                     <h3>
-                      {result.status === "FAILED"
+                      {localize(result.status === "FAILED"
                         ? "Analysis could not be completed"
-                        : "Result is not ready"}
+                        : "Result is not ready")}
                     </h3>
-                    <p>Take a new photo and try again.</p>
-                    <button onClick={() => go("capture")}>Try again</button>
+                    <p>{localize("Take a new photo and try again.")}</p>
+                    <button onClick={() => go("capture")}>{localize("Try again")}</button>
                   </section>
                 )}
                 <Audit result={result} />
@@ -795,15 +765,11 @@ function App() {
                   <button
                     className={tab === "analysis" ? "active" : ""}
                     onClick={() => setTab("analysis")}
-                  >
-                    Full analysis
-                  </button>
+                  >{localize("Full analysis")}</button>
                   <button
                     className={tab === "resources" ? "active" : ""}
                     onClick={() => setTab("resources")}
-                  >
-                    Related resources
-                  </button>
+                  >{localize("Related resources")}</button>
                 </div>
                 {tab === "analysis" ? (
                   <>
@@ -818,16 +784,16 @@ function App() {
                       ["Prevention", out?.prevention || result.prevention],
                     ].map(([title, items]) => (
                       <section className="card detail-section" key={title}>
-                        <h3>{title}</h3>
+                        <h3>{localize(title)}</h3>
                         <ul>
                           {items?.map((text, i) => (
-                            <li key={i}>{text}</li>
+                            <li key={i}>{localize(text)}</li>
                           ))}
                         </ul>
                       </section>
                     ))}
                     <section className="expert card">
-                      <h3>When to consult an expert</h3>
+                      <h3>{localize("When to consult an expert")}</h3>
                       <p>
                         {out?.when_to_consult_expert ||
                           result.when_to_consult_expert}
@@ -837,57 +803,43 @@ function App() {
                       {out?.safety_note || result.safety_note}
                     </p>
                     {lang !== "en" && !out?.treatment && (
-                      <p className="small">
-                        Summary, symptoms and actions use your selected
-                        language. Additional guidance is provided in English.
-                      </p>
+                      <p className="small">{localize("Summary, symptoms and actions use your selected language. Additional guidance is provided in English.")}</p>
                     )}
                   </>
                 ) : (
                   <>
                     <section className="card">
-                      <h3>Get local guidance</h3>
-                      <p>
-                        Share your photo and analysis with a local
-                        horticulturist or agricultural extension service,
-                        especially if symptoms spread.
-                      </p>
-                      <p>
-                        Follow product labels and local guidance before using
-                        treatments.
-                      </p>
+                      <h3>{localize("Get local guidance")}</h3>
+                      <p>{localize("Share your photo and analysis with a local horticulturist or agricultural extension service, especially if symptoms spread.")}</p>
+                      <p>{localize("Follow product labels and local guidance before using treatments.")}</p>
                     </section>
-                    <button className="outline" onClick={() => go("learn")}>
-                      Open plant care tips
-                    </button>
+                    <button className="outline" onClick={() => go("learn")}>{localize("Open plant care tips")}</button>
                   </>
                 )}
-                <button className="outline" onClick={() => setVoiceOpen(true)}>
-                  Voice assistant
-                </button>
+                <button className="outline" onClick={() => setVoiceOpen(true)}>{localize("Voice assistant")}</button>
               </>
             )}
             {screen === "history" && (
               <>
-                <h2>{screens.history}</h2>
-                <p className="muted">Keep track of your plant health journey</p>
+                <h2>{localize(screens.history)}</h2>
+                <p className="muted">{localize("Keep track of your plant health journey")}</p>
                 <input
                   type="search"
-                  aria-label="Search plants and conditions"
-                  placeholder="Search plants, conditions…"
+                  aria-label={localize("Search plants and conditions")}
+                  placeholder={localize("Search plants, conditions…")}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
                 <select
-                  aria-label="Filter analyses"
+                  aria-label={localize("Filter analyses")}
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                 >
-                  <option value="all">All analyses</option>
-                  <option value="attention">Needs attention</option>
-                  <option value="review">Review required</option>
+                  <option value="all">{localize("All analyses")}</option>
+                  <option value="attention">{localize("Needs attention")}</option>
+                  <option value="review">{localize("Review required")}</option>
                 </select>
-                {busy && <p role="status">Opening analysis…</p>}
+                {busy && <p role="status">{localize("Opening analysis…")}</p>}
                 {shown.map((x) => (
                   <button
                     className="history-card card"
@@ -910,9 +862,9 @@ function App() {
                     </div>
                     <small>
                       {new Date(x.created_at).toLocaleDateString()} ·{" "}
-                      {x.confidence == null
+                      {localize(x.confidence == null
                         ? "Confidence pending"
-                        : `${Math.round(x.confidence * 100)}% confidence`}{" "}
+                        : `${Math.round(x.confidence * 100)}% confidence`)}{" "}
                       · {x.severity}
                     </small>
                   </button>
@@ -921,37 +873,35 @@ function App() {
                   <section className="empty card">
                     <Leaf large />
                     <h3>
-                      {history.length
+                      {localize(history.length
                         ? "No matching analyses"
-                        : "Your plant journey starts here"}
+                        : "Your plant journey starts here")}
                     </h3>
                     <p>
-                      {history.length
+                      {localize(history.length
                         ? "Try another search or filter."
-                        : "Analyze your first leaf to save its results here."}
+                        : "Analyze your first leaf to save its results here.")}
                     </p>
-                    <button onClick={() => go("capture")}>
-                      Analyze a leaf
-                    </button>
+                    <button onClick={() => go("capture")}>{localize("Analyze a leaf")}</button>
                   </section>
                 )}
               </>
             )}
             {screen === "learn" && (
               <>
-                <h2>{screens.learn}</h2>
-                <p className="muted">Small habits. Healthier plants.</p>
+                <h2>{localize(screens.learn)}</h2>
+                <p className="muted">{localize("Small habits. Healthier plants.")}</p>
                 {careTips.map(([title, text]) => (
                   <section className="soft card" key={title}>
-                    <h3>{title}</h3>
-                    <p>{text}</p>
+                    <h3>{localize(title)}</h3>
+                    <p>{localize(text)}</p>
                   </section>
                 ))}
               </>
             )}
-            {screen === "farm" && <><h2>{screens.farm}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onAdd={() => go("farm-details")} /></>}
+            {screen === "farm" && <><h2>{localize(screens.farm)}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onAdd={() => go("farm-details")} /></>}
             {screen === "profile" && <>
-              <h2>{screens.profile}</h2>
+              <h2>{localize(screens.profile)}</h2>
                 <section className="profile-hero card">
                   <UserAvatar user={user} large />
                   <div><h3>{user?.fullName || "Your account"}</h3><p className="muted">{user?.email}</p></div>
@@ -959,24 +909,24 @@ function App() {
               <div className="profile-menu">
                 {profileSettings.map(item => <button key={item.route} className="profile-menu-card" onClick={() => go(item.route)}>
                   <span className="profile-menu-icon"><Icon name={item.icon} /></span>
-                  <span className="profile-menu-copy"><strong>{item.title}</strong><small>{item.subtitle}</small></span><span aria-hidden="true">&#8250;</span>
+                  <span className="profile-menu-copy"><strong>{localize(item.title)}</strong><small>{localize(item.subtitle)}</small></span><span aria-hidden="true">&#8250;</span>
                 </button>)}
               </div>
-              <button className="profile-menu-card" disabled={busy} onClick={logout}><span className="profile-menu-icon">&#8618;</span><span className="profile-menu-copy"><strong>Sign out</strong><small>Sign out of your account</small></span><span aria-hidden="true">&#8250;</span></button>
+              <button className="profile-menu-card" disabled={busy} onClick={logout}><span className="profile-menu-icon">&#8618;</span><span className="profile-menu-copy"><strong>{localize("Sign out")}</strong><small>{localize("Sign out of your account")}</small></span><span aria-hidden="true">&#8250;</span></button>
             </>}
             {["language", "account-details", "security", "farm-details"].includes(screen) && <>
-              <button className="text-button" onClick={() => go(screen === "farm-details" ? "farm" : "profile")}>&#8592; {screen === "farm-details" ? "Back to Farm" : "Back to profile"}</button>
-              <h2>{screens[screen]}</h2>
-              {screen === "language" && <section className="card"><p className="muted">Choose your preferred language</p><Language lang={lang} change={change} /></section>}
+              <button className="text-button" onClick={() => go(screen === "farm-details" ? "farm" : "profile")}>&#8592; {localize(screen === "farm-details" ? "Back to Farm" : "Back to profile")}</button>
+              <h2>{localize(screens[screen])}</h2>
+              {screen === "language" && <section className="card"><p className="muted">{localize("Choose your preferred language")}</p><Language lang={lang} change={change} /></section>}
               {screen === "farm-details" && <FarmDetails creationOnly onCreated={() => go("farm")} farms={user?.farms || []} details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
               {screen === "account-details" && <UserDetails user={user} busy={busy} onSave={saveUserDetails} onUpload={uploadProfilePhoto} />}
               {screen === "security" && <>
-                <section className="card"><h3>Password & security</h3>
+                <section className="card"><h3>{localize("Password & security")}</h3>
                   <form onSubmit={e => account(e, "changePassword")}>
-                    <label>Current password<PasswordField name="currentPassword" autoComplete="current-password" required minLength={10} maxLength={128} /></label>
-                    <label>New password<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
-                    <label>Confirm password<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
-                    <button disabled={busy}>Update password</button>
+                    <label>{localize("Current password")}<PasswordField name="currentPassword" autoComplete="current-password" required minLength={10} maxLength={128} /></label>
+                    <label>{localize("New password")}<PasswordField name="password" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                    <label>{localize("Confirm password")}<PasswordField name="confirmPassword" autoComplete="new-password" required minLength={10} maxLength={128} /></label>
+                    <button disabled={busy}>{localize("Update password")}</button>
                   </form>
                 </section>
               </>}
@@ -984,7 +934,7 @@ function App() {
 
           </main>
           {!isAuth && screen !== "processing" && (
-            <nav aria-label="Main navigation">
+            <nav aria-label={localize("Main navigation")}>
               {[
                 ["home", "home", "Home"],
                 ["capture", "search", "Diagnose"],
@@ -999,7 +949,7 @@ function App() {
                   onClick={() => go(next)}
                 >
                   <Icon name={icon} />
-                  <small>{text}</small>
+                  <small>{localize(text)}</small>
                 </button>
               ))}
             </nav>
@@ -1016,37 +966,35 @@ function App() {
                 className="voice-sheet"
                 role="dialog"
                 aria-modal="true"
-                aria-label="Voice assistant"
+                aria-label={localize("Voice assistant")}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="handle" />
-                <h2>How can I help?</h2>
-                <p className="muted">
-                  Speak naturally. I’m here to help with your plant care.
-                </p>
+                <h2>{localize("How can I help?")}</h2>
+                <p className="muted">{localize("Speak naturally. I’m here to help with your plant care.")}</p>
                 <button
                   className={`microphone ${listening ? "listening" : ""}`}
-                  aria-label="Start listening"
+                  aria-label={localize("Start listening")}
                   onClick={voice}
                 >
                   <Icon name="mic" />
                 </button>
                 <b role="status">
-                  {listening ? "Listening…" : "Tap the microphone to speak"}
+                  {localize(listening ? "Listening…" : "Tap the microphone to speak")}
                 </b>
                 {error && (
                   <p className="alert" role="alert">
                     {error}
                   </p>
                 )}
-                <h3>Try saying:</h3>
+                <h3>{localize("Try saying:")}</h3>
                 {voiceCommands.map((text) => (
                   <button
                     className="voice-command"
                     key={text}
                     onClick={() => command(text)}
                   >
-                    {text}
+                    {localize(text)}
                   </button>
                 ))}
                 <button
@@ -1056,29 +1004,29 @@ function App() {
                     window.speechSynthesis?.cancel();
                     setVoiceOpen(false);
                   }}
-                >
-                  Cancel
-                </button>
+                >{localize("Cancel")}</button>
               </section>
             </div>
           )}
         </>
       )}
-    </div>
+    </div></LocaleContext.Provider>
   );
 }
 function Footer({ text }) {
+  const localize = useLocale();
   return (
     <footer>
       <Leaf />
-      <p>{text}</p>
+      <p>{localize(text)}</p>
     </footer>
   );
 }
 function Audit({ result }) {
+  const localize = useLocale();
   return (
     <details className="card audit">
-      <summary>Analysis details</summary>
+      <summary>{localize("Analysis details")}</summary>
       <dl>
         {[
           ["Plant", result.plant || result.provided_plant_name],
@@ -1097,7 +1045,7 @@ function Audit({ result }) {
         ].map(([label, value]) =>
           value ? (
             <React.Fragment key={label}>
-              <dt>{label}</dt>
+              <dt>{localize(label)}</dt>
               <dd>{value}</dd>
             </React.Fragment>
           ) : null,
@@ -1107,6 +1055,7 @@ function Audit({ result }) {
   );
 }
 function Photo({ id, fallback, api, thumbnail = false }) {
+  const localize = useLocale();
   const [src, setSrc] = useState(fallback),
     [failed, setFailed] = useState(false);
   const container = useRef();
@@ -1149,7 +1098,7 @@ function Photo({ id, fallback, api, thumbnail = false }) {
       className={thumbnail ? "thumbnail" : "photo-container"}
     >
       {src ? (
-        <img className="photo result-photo" src={src} alt="Analyzed leaf" />
+        <img className="photo result-photo" src={src} alt={localize("Analyzed leaf")} />
       ) : (
         <div className="photo-placeholder">
           <Leaf large />

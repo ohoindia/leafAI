@@ -1,3 +1,4 @@
+import { useLocale } from "../locale";
 import { ActivityIndicator, Image, Switch, Text, View } from "react-native";
 import { Redirect } from "expo-router";
 import {
@@ -10,21 +11,20 @@ import {
 import { useLeafCare } from "../state";
 import { Button, Card, Field, LeafLogo, Page, s } from "../ui";
 export function CaptureScreen() {
+  const localize = useLocale();
   const a = useLeafCare();
   return (
-    <Page title={screens.capture}>
+    <Page title={localize(screens.capture)}>
       <Card>
         <View style={{ alignItems: "center" }}><LeafLogo large /></View>
-        <Text style={s.body}>Place one leaf inside the frame</Text>
-        <Text style={s.muted}>
-          Your device camera opens when you tap below.
-        </Text>
+        <Text style={s.body}>{localize("Place one leaf inside the frame")}</Text>
+        <Text style={s.muted}>{localize("Your device camera opens when you tap below.")}</Text>
       </Card>
-      <Card title="A clearer photo helps">
-        <Text style={s.body}>{photoTip}</Text>
+      <Card title={localize("A clearer photo helps")}>
+        <Text style={s.body}>{localize(photoTip)}</Text>
       </Card>
       <Button
-        title="Open camera"
+        title={localize("Open camera")}
         disabled={a.busy}
         onPress={() => {
           void a.pick(true);
@@ -32,7 +32,7 @@ export function CaptureScreen() {
       />
       <Button
         secondary
-        title="Choose from gallery"
+        title={localize("Choose from gallery")}
         disabled={a.busy}
         onPress={() => {
           void a.pick(false);
@@ -42,48 +42,48 @@ export function CaptureScreen() {
   );
 }
 export function ReviewScreen() {
+  const localize = useLocale();
   const a = useLeafCare();
   if (!a.photo) return <Redirect href="/capture" />;
   return (
-    <Page title={screens.review}>
+    <Page title={localize(screens.review)}>
       <Image
         source={{ uri: a.photo }}
-        accessibilityLabel="Selected leaf for review"
+        accessibilityLabel={localize("Selected leaf for review")}
         style={s.image}
       />
-      <Card title="Check your photo">
+      <Card title={localize("Check your photo")}>
         {photoChecks.map((text) => (
           <Text key={text} style={s.body}>
-            ✓ {text}
+            ✓ {localize(text)}
           </Text>
         ))}
       </Card>
-      <Button secondary title="Retake" onPress={() => a.go("capture")} />
-      <Button title="Use photo" onPress={() => a.go("details")} />
+      <Button secondary title={localize("Retake")} onPress={() => a.go("capture")} />
+      <Button title={localize("Use photo")} onPress={() => a.go("details")} />
     </Page>
   );
 }
 export function DetailsScreen() {
+  const localize = useLocale();
   const a = useLeafCare();
   if (!a.photo) return <Redirect href="/capture" />;
   return (
-    <Page title={screens.details}>
-      <Card title="Ready to analyze">
+    <Page title={localize(screens.details)}>
+      <Card title={localize("Ready to analyze")}>
         <Image source={{ uri: a.photo }} style={s.image} />
-        <Text style={s.muted}>
-          Add a few details (optional) for more helpful results.
-        </Text>
+        <Text style={s.muted}>{localize("Add a few details (optional) for more helpful results.")}</Text>
       </Card>
       <Field
-        accessibilityLabel="Plant name (optional)"
-        placeholder="Plant name, e.g. Tomato (optional)"
+        accessibilityLabel={localize("Plant name (optional)")}
+        placeholder={localize("Plant name, e.g. Tomato (optional)")}
         value={a.plantName}
         onChangeText={a.setPlantName}
         maxLength={150}
       />
       <Field
-        accessibilityLabel="Location (optional)"
-        placeholder="Location, e.g. Balcony (optional)"
+        accessibilityLabel={localize("Location (optional)")}
+        placeholder={localize("Location, e.g. Balcony (optional)")}
         value={a.location}
         onChangeText={a.setLocation}
         maxLength={255}
@@ -91,18 +91,18 @@ export function DetailsScreen() {
       <Card>
         <View style={s.row}>
           <Switch
-            accessibilityLabel={consentText}
+            accessibilityLabel={localize(consentText)}
             value={a.consent}
             onValueChange={a.setConsent}
             disabled={a.busy}
           />
-          <Text style={[s.body, s.flex]}>{consentText}</Text>
+          <Text style={[s.body, s.flex]}>{localize(consentText)}</Text>
         </View>
-        <Text style={s.muted}>{consentDetail}</Text>
+        <Text style={s.muted}>{localize(consentDetail)}</Text>
       </Card>
       <Button
         disabled={!a.consent || a.busy}
-        title="Analyze leaf"
+        title={localize("Analyze leaf")}
         onPress={() => {
           void a.analyze();
         }}
@@ -111,23 +111,20 @@ export function DetailsScreen() {
   );
 }
 export function ProcessingScreen() {
+  const localize = useLocale();
   const a = useLeafCare();
   if (!a.busy) return <Redirect href={a.result ? "/result" : "/details"} />;
   return (
-    <Page processing title={screens.processing}>
+    <Page processing title={localize(screens.processing)}>
       {a.photo && <Image source={{ uri: a.photo }} style={s.image} />}
       <ActivityIndicator size="large" color="#007ca8" />
-      <Text accessibilityLiveRegion="polite" style={s.body}>
-        Checking the photo and assessing visible plant health.
-      </Text>
+      <Text accessibilityLiveRegion="polite" style={s.body}>{localize("Checking the photo and assessing visible plant health.")}</Text>
       <Card>
-        <Text style={s.body}>1. Image received</Text>
-        <Text style={s.body}>2. AI analysis in progress</Text>
-        <Text style={s.body}>3. Preparing recommendations</Text>
+        <Text style={s.body}>{localize("1. Image received")}</Text>
+        <Text style={s.body}>{localize("2. AI analysis in progress")}</Text>
+        <Text style={s.body}>{localize("3. Preparing recommendations")}</Text>
       </Card>
-      <Text style={s.muted}>
-        This may take a few moments. Good plant care is worth the wait!
-      </Text>
+      <Text style={s.muted}>{localize("This may take a few moments. Good plant care is worth the wait!")}</Text>
     </Page>
   );
 }
