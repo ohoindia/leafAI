@@ -949,7 +949,7 @@ function App() {
                 ))}
               </>
             )}
-            {screen === "farm" && <><h2>{screens.farm}</h2><FarmOverview user={user} onManage={() => go("farm-details")} /></>}
+            {screen === "farm" && <><h2>{screens.farm}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onManage={() => go("farm-details")} /></>}
             {screen === "profile" && <>
               <h2>{screens.profile}</h2>
                 <section className="profile-hero card">

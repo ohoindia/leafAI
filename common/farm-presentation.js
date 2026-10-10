@@ -1,3 +1,5 @@
+import { farmSections } from "./farm.js";
+
 export const farmPresentation = {
   "Farm details": { description: "Your farm identity, area and land ownership.", basic: ["farmName", "phone", "area", "areaUnit", "ownership"], extra: "", empty: "Start with your farm name, area and ownership." },
   "Address": { description: "Where your farm is located.", basic: ["village", "district", "state", "country", "postalCode"], extra: "GPS coordinates", empty: "Add your village, district and state to locate your farm." },
@@ -18,4 +20,31 @@ export function farmDisplayValue(field, details) {
   }
   if (["area", "cropArea"].includes(field.key) && details.areaUnit) return `${value} ${details.areaUnit}`;
   return value;
+}
+
+export function farmSectionSummary(title, details, crops = []) {
+  if (title === "Previous crop") {
+    const previous = crops.filter(crop => crop.status === "PREVIOUS").at(-1);
+    const values = previous?.details || {
+      previousCrop: details.previousCrop,
+      previousSeason: details.previousSeason,
+      previousHarvestDate: details.previousHarvestDate,
+    };
+    return [values.presentCrop || values.previousCrop, values.season || values.previousSeason,
+      values.harvestDate || values.previousHarvestDate].filter(value => value?.trim()).slice(0, 3).join(" · ");
+  }
+  const keys = {
+    "Farm details": ["farmName", "area", "ownership"],
+    "Address": ["village", "district", "state"],
+    "Soil": ["soilType", "soilPh"],
+    "Water": ["waterSource", "irrigation"],
+    "Present crop": ["presentCrop", "presentVariety", "season"],
+    "Additional details": ["farmingMethod", "otherCrops"],
+  }[title] || [];
+  const fields = farmSections.find(section => section.title === title)?.fields || [];
+  return keys.filter(key => details[key]?.trim()).map(key => {
+    const field = fields.find(field => field.key === key);
+    const value = field ? farmDisplayValue(field, details) : details[key];
+    return key === "soilPh" ? `pH ${value}` : value;
+  }).join(" · ");
 }

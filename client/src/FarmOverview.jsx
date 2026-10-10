@@ -1,7 +1,7 @@
-import { overviewFarms, overviewFields, overviewCrops } from "../../common/farm-overview.js";
-import { farmDisplayValue } from "../../common/farm-presentation.js";
+import { overviewFarms, overviewCrops } from "../../common/farm-overview.js";
+import { FarmDetails } from "./FarmDetails";
 
-export function FarmOverview({ user, onManage }) {
+export function FarmOverview({ user, onManage, busy, onSave }) {
   const farms = overviewFarms(user);
   const hasCrops = farms.some(farm => overviewCrops(farm).length > 0);
   return <div className="farm-sections">
@@ -10,10 +10,8 @@ export function FarmOverview({ user, onManage }) {
     {!!farms.length && !hasCrops && <section className="card"><h3>Start tracking your crops</h3><p className="muted">Your farm details are ready. Add your first crop to track its growth, season, and harvest in one place.</p><button onClick={onManage}>Add crop details</button></section>}
     {farms.map(farm => <details className="card farm-accordion" key={farm.id}>
       <summary><strong>{farm.details.farmName || "Unnamed farm"}</strong><span className="muted">{[farm.details.village, farm.details.district, farm.details.state].filter(Boolean).join(", ") || "Location not specified"}</span><span>{farm.details.presentCrop || "No current crop"} · {overviewCrops(farm).length} crop records</span></summary>
-      <dl className="farm-summary">{overviewFields(farm.details).map(field => <div key={field.key}><dt>{field.label}</dt><dd>{farmDisplayValue(field, farm.details)}</dd></div>)}</dl>
-      <h3>Crops</h3>
       {!overviewCrops(farm).length && <p className="muted">Add your first crop to this farm to track its growth, season, and harvest in one place.</p>}
-      {overviewCrops(farm).map(crop => <details className="crop-accordion" key={crop.id}><summary>{crop.details.presentCrop || crop.details.previousCrop || "Unnamed crop"} · {crop.status === "CURRENT" ? "Current" : "Previous"}{crop.details.season ? ` · ${crop.details.season}` : ""}</summary><dl className="farm-summary">{overviewFields(crop.details, true).map(field => <div key={field.key}><dt>{field.label}</dt><dd>{farmDisplayValue(field, crop.details)}</dd></div>)}</dl></details>)}
+      <FarmDetails farms={farm.id === "profile-farm" ? [] : [farm]} details={farm.details} busy={busy} onSave={onSave} embedded />
     </details>)}
   </div>;
 }

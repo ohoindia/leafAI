@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { ReactNode } from "react";
-import { overviewFarms, overviewFields, overviewCrops } from "../../../common/farm-overview.js";
-import { farmDisplayValue } from "../../../common/farm-presentation.js";
+import { overviewFarms, overviewCrops } from "../../../common/farm-overview.js";
+import { FarmDetailsForm } from "./FarmDetailsScreen";
 import { useLeafCare } from "../state";
 import { Button, Card, Page, s } from "../ui";
 
@@ -30,12 +30,8 @@ export function FarmOverviewScreen() {
     {!!farms.length && !hasCrops && <Card title="Start tracking your crops"><Text style={s.muted}>Your farm details are ready. Add your first crop to track its growth, season, and harvest in one place.</Text><Button title="Add crop details" onPress={() => a.go("farm-details")} /></Card>}
     {farms.map(farm => <Card key={farm.id}>
       <Disclosure title={farm.details.farmName || "Unnamed farm"} subtitle={`${[farm.details.village, farm.details.district, farm.details.state].filter(Boolean).join(", ") || "Location not specified"}\n${farm.details.presentCrop || "No current crop"} · ${overviewCrops(farm).length} crop records`}>
-        {overviewFields(farm.details).map(field => <View key={field.key}><Text style={s.muted}>{field.label}</Text><Text style={s.body}>{farmDisplayValue(field, farm.details)}</Text></View>)}
-        <Text style={s.heading}>Crops</Text>
         {!overviewCrops(farm).length && <Text style={s.muted}>Add your first crop to this farm to track its growth, season, and harvest in one place.</Text>}
-        {overviewCrops(farm).map(crop => <Disclosure key={crop.id} title={crop.details.presentCrop || crop.details.previousCrop || "Unnamed crop"} subtitle={[crop.status === "CURRENT" ? "Current" : "Previous", crop.details.season].filter(Boolean).join(" · ")}>
-          {overviewFields(crop.details, true).map(field => <View key={field.key}><Text style={s.muted}>{field.label}</Text><Text style={s.body}>{farmDisplayValue(field, crop.details)}</Text></View>)}
-        </Disclosure>)}
+        <FarmDetailsForm farmId={farm.id === "profile-farm" ? undefined : farm.id} embedded />
       </Disclosure>
     </Card>)}
   </Page>;
