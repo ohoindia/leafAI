@@ -1685,6 +1685,49 @@ textarea:focus-visible {
 .market-mandi {
   border-left: 4px solid #007ca8;
 }
+.mandi-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mandi-icon {
+  width: 32px;
+  height: 32px;
+  color: #426c30;
+  flex-shrink: 0;
+}
+.mandi-crop-filters {
+  border: 0;
+  padding: 0;
+  margin: 16px 0;
+  min-width: 0;
+}
+.mandi-crop-filters legend {
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.mandi-crop-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  gap: 10px;
+}
+.mandi-crop-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid transparent;
+  text-align: left;
+}
+.mandi-crop-option .crop-image {
+  width: 48px;
+  height: 48px;
+}
+.mandi-crop-option[aria-pressed="true"] {
+  border-color: #426c30;
+  background: #eaf2df;
+  color: #284c1d;
+}
 .market-msp {
   border-left: 4px solid #568434;
 }
@@ -1702,6 +1745,130 @@ textarea:focus-visible {
 }
 .market-row p {
   margin: 0;
+}
+.crop-category h4 {
+  margin: 0 0 12px;
+  color: #375b2c;
+}
+.crop-category + .crop-category {
+  margin-top: 12px;
+}
+.crop-category-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.crop-category-heading .crop-image {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+.crop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+.crop-market-row {
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+.crop-image {
+  display: block;
+  width: 76px;
+  height: 76px;
+}
+.crop-price-details {
+  display: grid;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+.market-page {
+  display: grid;
+  gap: 24px;
+}
+.market-page-header {
+  display: grid;
+  gap: 6px;
+}
+.market-page .card {
+  margin: 0;
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: 20px;
+  box-shadow: 0 6px 24px #25432d08;
+}
+.market-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.market-season {
+  padding: 6px 12px;
+  border-radius: 30px;
+  background: #eaf2df;
+  color: #426c30;
+  font-size: 13px;
+  font-weight: 650;
+}
+.market-category-filters {
+  margin: 22px 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.market-category-filters legend {
+  margin-bottom: 12px;
+  font-weight: 650;
+}
+.market-category-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 125px), 1fr));
+  gap: 10px;
+}
+.market-category-option {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 14px 8px;
+  gap: 8px;
+  color: #355344;
+  background: #fff;
+  border: 1px solid #dce6d9;
+  border-radius: 14px;
+  font-size: 13px;
+  text-align: center;
+}
+.market-category-option .crop-image {
+  width: 60px;
+  height: 60px;
+}
+.market-category-option[aria-pressed="true"] {
+  background: #f1f7e9;
+  border-color: #527b35;
+  box-shadow: inset 0 0 0 1px #527b35;
+  color: #284c1d;
+}
+.market-page .crop-category-heading {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e8dc;
+  margin-bottom: 16px;
+}
+.market-page .crop-market-row {
+  background: #fff;
+  border: 1px solid #e0e8dc;
+  border-radius: 16px;
+  padding: 16px;
+  min-height: 112px;
+}
+.market-price {
+  color: #356c35;
+  font-size: 16px;
+  font-weight: 700;
+}
+.market-page .crop-category + .crop-category {
+  margin-top: 24px;
 }
 
 .weather-summary {

@@ -11,6 +11,8 @@ import {
   price,
 } from "../../common/market.js";
 import { useLocale } from "./locale";
+import { CropImage } from "./CropImage";
+import { cropCategories, categoryImages, cropDetails, groupCrops } from "./crops";
 export function Market({ api }) {
   const t = useLocale(),
     [data, setData] = useState(null),
@@ -18,7 +20,8 @@ export function Market({ api }) {
     [error, setError] = useState(""),
     [state, setState] = useState(""),
     [district, setDistrict] = useState(""),
-    [crop, setCrop] = useState("all");
+    [crop, setCrop] = useState("all"),
+    [category, setCategory] = useState("all");
   const sequence = useRef(0);
   async function load(params = "") {
     const id = ++sequence.current;
@@ -58,18 +61,21 @@ export function Market({ api }) {
   }
   const records = (data?.records || []).filter(
     (r) =>
-      crop === "all" ||
+      (category === "all" || cropDetails(r.commodity).category === category) &&
+      (crop === "all" ||
       (crop === "rice"
         ? /rice|paddy/i
         : crop === "cotton"
           ? /cotton/i
           : /chilli|chili|mirchi/i
-      ).test(r.commodity),
+      ).test(r.commodity)),
   );
   return (
-    <>
-      <h2>{t("Market")}</h2>
-      <p className="muted">{t("All prices in rupees per quintal (100 kg).")}</p>
+    <div className="market-page">
+      <header className="market-page-header">
+        <h2>{t("Market")}</h2>
+        <p className="muted">{t("All prices in rupees per quintal (100 kg).")}</p>
+      </header>
       <section className="card">
         <h3>{t("Your market location")}</h3>
         <form
@@ -118,22 +124,59 @@ export function Market({ api }) {
         </div>
       </section>
       <section className="card market-mandi">
-        <h3>{t("Local mandi prices")}</h3>
+        <h3 className="mandi-heading">
+          <svg viewBox="0 0 32 32" aria-hidden="true" className="mandi-icon">
+            <path d="M5 14h22v14H5z" fill="#e3efce" stroke="currentColor" strokeWidth="2" />
+            <path d="M3 14l4-9h18l4 9Z" fill="#8cb65b" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 28V18h8v10M11 5l-1 9M21 5l1 9" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          {t("Local mandi prices")}
+        </h3>
         <p>{t(mandiNote)}</p>
         {data?.location?.district && (
           <h4>
             {data.location.district}, {data.location.state}
           </h4>
         )}
-        <label>
-          {t("Crop")}
-          <select value={crop} onChange={(e) => setCrop(e.target.value)}>
-            <option value="all">{t("All crops")}</option>
-            <option value="rice">{t("Rice / Paddy")}</option>
-            <option value="cotton">{t("Cotton")}</option>
-            <option value="mirchi">{t("Mirchi (chilli)")}</option>
-          </select>
-        </label>
+        <fieldset className="mandi-crop-filters">
+          <legend>{t("Crop")}</legend>
+          <div className="mandi-crop-options">
+            {[
+              ["all", "All crops", "Crop plant"],
+              ["rice", "Rice / Paddy", "Paddy"],
+              ["cotton", "Cotton", "Cotton"],
+              ["mirchi", "Mirchi (chilli)", "Chilli"],
+            ].map(([key, label, image]) => (
+              <button
+                type="button"
+                key={key}
+                className="secondary mandi-crop-option"
+                aria-pressed={crop === key}
+                onClick={() => { setCrop(key); setCategory("all"); }}
+              >
+                <span aria-hidden="true"><CropImage name={image} /></span>
+                <span>{t(label)}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset className="market-category-filters">
+          <legend>{t("Browse by category")}</legend>
+          <div className="market-category-options">
+            {["all", ...cropCategories].map((name) => (
+              <button
+                type="button"
+                key={name}
+                className="market-category-option"
+                aria-pressed={category === name}
+                onClick={() => { setCategory(name); setCrop("all"); }}
+              >
+                <span aria-hidden="true"><CropImage name={categoryImages[name]} /></span>
+                <span>{t(name === "all" ? "All categories" : name)}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
         {busy && <p role="status">{t("Loading market prices...")}</p>}
         {error && <p role="alert">{t(error)}</p>}
         {data && <p role="status">{t(data.message)}</p>}
@@ -141,21 +184,31 @@ export function Market({ api }) {
           <p>{t("No reports for this crop in the selected district.")}</p>
         )}
         <div className="market-list">
-          {records.map((r, i) => (
-            <article className="market-row" key={i}>
+          {groupCrops(records, (r) => r.commodity).map((group) => (
+            <section className="crop-category" key={group.category}>
+              <h4 className="crop-category-heading"><CropImage name={categoryImages[group.category]} />{t(group.category)} <span className="muted">({group.items.length})</span></h4>
+              <div className="crop-grid">
+          {group.items.map((r, i) => (
+            <article className="market-row crop-market-row" key={i}>
+              <CropImage name={r.commodity} />
+              <div className="crop-price-details">
               <strong>
                 {r.commodity} · {r.variety}
               </strong>
               <p>
                 {r.market} · {t("Reported")}: {r.date}
               </p>
-              <strong>
+              <strong className="market-price">
                 {t("Modal price")}: {price(r.modal)}
               </strong>
               <p>
                 {t("Minimum")}: {price(r.min)} · {t("Maximum")}: {price(r.max)}
               </p>
+              </div>
             </article>
+          ))}
+              </div>
+            </section>
           ))}
         </div>
         {data?.truncated && (
@@ -168,7 +221,7 @@ export function Market({ api }) {
         </a>
       </section>
       <section className="card market-msp">
-        <h3>{t("Government Minimum Support Prices (MSP)")}</h3>
+        <div className="market-section-header"><h3>{t("Government Minimum Support Prices (MSP)")}</h3><span className="market-season">{mspSeason}</span></div>
         <p>{t(mspNote)}</p>
         <p>
           <strong>
@@ -177,17 +230,27 @@ export function Market({ api }) {
         </p>
         <p>{t(riceNote)}</p>
         <div className="market-list">
-          {mspPrices.map(([name, value]) => (
-            <div className="market-row" key={name}>
+          {groupCrops(mspPrices, ([name]) => name).map((group) => (
+            <section className="crop-category" key={group.category}>
+              <h4 className="crop-category-heading"><CropImage name={categoryImages[group.category]} />{t(group.category)}</h4>
+              <div className="crop-grid">
+          {group.items.map(([name, value]) => (
+            <div className="market-row crop-market-row" key={name}>
+              <CropImage name={name} />
+              <div className="crop-price-details">
               <strong>{t(name)}</strong>
-              <span>{price(value)}</span>
+              <span className="market-price">{price(value)}</span>
+              </div>
             </div>
+          ))}
+              </div>
+            </section>
           ))}
         </div>
         <a href={mspSource} target="_blank" rel="noreferrer">
           {t("Official MSP notification · 13 May 2026")}
         </a>
       </section>
-    </>
+    </div>
   );
 }
