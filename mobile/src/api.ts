@@ -8,6 +8,17 @@ export async function request<T>(
   token = "",
   options: RequestInit = {},
 ): Promise<T> {
+  return sessionRequest ? sessionRequest<T>(path, token, options) : rawRequest<T>(path, token, options);
+}
+let sessionRequest: typeof request | undefined;
+export function configureSessionRequest(handler: typeof request) {
+  sessionRequest = handler;
+}
+export async function rawRequest<T>(
+  path: string,
+  token = "",
+  options: RequestInit = {},
+): Promise<T> {
   if (!/^https?:\/\//.test(apiUrl))
     throw new Error(
       "Set EXPO_PUBLIC_API_URL in mobile/.env to your backend URL, then restart Expo.",

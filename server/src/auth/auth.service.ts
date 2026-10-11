@@ -574,6 +574,7 @@ export class AuthService {
         .trim()
         .regex(/^[6-9][0-9]{9}$/),
       pin: z.string().regex(/^\d{4}$/),
+      language: z.enum(["en", "te", "hi", "kn", "ta"]).optional(),
     });
     const b = z.union([pinLogin, setup]).parse(req.body);
     let u: any;
@@ -614,9 +615,14 @@ export class AuthService {
         );
     }
     const sid = crypto.randomUUID();
-    const tokens = this.security.issueTokens(u, sid);
+    const persistent = req.body.sessionType === "mobile";
+    if (b.language) {
+      await this.db.execute("UPDATE users SET preferred_language=? WHERE id=?", [b.language, u.id]);
+      u.preferred_language = b.language;
+    }
+    const tokens = this.security.issueTokens(u, sid, persistent);
     await this.db.execute(
-      "INSERT INTO user_sessions(id,user_id,refresh_token_hash,ip_address,user_agent,expires_at) VALUES(?,?,?,INET6_ATON(?),?,DATE_ADD(NOW(3),INTERVAL 7 DAY))",
+      `INSERT INTO user_sessions(id,user_id,refresh_token_hash,ip_address,user_agent,expires_at) VALUES(?,?,?,INET6_ATON(?),?,${persistent ? "'9999-12-31 23:59:59'" : "DATE_ADD(NOW(3),INTERVAL 7 DAY)"})`,
       [
         sid,
         u.id,
@@ -655,21 +661,24 @@ export class AuthService {
   }
   async refresh(req: ApiRequest) {
     try {
-      const token = req.cookies.refreshToken;
+      const token = req.body?.refreshToken !== undefined
+        ? z.string().min(1).max(2048).parse(req.body.refreshToken)
+        : req.cookies?.refreshToken;
       const p = jwt.verify(token, env.JWT_REFRESH_SECRET, {
         issuer: "leaf-care-ai",
         audience: "leaf-care-web",
       });
-      if (typeof p === "string" || !p.sid || !p.sub)
+      if (typeof p === "string" || !p.sid || !p.sub || p.type !== "refresh")
         throw new Error("Invalid session");
       const [rows] = await this.db.execute(
-        "SELECT s.*,u.role FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.refresh_token_hash=? AND s.revoked_at IS NULL AND s.expires_at>NOW(3)",
+        "SELECT s.*,u.role FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.refresh_token_hash=? AND s.revoked_at IS NULL AND s.expires_at>NOW(3) AND u.is_active=1",
         [p.sid, this.security.sha256(token)],
       );
       if (!rows[0]) throw Error();
       const next = this.security.issueTokens(
         { id: p.sub, role: rows[0].role },
         p.sid,
+        p.persistent === true,
       );
       await this.db.execute(
         "UPDATE user_sessions SET refresh_token_hash=?,last_used_at=NOW(3) WHERE id=?",

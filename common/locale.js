@@ -1,5 +1,6 @@
 import { languages } from "./content.js";
 import { marketLabels } from "./market-locales.js";
+import { serviceLabels } from "./services-locales.js";
 
 export function normalizeLanguage(value) {
   const code =
@@ -724,6 +725,7 @@ Object.assign(localeLabels, {
 });
 
 Object.assign(localeLabels, marketLabels);
+Object.assign(localeLabels, serviceLabels);
 // Extend existing Telugu/Hindi entries without changing their established copy.
 for (const [key, kn, ta] of `
 Market|ಮಾರುಕಟ್ಟೆ|சந்தை

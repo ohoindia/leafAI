@@ -39,6 +39,7 @@ export class AuthController {
       properties: {
         fullName: { type: "string", minLength: 2, maxLength: 150 },
         language: { type: "string", enum: ["en", "te", "hi", "kn", "ta"] },
+        sessionType: { type: "string", enum: ["mobile"] },
         farmDetails: {
           type: "object",
           description: "Farm and crop fields from the farm form",
@@ -120,12 +121,13 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const { tokens, user } = await this.service.login(req);
+    if (req.body.sessionType === "mobile") return { ...tokens, user };
     this.setRefreshCookie(res, tokens.refreshToken);
     return { accessToken: tokens.accessToken, user };
   }
   @Post("refresh")
   @ApiOperation({
-    summary: "Refresh access token using the HttpOnly cookie set by login",
+    summary: "Refresh using the web HttpOnly cookie or a mobile refreshToken body",
   })
   @HttpCode(200)
   async refresh(
@@ -133,6 +135,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const tokens = await this.service.refresh(req);
+    if (req.body?.refreshToken !== undefined) return tokens;
     this.setRefreshCookie(res, tokens.refreshToken);
     return { accessToken: tokens.accessToken };
   }

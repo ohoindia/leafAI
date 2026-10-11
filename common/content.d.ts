@@ -18,6 +18,7 @@ export const screens: Record<
   | "result"
   | "full"
   | "history"
+  | "services"
   | "learn"
   | "farm-details"
   | "account-details"

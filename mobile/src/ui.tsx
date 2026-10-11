@@ -477,7 +477,7 @@ export function Page({
                 ["home", "Home"],
                 ["market", "Market"],
                 ["weather", "Weather"],
-                ["history", "History"],
+                ["services", "Services"],
                 ["profile", "Profile"],
               ] as const
             ).map(([route, label]) => (

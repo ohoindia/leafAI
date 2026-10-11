@@ -13,7 +13,7 @@ export function decrypt(bytes, iv, tag) {
   decipher.setAuthTag(Buffer.from(tag, "hex"));
   return Buffer.concat([decipher.update(bytes), decipher.final()]);
 }
-export function issueTokens(user, sessionId) {
+export function issueTokens(user, sessionId, persistent = false) {
   return {
     accessToken: jwt.sign(
       { sub: String(user.id), role: user.role, sid: sessionId },
@@ -21,9 +21,9 @@ export function issueTokens(user, sessionId) {
       { expiresIn: "15m", issuer: "leaf-care-ai", audience: "leaf-care-web" },
     ),
     refreshToken: jwt.sign(
-      { sub: String(user.id), sid: sessionId, type: "refresh" },
+      { sub: String(user.id), sid: sessionId, type: "refresh", ...(persistent ? { persistent: true } : {}) },
       env.JWT_REFRESH_SECRET,
-      { expiresIn: "7d", issuer: "leaf-care-ai", audience: "leaf-care-web" },
+      { ...(persistent ? {} : { expiresIn: "7d" }), jwtid: crypto.randomUUID(), issuer: "leaf-care-ai", audience: "leaf-care-web" },
     ),
   };
 }

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { UserDetails, UserAvatar } from "./UserDetails";
+import { Services } from "./Services";
 import { Market } from "./Market";
 import { Weather } from "./Weather";
 import { FarmOverview } from "./FarmOverview";
@@ -43,6 +44,7 @@ function Icon({ name }) {
     home: "m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9",
     camera: "M3 7h5l2-3h4l2 3h5v13H3Z M16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
     gallery: "M3 3h18v18H3Z m0 14 5-5 4 4 4-6 5 7 M8 7h.01",
+    services: "M3 3h7v7H3ZM14 3h7v7h-7ZM3 14h7v7H3ZM14 14h7v7h-7Z",
     history: "M4 5v5h5 M4 10a8 8 0 1 1 0 5 M12 7v5l3 2",
     language:
       "M3 12h18 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 3c-5 5-5 13 0 18 5-5 5-13 0-18",
@@ -383,7 +385,7 @@ function App() {
         method: "POST",
         body: JSON.stringify(
           authStage === "login-pin"
-            ? { mobileNumber: authMobile, pin: b.pin }
+            ? { mobileNumber: authMobile, pin: b.pin, language: lang }
             : { guid: otpChallenge.guid, pin: b.pin, language: lang },
         ),
       });
@@ -394,7 +396,6 @@ function App() {
       tokenRef.current = x.accessToken;
       setToken(x.accessToken);
       setUser(x.user);
-      change(x.user.language || lang);
       go("home");
     } catch (e) {
       setError(e.message);
@@ -1349,6 +1350,7 @@ function App() {
                   </button>
                 </>
               )}
+              {screen === "services" && <Services />}
               {screen === "history" && (
                 <>
                   <h2>{localize(screens.history)}</h2>
@@ -1580,7 +1582,7 @@ function App() {
                   ["home", "home", "Home"],
                   ["market", "market", "Market"],
                   ["weather", "weather", "Weather"],
-                  ["history", "history", "History"],
+                  ["services", "services", "Services"],
                   ["profile", "profile", "Profile"],
                 ].map(([next, icon, text]) => (
                   <button

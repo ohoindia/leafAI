@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -16,15 +16,19 @@ import { endpoints, uploadRules } from "../../common/api.js";
 import { speechLanguages, brand, screens } from "../../common/content.js";
 import type { Analysis, HistoryItem, Language, User } from "../../common/types";
 import { normalizeLanguage } from "../../common/locale.js";
+import { session, preferenceStorage } from "./session";
+import type { SessionTokens } from "../../common/persistent-session.js";
 
 function useAppState() {
   const [lang, setLang] = useState<Language>("en");
+  const [restoring, setRestoring] = useState(true);
   const [token, setToken] = useState("");
   const [user, setUser] = useState<User>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const lock = useRef(false);
+  const languageWrites = useRef(Promise.resolve());
   const [profilePhotoDraft, setProfilePhotoDraft] = useState<string>();
   const [photo, setPhoto] = useState<string>();
   const [consent, setConsent] = useState(false);
@@ -32,6 +36,39 @@ function useAppState() {
   const [location, setLocation] = useState("");
   const [result, setResult] = useState<Analysis>();
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  useEffect(() => {
+    const unsubscribe = session.subscribe(accessToken => {
+      setToken(accessToken);
+      if (accessToken) setRestoring(false);
+      if (!accessToken) {
+        setUser(undefined);
+        setHistory([]);
+        setResult(undefined);
+        setPhoto(undefined);
+        setProfilePhotoDraft(undefined);
+        setConsent(false);
+        setPlantName("");
+        setLocation("");
+      }
+    });
+    let active = true;
+    void (async () => {
+      try {
+        const savedLanguage = await preferenceStorage.get("leaf-language");
+        if (active && savedLanguage) setLang(normalizeLanguage(savedLanguage));
+        const accessToken = await session.restore();
+        if (active && accessToken) {
+          const profile = await request<User>(endpoints.me, accessToken);
+          if (active) setUser(profile);
+          const analyses = await request<HistoryItem[]>(endpoints.analyses, accessToken);
+          if (active) setHistory(analyses);
+        }
+      } catch (e) {
+        if (active) setError(e instanceof Error ? e.message : "Unable to restore your session.");
+      } finally { if (active) setRestoring(false); }
+    })();
+    return () => { active = false; unsubscribe(); };
+  }, []);
   useEffect(
     () => () => {
       void Speech.stop();
@@ -44,10 +81,14 @@ function useAppState() {
     router.push(`/${screen}`);
   }
   function change(value: Language) {
-    setLang(normalizeLanguage(value));
+    const language = normalizeLanguage(value);
+    setLang(language);
+    languageWrites.current = languageWrites.current.catch(() => {}).then(() => preferenceStorage.set("leaf-language", language));
+    void languageWrites.current.catch(() => setError("Unable to save your language preference."));
     void Speech.stop();
   }
-  function clearSession() {
+  async function clearSession() {
+    await session.clear();
     void Speech.stop();
     setToken("");
     setUser(undefined);
@@ -72,7 +113,7 @@ function useAppState() {
       return true;
     } catch (e) {
       if (e instanceof ApiError && e.status === 401 && token) {
-        clearSession();
+        await clearSession();
         setError("Session expired. Please sign in again.");
       } else
         setError(
@@ -95,21 +136,20 @@ function useAppState() {
     pinLogin = false,
   ) {
     return run(async () => {
-      const data = await request<{ accessToken: string; user: User }>(
+      const data = await request<SessionTokens & { user: User }>(
         endpoints.login,
         "",
         {
           method: "POST",
           body: JSON.stringify(
             pinLogin
-              ? { mobileNumber: identifier, pin }
-              : { guid: identifier, pin, language: lang },
+              ? { mobileNumber: identifier, pin, language: lang, sessionType: "mobile" }
+              : { guid: identifier, pin, language: lang, sessionType: "mobile" },
           ),
         },
       );
-      setToken(data.accessToken);
+      await session.save({ accessToken: data.accessToken, refreshToken: data.refreshToken });
       setUser(data.user);
-      change(data.user.language || lang);
       router.replace("/home");
       await loadHistory(data.accessToken);
     });
@@ -238,7 +278,7 @@ function useAppState() {
         method: "POST",
         body: JSON.stringify({ currentPassword, password }),
       });
-      clearSession();
+      await clearSession();
       setNotice("Password updated. Please sign in again.");
     });
   }
@@ -389,12 +429,13 @@ function useAppState() {
   }
   async function logout() {
     await run(async () => {
-      await request(endpoints.logout, token, { method: "POST" });
-      clearSession();
+      try { await request(endpoints.logout, token, { method: "POST" }); }
+      finally { await clearSession(); }
     });
   }
   return {
     lang,
+    restoring,
     change,
     token,
     user,
@@ -434,7 +475,9 @@ function useAppState() {
 const Context = createContext<ReturnType<typeof useAppState> | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const state = useAppState();
-  return <Context.Provider value={state}>{children}</Context.Provider>;
+  return <Context.Provider value={state}>{state.restoring
+    ? <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}><ActivityIndicator /></View>
+    : children}</Context.Provider>;
 }
 export function useLeafCare() {
   const state = useContext(Context);

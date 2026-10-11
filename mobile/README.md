@@ -2,6 +2,14 @@
 
 React Native + Expo mobile companion to the existing React website. Uses the same NestJS API, accounts, database, consent requirement, and saved analyses. Colors, card styling, hero gradient, and English/Telugu/Hindi labels match the website. Includes language selection, sign-in/register, home, camera/gallery capture, photo review, optional plant/location details and consent, processing, results, full analysis/resources, searchable history, care tips, profile, and a touch-command voice assistant. Expo Router routes live in `src/app`; screen components live in `src/screens`; session state lives in `src/state.tsx`. Both apps use the repository-level `common/` folder for API transport, endpoints, naming, copy, validation rules, and shared response types.
 
+## Saved language and mobile sessions
+
+The selected language is saved on the device and remains selected after login and logout. PIN login sends that choice to the API so the account preference also matches it.
+
+Android and iOS store access and refresh credentials with Expo SecureStore. Reopening the app restores the saved session and renews its access token automatically. Mobile sessions remain valid until logout, PIN/password recovery, or account/session revocation. Temporary connection failures retain the saved session. Logout removes local credentials even if the device cannot reach the API.
+
+Deploy the updated backend before releasing this mobile version: mobile login requires refresh credentials in its response, and renewal sends the refresh token in the request body. Rebuild standalone mobile binaries to include `expo-secure-store` and its backup configuration. Existing sessions created by earlier versions require one new login. No database migration is needed.
+
 ## Market icons and recovery
 
 Market uses the same realistic crop artwork and categories as the website, with Weather's blue theme. Versioned PNG icons ship in `assets/crop-icons/v1` and display offline. If an icon cannot load, the app checks its file cache, then downloads the matching PNG from `EXPO_PUBLIC_API_URL/api/crop-icons/v1/<crop>.png`. Successful downloads are cached; failed or corrupt files are not kept. A neutral crop placeholder appears if recovery fails. Multiple cards share a single pending download for the same crop.

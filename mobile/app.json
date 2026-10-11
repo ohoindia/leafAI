@@ -7,6 +7,8 @@
     "icon": "./assets/krishi-farmer-logo.png",
     "userInterfaceStyle": "light",
     "plugins": [
+      "expo-secure-store",
+      "./plugins/withFertilizerApp.cjs",
       [
         "expo-image-picker",
         {
@@ -19,7 +21,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Use your location to show local weather and your five-day forecast."
+          "locationWhenInUsePermission": "Use your location to show local weather, market prices, and identify your district for agriculture officer contacts."
         }
       ]
     ],

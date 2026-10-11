@@ -20,6 +20,7 @@ export const screens = {
   result: "Analysis result",
   full: "Full analysis",
   history: "Analysis history",
+  services: "Services",
   learn: "Plant care tips",
   profile: "Your profile",
   "account-details": "Account details",
