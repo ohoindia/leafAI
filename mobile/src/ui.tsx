@@ -316,7 +316,11 @@ export function Languages() {
                         ? "English"
                         : id === "te"
                           ? "Telugu"
-                          : "Hindi",
+                          : id === "hi"
+                            ? "Hindi"
+                            : id === "kn"
+                              ? "Kannada"
+                              : "Tamil",
                     )}
                   </Text>
                 </View>

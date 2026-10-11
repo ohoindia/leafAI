@@ -33,7 +33,7 @@ export class AnalysesService {
         .object({
           plantName: z.string().trim().max(150).default(""),
           location: z.string().trim().max(255).default(""),
-          language: z.enum(["en", "te", "hi"]).default("en"),
+          language: z.enum(["en", "te", "hi", "kn", "ta"]).default("en"),
         })
         .parse(req.body);
       const meta = await sharp(req.file.buffer, { failOn: "error" }).metadata();

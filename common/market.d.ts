@@ -5,7 +5,7 @@ export const mspPrices: [string, number][];
 export const mandiNote: string;
 export const mspNote: string;
 export const riceNote: string;
-export function price(value: number | null): string;
+export function price(value: number | null, translate?: (text: string) => string): string;
 export type MarketData = {
   location: { state: string; district: string };
   status: string;

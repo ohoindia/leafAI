@@ -58,7 +58,7 @@ export class AuthService {
     const b = z
       .object({
         fullName: z.string().trim().min(2).max(150),
-        language: z.enum(["en", "te", "hi"]),
+        language: z.enum(["en", "te", "hi", "kn", "ta"]),
         farmDetails: farmDetailsSchema.optional(),
         farmId: z.union([z.literal("new"), z.string().uuid()]).optional(),
         newCrop: z.boolean().optional(),
@@ -510,7 +510,7 @@ export class AuthService {
       .object({
         guid: z.string().uuid(),
         pin: z.string().regex(/^\d{4}$/),
-        language: z.enum(["en", "te", "hi"]).default("en"),
+        language: z.enum(["en", "te", "hi", "kn", "ta"]).default("en"),
       })
       .parse(req.body);
     const hash = await argon2.hash(b.pin, { type: argon2.argon2id });
@@ -566,7 +566,7 @@ export class AuthService {
     const setup = z.object({
       guid: z.string().uuid(),
       pin: z.string().regex(/^\d{4}$/),
-      language: z.enum(["en", "te", "hi"]).default("en"),
+      language: z.enum(["en", "te", "hi", "kn", "ta"]).default("en"),
     });
     const pinLogin = z.object({
       mobileNumber: z

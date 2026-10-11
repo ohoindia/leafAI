@@ -30,8 +30,10 @@ const schema = {
         en: { $ref: "#/$defs/lang" },
         te: { $ref: "#/$defs/lang" },
         hi: { $ref: "#/$defs/lang" },
+        kn: { $ref: "#/$defs/lang" },
+        ta: { $ref: "#/$defs/lang" },
       },
-      required: ["en", "te", "hi"],
+      required: ["en", "te", "hi", "kn", "ta"],
     },
   },
   required: [
@@ -85,7 +87,7 @@ export async function analyzeLeaf(image, mimeType, context = {}) {
   const response = await openai.responses.create({
     model: env.OPENAI_VISION_MODEL,
     instructions:
-      "You are a cautious agronomy image-screening assistant. Analyze only visible evidence. Do not invent certainty. If this is not a clear plant leaf or image quality is poor, say so and request a better image. Distinguish disease from pest, nutrient, water, sun, and mechanical damage. Provide practical low-risk steps. Never recommend restricted pesticide dosages. State that this is AI screening, not a laboratory diagnosis. Return all user-facing content in natural English, Telugu, and Hindi.",
+      "You are a cautious agronomy image-screening assistant. Analyze only visible evidence. Do not invent certainty. If this is not a clear plant leaf or image quality is poor, say so and request a better image. Distinguish disease from pest, nutrient, water, sun, and mechanical damage. Provide practical low-risk steps. Never recommend restricted pesticide dosages. State that this is AI screening, not a laboratory diagnosis. Return all user-facing content in natural English, Telugu, Hindi, Kannada, and Tamil.",
     input: [
       {
         role: "user",

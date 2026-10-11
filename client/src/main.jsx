@@ -128,7 +128,7 @@ function Language({ lang, change }) {
               }}
             >
               <span className="language-glyph">
-                {localize(id === "en" ? "A" : id === "te" ? "అ" : "अ")}
+                {localize({ en: "A", te: "అ", hi: "अ", kn: "ಅ", ta: "அ" }[id])}
               </span>
               <span>{localize(text)}</span>
               <span className="chevron">
@@ -610,6 +610,14 @@ function App() {
       intent = "language";
       change("hi");
       speak("hi");
+    } else if (/kannada|ಕನ್ನಡ/.test(tx)) {
+      intent = "language";
+      change("kn");
+      speak("kn");
+    } else if (/tamil|தமிழ்/.test(tx)) {
+      intent = "language";
+      change("ta");
+      speak("ta");
     } else if (/english/.test(tx)) {
       intent = "language";
       change("en");

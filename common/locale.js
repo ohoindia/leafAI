@@ -1,4 +1,5 @@
 import { languages } from "./content.js";
+import { marketLabels } from "./market-locales.js";
 
 export function normalizeLanguage(value) {
   const code =
@@ -722,15 +723,48 @@ Object.assign(localeLabels, {
   ],
 });
 
+Object.assign(localeLabels, marketLabels);
+// Extend existing Telugu/Hindi entries without changing their established copy.
+for (const [key, kn, ta] of `
+Market|ಮಾರುಕಟ್ಟೆ|சந்தை
+Home|ಮುಖಪುಟ|முகப்பு
+Weather|ಹವಾಮಾನ|வானிலை
+Farm and crops|ಜಮೀನು ಮತ್ತು ಬೆಳೆಗಳು|பண்ணை மற்றும் பயிர்கள்
+Your profile|ನಿಮ್ಮ ಪ್ರೊಫೈಲ್|உங்கள் சுயவிவரம்
+Choose your language|ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ|உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்
+Change language|ಭಾಷೆ ಬದಲಿಸಿ|மொழியை மாற்றவும்
+Choose your preferred language|ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ|உங்கள் விருப்ப மொழியைத் தேர்ந்தெடுக்கவும்
+Select your preferred language.|ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.|உங்கள் விருப்ப மொழியைத் தேர்ந்தெடுக்கவும்.
+Close language selection|ಭಾಷೆ ಆಯ್ಕೆಯನ್ನು ಮುಚ್ಚಿ|மொழித் தேர்வை மூடவும்
+Selected language|ಆಯ್ದ ಭಾಷೆ|தேர்ந்தெடுத்த மொழி
+Language|ಭಾಷೆ|மொழி
+Continue|ಮುಂದುವರಿಸಿ|தொடரவும்
+Save|ಉಳಿಸಿ|சேமிக்கவும்
+Cancel|ರದ್ದುಮಾಡಿ|ரத்து செய்யவும்
+Back|ಹಿಂದೆ|பின்செல்லவும்
+Sign in|ಸೈನ್ ಇನ್|உள்நுழையவும்
+Create account|ಖಾತೆ ರಚಿಸಿ|கணக்கை உருவாக்கவும்
+Analysis history|ವಿಶ್ಲೇಷಣೆಯ ಇತಿಹಾಸ|பகுப்பாய்வு வரலாறு
+Capture leaf photo|ಎಲೆಯ ಫೋಟೋ ತೆಗೆಯಿರಿ|இலைப் புகைப்படம் எடுக்கவும்
+Plant care tips|ಸಸ್ಯ ಆರೈಕೆ ಸಲಹೆಗಳು|தாவர பராமரிப்பு குறிப்புகள்
+Voice assistant|ಧ್ವನಿ ಸಹಾಯಕ|குரல் உதவியாளர்
+Good morning|ಶುಭೋದಯ|காலை வணக்கம்
+Good afternoon|ಶುಭ ಮಧ್ಯಾಹ್ನ|மதிய வணக்கம்
+Good evening|ಶುಭ ಸಂಜೆ|மாலை வணக்கம்
+`.trim().split("\n").map((line) => line.split("|"))) {
+  const entry = localeLabels[key] ?? [key, key];
+  localeLabels[key] = [entry[0], entry[1], kn, ta];
+}
+
 export function translate(language, text) {
   if (typeof text !== "string") return text;
   const code = normalizeLanguage(language);
   const key = text.replace(/\s+/g, " ").trim();
   if (code === "en") return text;
-  const index = code === "te" ? 0 : 1;
+  const index = { te: 0, hi: 1, kn: 2, ta: 3 }[code];
   const greeting = key.match(
     /^(Good morning|Good afternoon|Good evening)(.*)$/,
   );
-  if (greeting) return localeLabels[greeting[1]][index] + greeting[2];
+  if (greeting) return (localeLabels[greeting[1]][index] ?? greeting[1]) + greeting[2];
   return localeLabels[key]?.[index] ?? text;
 }

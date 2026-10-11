@@ -154,13 +154,13 @@ export function MarketScreen() {
           <View key={group.category} style={m.group}>
             <View style={m.groupHeading}><CropIcon name={categoryImages[group.category]} size={32} /><Text style={[m.groupTitle, m.flex]}>{t(group.category)}</Text><Text style={m.count}>{group.items.length}</Text></View>
             {group.items.map((r, i) => (
-              <View key={`${r.commodity}-${r.market}-${i}`} style={m.priceCard}>
-                <CropIcon name={r.commodity} size={64} />
+              <View key={`${t(r.commodity)}-${r.market}-${i}`} style={m.priceCard}>
+                <CropIcon name={t(r.commodity)} size={64} />
                 <View style={m.details}>
-                  <Text style={m.cropName}>{r.commodity} ? {r.variety}</Text>
+                  <Text style={m.cropName}>{t(r.commodity)} ? {t(r.variety)}</Text>
                   <Text style={m.meta}>{r.market} ? {t("Reported")}: {r.date}</Text>
-                  <Text style={m.mandiPrice}>{t("Modal price")}: {price(r.modal)}</Text>
-                  <Text style={m.meta}>{t("Minimum")}: {price(r.min)} ? {t("Maximum")}: {price(r.max)}</Text>
+                  <Text style={m.mandiPrice}>{t("Modal price")}: {price(r.modal, t)}</Text>
+                  <Text style={m.meta}>{t("Minimum")}: {price(r.min, t)} ? {t("Maximum")}: {price(r.max, t)}</Text>
                 </View>
               </View>
             ))}
@@ -170,7 +170,7 @@ export function MarketScreen() {
         <Button secondary title="AGMARKNET / data.gov.in" onPress={() => void Linking.openURL(marketSource)} />
       </Card>
       <Card title={t("Government Minimum Support Prices (MSP)")}>
-        <Text style={m.season}>{mspSeason}</Text>
+        <Text style={m.season}>{t(mspSeason)}</Text>
         <Text style={s.muted}>{t("Government support prices for the current kharif season.")}</Text>
         <Pressable accessibilityRole="button" accessibilityState={{ expanded: showMspInfo }} onPress={() => setShowMspInfo(!showMspInfo)} style={m.explainer}>
           <Text style={m.selectedText}>{t("How MSP works")} {showMspInfo ? "?" : "+"}</Text>
@@ -182,12 +182,12 @@ export function MarketScreen() {
             {group.items.map(([name, value]) => (
               <View key={name} style={m.priceCard}>
                 <CropIcon name={name} size={64} />
-                <View style={m.details}><Text style={m.cropName}>{t(name)}</Text><Text style={m.price}>{price(value).split(" / ")[0]}</Text><Text style={m.meta}>{t("per quintal (100 kg)")}</Text></View>
+                <View style={m.details}><Text style={m.cropName}>{t(name)}</Text><Text style={m.price}>{price(value, t).split(" / ")[0]}</Text><Text style={m.meta}>{t("per quintal (100 kg)")}</Text></View>
               </View>
             ))}
           </View>
         ))}
-        <Button secondary title={t("Official MSP notification ? 13 May 2026")} onPress={() => void Linking.openURL(mspSource)} />
+        <Button secondary title={t("Official MSP notification · 13 May 2026")} onPress={() => void Linking.openURL(mspSource)} />
       </Card>
     </Page>
   );

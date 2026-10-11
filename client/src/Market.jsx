@@ -191,19 +191,19 @@ export function Market({ api }) {
               <div className="crop-grid">
           {group.items.map((r, i) => (
             <article className="market-row crop-market-row" key={i}>
-              <CropSymbol name={r.commodity} />
+              <CropSymbol name={t(r.commodity)} />
               <div className="crop-price-details">
               <strong>
-                {r.commodity} · {r.variety}
+                {t(r.commodity)} · {t(r.variety)}
               </strong>
               <p>
                 {r.market} · {t("Reported")}: {r.date}
               </p>
               <strong className="market-price">
-                {t("Modal price")}: {price(r.modal)}
+                {t("Modal price")}: {price(r.modal, t)}
               </strong>
               <p>
-                {t("Minimum")}: {price(r.min)} · {t("Maximum")}: {price(r.max)}
+                {t("Minimum")}: {price(r.min, t)} · {t("Maximum")}: {price(r.max, t)}
               </p>
               </div>
             </article>
@@ -222,7 +222,7 @@ export function Market({ api }) {
         </a>
       </section>
       <section className="card market-msp">
-        <div className="market-section-header"><h3>{t("Government Minimum Support Prices (MSP)")}</h3><span className="market-season">{mspSeason}</span></div>
+        <div className="market-section-header"><h3>{t("Government Minimum Support Prices (MSP)")}</h3><span className="market-season">{t(mspSeason)}</span></div>
         <p className="market-description">{t("Government support prices for the current kharif season.")}</p>
         <details className="market-explainer">
           <summary>{t("How MSP works")}</summary>
@@ -239,7 +239,7 @@ export function Market({ api }) {
               <CropSymbol name={name} />
               <div className="crop-price-details">
               <strong>{t(name)}</strong>
-              <div className="msp-card-price"><span className="market-price">{price(value).split(" / ")[0]}</span><span className="market-price-unit">{t("per quintal (100 kg)")}</span></div>
+              <div className="msp-card-price"><span className="market-price">{price(value, t).split(" / ")[0]}</span><span className="market-price-unit">{t("per quintal (100 kg)")}</span></div>
               </div>
             </article>
           ))}

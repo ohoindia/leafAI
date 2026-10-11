@@ -9,7 +9,7 @@ export class VoiceCommandsService {
     const b = z
       .object({
         transcript: z.string().min(1).max(1000),
-        language: z.enum(["en", "te", "hi"]),
+        language: z.enum(["en", "te", "hi", "kn", "ta"]),
         intent: z.string().max(80).optional(),
         successful: z.boolean(),
         analysisId: z.string().uuid().nullable().optional(),

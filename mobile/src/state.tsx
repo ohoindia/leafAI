@@ -350,13 +350,17 @@ function useAppState() {
       if (/history|చరిత్ర|इतिहास/i.test(transcript)) {
         intent = "history";
         go("history");
-      } else if (/telugu|తెలుగు|hindi|हिंदी|english/i.test(transcript)) {
+      } else if (/telugu|తెలుగు|hindi|हिंदी|kannada|ಕನ್ನಡ|tamil|தமிழ்|english/i.test(transcript)) {
         intent = "language";
         const language = /telugu|తెలుగు/i.test(transcript)
           ? "te"
           : /hindi|हिंदी/i.test(transcript)
             ? "hi"
-            : "en";
+            : /kannada|ಕನ್ನಡ/i.test(transcript)
+              ? "kn"
+              : /tamil|தமிழ்/i.test(transcript)
+                ? "ta"
+                : "en";
         change(language);
         if (result?.translations?.[language]) await speak(false, language);
       } else if (/treat|steps|చికిత్స|उपचार/i.test(transcript)) {

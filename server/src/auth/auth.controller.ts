@@ -38,7 +38,7 @@ export class AuthController {
       required: ["fullName", "language"],
       properties: {
         fullName: { type: "string", minLength: 2, maxLength: 150 },
-        language: { type: "string", enum: ["en", "te", "hi"] },
+        language: { type: "string", enum: ["en", "te", "hi", "kn", "ta"] },
         farmDetails: {
           type: "object",
           description: "Farm and crop fields from the farm form",
@@ -111,7 +111,7 @@ export class AuthController {
         mobileNumber: { type: "string", pattern: "^[6-9][0-9]{9}$" },
         guid: { type: "string", format: "uuid" },
         pin: { type: "string", pattern: "^[0-9]{4}$" },
-        language: { type: "string", enum: ["en", "te", "hi"] },
+        language: { type: "string", enum: ["en", "te", "hi", "kn", "ta"] },
       },
     },
   })

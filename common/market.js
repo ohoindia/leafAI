@@ -28,8 +28,8 @@ export const mspNote =
   "MSP is set by the Government of India for specified crops and grades. It does not vary by your location. Procurement depends on eligibility, quality and available government purchase arrangements.";
 export const riceNote =
   "Rice is milled grain; the government MSP applies to paddy, not milled rice. Mirchi (chilli) has no central MSP under this schedule.";
-export function price(value) {
+export function price(value, t = (text) => text) {
   return value == null
-    ? "Not reported"
-    : `\u20b9${Number(value).toLocaleString("en-IN")} / quintal`;
+    ? t("Not reported")
+    : `\u20b9${Number(value).toLocaleString("en-IN")} / ${t("quintal")}`;
 }

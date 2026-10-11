@@ -1,4 +1,4 @@
-export type Language = "en" | "te" | "hi";
+export type Language = "en" | "te" | "hi" | "kn" | "ta";
 export type Guidance = {
   summary: string;
   symptoms: string[];

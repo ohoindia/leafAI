@@ -16,7 +16,7 @@ export class VoiceCommandsController {
       required: ["transcript", "language", "successful"],
       properties: {
         transcript: { type: "string", minLength: 1, maxLength: 1000 },
-        language: { type: "string", enum: ["en", "te", "hi"] },
+        language: { type: "string", enum: ["en", "te", "hi", "kn", "ta"] },
         intent: { type: "string", maxLength: 80 },
         successful: { type: "boolean" },
         analysisId: { type: "string", format: "uuid", nullable: true },
