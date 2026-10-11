@@ -4,7 +4,7 @@
     "slug": "leafcare-ai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/krishi-farmer-logo.png",
     "userInterfaceStyle": "light",
     "plugins": [
       [
@@ -36,14 +36,12 @@
       "package": "com.leafcareai.app",
       "adaptiveIcon": {
         "backgroundColor": "#edf8ff",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/krishi-farmer-logo.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/krishi-farmer-logo.png"
     },
     "scheme": "leafcare",
     "extra": {

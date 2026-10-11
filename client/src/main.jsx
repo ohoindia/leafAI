@@ -12,7 +12,7 @@ import { profileSettings, accountGreeting, languages, speechLanguages, brand, sc
 import { endpoints, uploadRules, requestApi } from '../../common/api.js';
 function Leaf({ large = false }) {
   const localize = useLocale();
-  return <img className={large ? "leaf large" : "leaf"} src="/leaf-logo.svg" alt={localize("")} />;
+  return <img className={large ? "leaf large" : "leaf"} src="/krishi-farmer-logo.png" alt={localize("Krishi Karshak farmer and plough logo")} />;
 }
 function Icon({ name }) {
   const paths = {

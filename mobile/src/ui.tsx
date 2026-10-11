@@ -30,7 +30,7 @@ export function UserAvatar({ large = false }: { large?: boolean }) {
 }
 export function LeafLogo({ large = false }: { large?: boolean }) {
   const localize = useLocale();
-  return <Image source={require("../assets/icon.png")} accessibilityLabel={localize("Krishi Karshak leaf logo")} style={{ width: large ? 88 : 38, height: large ? 88 : 38, borderRadius: large ? 22 : 10 }} />;
+  return <Image source={require("../assets/krishi-farmer-logo.png")} resizeMode="contain" accessibilityLabel={localize("Krishi Karshak farmer and plough logo")} style={{ width: large ? 112 : 44, height: large ? 112 : 44, flexShrink: 0 }} />;
 }
 export function AnalysisPhoto({ id, fallback, thumbnail = false }: { id: string; fallback?: string; thumbnail?: boolean }) {
   const localize = useLocale();
