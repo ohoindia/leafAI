@@ -1,6 +1,8 @@
 import { languages } from "./content.js";
 import { marketLabels } from "./market-locales.js";
 import { serviceLabels } from "./services-locales.js";
+import { additionalLabels } from "./additional-locales.js";
+import { uiLabels } from "./ui-locales.js";
 
 export function normalizeLanguage(value) {
   const code =
@@ -757,6 +759,13 @@ Good evening|ಶುಭ ಸಂಜೆ|மாலை வணக்கம்
   const entry = localeLabels[key] ?? [key, key];
   localeLabels[key] = [entry[0], entry[1], kn, ta];
 }
+
+for (const [key, [kn, ta]] of Object.entries(additionalLabels)) {
+  const entry = localeLabels[key] ?? [key, key];
+  localeLabels[key] = [entry[0], entry[1], kn, ta];
+}
+
+Object.assign(localeLabels, uiLabels);
 
 export function translate(language, text) {
   if (typeof text !== "string") return text;
