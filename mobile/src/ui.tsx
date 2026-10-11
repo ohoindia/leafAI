@@ -1,9 +1,10 @@
 import { useLocale } from "./locale";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
   Modal,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -346,6 +347,33 @@ export function Page({
   const localize = useLocale();
   const a = useLeafCare();
   const pathname = usePathname();
+  const scrollRef = useRef<ScrollView>(null);
+  const keyboardScrollFrame = useRef<number | null>(null);
+  const revealFocusedInput = useCallback(() => {
+    if (!auth || Platform.OS === "web" || !Keyboard.isVisible()) return;
+    if (keyboardScrollFrame.current !== null)
+      cancelAnimationFrame(keyboardScrollFrame.current);
+    keyboardScrollFrame.current = requestAnimationFrame(() => {
+      keyboardScrollFrame.current = null;
+      const input = TextInput.State.currentlyFocusedInput();
+      if (input)
+        scrollRef.current?.scrollResponderScrollNativeHandleToKeyboard(
+          input,
+          24,
+          true,
+        );
+    });
+  }, [auth]);
+  useEffect(() => {
+    if (!auth || Platform.OS === "web") return;
+    // Wait for the resized viewport before measuring the active field.
+    const subscription = Keyboard.addListener("keyboardDidShow", revealFocusedInput);
+    return () => {
+      subscription.remove();
+      if (keyboardScrollFrame.current !== null)
+        cancelAnimationFrame(keyboardScrollFrame.current);
+    };
+  }, [auth, revealFocusedInput]);
   const activeRoute = ["/review", "/details", "/processing"].includes(pathname)
     ? "/capture"
     : ["/result", "/full"].includes(pathname)
@@ -359,7 +387,7 @@ export function Page({
     <SafeAreaView style={[s.safe, auth && { backgroundColor: "#eaf7ff" }]}>
       <KeyboardAvoidingView
         style={s.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : auth ? "height" : undefined}
       >
         {!auth && (
           <View style={s.header}>
@@ -399,6 +427,10 @@ export function Page({
           </View>
         )}
         <ScrollView
+          ref={scrollRef}
+          style={s.flex}
+          onLayout={revealFocusedInput}
+          onContentSizeChange={revealFocusedInput}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[s.container, auth && s.authContainer]}
         >
