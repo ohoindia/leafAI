@@ -19,7 +19,10 @@ export class AuthGuard implements CanActivate {
       });
       if (typeof claims === "string" || !claims.sub || !claims.sid)
         throw new Error("Invalid token");
-      const [rows] = await this.db.execute("SELECT s.id FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.user_id=? AND s.revoked_at IS NULL AND s.expires_at>NOW(3) AND u.is_active=1", [String(claims.sid), claims.sub]);
+      const [rows] = await this.db.execute(
+        "SELECT s.id FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.id=? AND s.user_id=? AND s.revoked_at IS NULL AND s.expires_at>NOW(3) AND u.is_active=1",
+        [String(claims.sid), claims.sub],
+      );
       if (!rows.length) throw new Error("Session expired");
       req.user = claims as SessionClaims;
       return true;

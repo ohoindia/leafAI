@@ -89,28 +89,90 @@ function useAppState() {
   async function loadHistory(accessToken = token) {
     setHistory(await request<HistoryItem[]>(endpoints.analyses, accessToken));
   }
-  async function authenticate(identifier: string, pin: string, pinLogin = false) {
+  async function authenticate(
+    identifier: string,
+    pin: string,
+    pinLogin = false,
+  ) {
     return run(async () => {
-      const data = await request<{ accessToken: string; user: User }>(endpoints.login, "", { method: "POST", body: JSON.stringify(pinLogin ? { mobileNumber: identifier, pin } : { guid: identifier, pin, language: lang }) });
-      setToken(data.accessToken); setUser(data.user); change(data.user.language || lang);
-      router.replace("/home"); await loadHistory(data.accessToken);
+      const data = await request<{ accessToken: string; user: User }>(
+        endpoints.login,
+        "",
+        {
+          method: "POST",
+          body: JSON.stringify(
+            pinLogin
+              ? { mobileNumber: identifier, pin }
+              : { guid: identifier, pin, language: lang },
+          ),
+        },
+      );
+      setToken(data.accessToken);
+      setUser(data.user);
+      change(data.user.language || lang);
+      router.replace("/home");
+      await loadHistory(data.accessToken);
     });
   }
-  async function saveProfile(fullName: string, farmDetails?: User["farmDetails"], userDetails?: User["userDetails"], farmId?: string, newCrop = false, addPreviousCrop = false) {
+  async function saveProfile(
+    fullName: string,
+    farmDetails?: User["farmDetails"],
+    userDetails?: User["userDetails"],
+    farmId?: string,
+    newCrop = false,
+    addPreviousCrop = false,
+  ) {
     return run(async () => {
-      if (fullName.trim().length < 2 || fullName.trim().length > 150) throw new Error("Enter a full name between 2 and 150 characters.");
-      const data = await request<User>(endpoints.me, token, { method: "PATCH", body: JSON.stringify({ fullName: fullName.trim(), language: lang, farmDetails, userDetails, farmId, newCrop, addPreviousCrop }) });
-      setUser(data); setNotice("Profile saved.");
+      if (fullName.trim().length < 2 || fullName.trim().length > 150)
+        throw new Error("Enter a full name between 2 and 150 characters.");
+      const data = await request<User>(endpoints.me, token, {
+        method: "PATCH",
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          language: lang,
+          farmDetails,
+          userDetails,
+          farmId,
+          newCrop,
+          addPreviousCrop,
+        }),
+      });
+      setUser(data);
+      setNotice("Profile saved.");
     });
   }
   async function pickProfilePhoto(camera: boolean) {
     return run(async () => {
-      if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) throw new Error("Allow camera access in Settings, or choose from gallery.");
-      const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.85 };
-      const selected = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
+      if (
+        camera &&
+        !(await ImagePicker.requestCameraPermissionsAsync()).granted
+      )
+        throw new Error(
+          "Allow camera access in Settings, or choose from gallery.",
+        );
+      const options: ImagePicker.ImagePickerOptions = {
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      };
+      const selected = camera
+        ? await ImagePicker.launchCameraAsync(options)
+        : await ImagePicker.launchImageLibraryAsync(options);
       if (selected.canceled) return;
       const asset = selected.assets[0];
-      const resized = await ImageManipulator.manipulateAsync(asset.uri, [{ resize: asset.width >= asset.height ? { width: Math.min(asset.width, 768) } : { height: Math.min(asset.height, 768) } }], { compress: 0.85, format: ImageManipulator.SaveFormat.JPEG });
+      const resized = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        [
+          {
+            resize:
+              asset.width >= asset.height
+                ? { width: Math.min(asset.width, 768) }
+                : { height: Math.min(asset.height, 768) },
+          },
+        ],
+        { compress: 0.85, format: ImageManipulator.SaveFormat.JPEG },
+      );
       setProfilePhotoDraft(resized.uri);
     });
   }
@@ -119,33 +181,65 @@ function useAppState() {
     return run(async () => {
       const form = new FormData();
       const file = new File(profilePhotoDraft);
-      if (file.size > uploadRules.maxBytes) throw new Error("Choose a photo smaller than 4 MiB.");
+      if (file.size > uploadRules.maxBytes)
+        throw new Error("Choose a photo smaller than 4 MiB.");
       form.append("photo", file, "profile.jpg");
-      setUser(await request<User>(endpoints.profilePhoto, token, { method: "POST", body: form }));
+      setUser(
+        await request<User>(endpoints.profilePhoto, token, {
+          method: "POST",
+          body: form,
+        }),
+      );
       setProfilePhotoDraft(undefined);
       setNotice("Profile photo saved.");
     });
   }
   async function recover(email: string) {
     return run(async () => {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || email.trim().length > 255) throw new Error("Enter a valid email address.");
-      const data = await request<{message: string}>(endpoints.forgotPassword, "", { method: "POST", body: JSON.stringify({ email: email.trim() }) });
+      if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ||
+        email.trim().length > 255
+      )
+        throw new Error("Enter a valid email address.");
+      const data = await request<{ message: string }>(
+        endpoints.forgotPassword,
+        "",
+        { method: "POST", body: JSON.stringify({ email: email.trim() }) },
+      );
       setNotice(data.message);
     });
   }
   async function resetPassword(recoveryToken: string, password: string) {
     return run(async () => {
-      if (!recoveryToken.trim()) throw new Error("Enter the recovery code from your email.");
-      if (password.length < 10 || password.length > 128) throw new Error("Use a password between 10 and 128 characters.");
-      await request(endpoints.resetPassword, "", { method: "POST", body: JSON.stringify({ token: recoveryToken.trim(), password }) });
-      router.replace("/login"); setNotice("Password reset. Sign in with your new password.");
+      if (!recoveryToken.trim())
+        throw new Error("Enter the recovery code from your email.");
+      if (password.length < 10 || password.length > 128)
+        throw new Error("Use a password between 10 and 128 characters.");
+      await request(endpoints.resetPassword, "", {
+        method: "POST",
+        body: JSON.stringify({ token: recoveryToken.trim(), password }),
+      });
+      router.replace("/login");
+      setNotice("Password reset. Sign in with your new password.");
     });
   }
   async function changePassword(currentPassword: string, password: string) {
     return run(async () => {
-      if (currentPassword.length < 10 || currentPassword.length > 128 || password.length < 10 || password.length > 128) throw new Error("Passwords must contain between 10 and 128 characters.");
-      await request(endpoints.changePassword, token, { method: "POST", body: JSON.stringify({ currentPassword, password }) });
-      clearSession(); setNotice("Password updated. Please sign in again.");
+      if (
+        currentPassword.length < 10 ||
+        currentPassword.length > 128 ||
+        password.length < 10 ||
+        password.length > 128
+      )
+        throw new Error(
+          "Passwords must contain between 10 and 128 characters.",
+        );
+      await request(endpoints.changePassword, token, {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, password }),
+      });
+      clearSession();
+      setNotice("Password updated. Please sign in again.");
     });
   }
   async function pick(camera: boolean) {
@@ -285,7 +379,8 @@ function useAppState() {
           analysisId: result?.id || null,
         }),
       });
-      if (intent === "unknown") throw new Error(`Command not recognized: ${transcript}`);
+      if (intent === "unknown")
+        throw new Error(`Command not recognized: ${transcript}`);
     });
   }
   async function logout() {

@@ -1,1 +1,5 @@
-{"name":"@leafcare/common","private":true,"type":"module"}
+{
+  "name": "@leafcare/common",
+  "private": true,
+  "type": "module"
+}

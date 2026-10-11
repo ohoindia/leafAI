@@ -160,35 +160,39 @@ test("Function URL cookies support refresh and emit secure same-origin cookies",
 });
 
 test("base64 multipart upload enforces the Lambda-safe size limit", async () => {
-  const execute = mock.method(db, "execute", async () => [[{ id: "active-session" }]]);
-  try {
-  const token = issueTokens(
-    { id: 1, role: "USER" },
-    crypto.randomUUID(),
-  ).accessToken;
-  const boundary = "leafcare-test-boundary";
-  const bytes = Buffer.concat([
-    Buffer.from(
-      `--${boundary}\r\nContent-Disposition: form-data; name="leaf"; filename="leaf.jpg"\r\nContent-Type: image/jpeg\r\n\r\n`,
-    ),
-    Buffer.alloc(4 * 1024 * 1024 + 1),
-    Buffer.from(`\r\n--${boundary}--\r\n`),
+  const execute = mock.method(db, "execute", async () => [
+    [{ id: "active-session" }],
   ]);
-  const result = await handler(
-    event("/api/analyses", "POST", {
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": `multipart/form-data; boundary=${boundary}`,
-        "content-length": String(bytes.length),
-      },
-      body: bytes.toString("base64"),
-      isBase64Encoded: true,
-    }),
-    {},
-  );
-  assert.equal(result.statusCode, 400);
-  assert.equal(JSON.parse(result.body).error, "File too large");
-  } finally { execute.mock.restore(); }
+  try {
+    const token = issueTokens(
+      { id: 1, role: "USER" },
+      crypto.randomUUID(),
+    ).accessToken;
+    const boundary = "leafcare-test-boundary";
+    const bytes = Buffer.concat([
+      Buffer.from(
+        `--${boundary}\r\nContent-Disposition: form-data; name="leaf"; filename="leaf.jpg"\r\nContent-Type: image/jpeg\r\n\r\n`,
+      ),
+      Buffer.alloc(4 * 1024 * 1024 + 1),
+      Buffer.from(`\r\n--${boundary}--\r\n`),
+    ]);
+    const result = await handler(
+      event("/api/analyses", "POST", {
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": `multipart/form-data; boundary=${boundary}`,
+          "content-length": String(bytes.length),
+        },
+        body: bytes.toString("base64"),
+        isBase64Encoded: true,
+      }),
+      {},
+    );
+    assert.equal(result.statusCode, 400);
+    assert.equal(JSON.parse(result.body).error, "File too large");
+  } finally {
+    execute.mock.restore();
+  }
 });
 
 test("encrypted upload bytes are written to the private S3 bucket", async () => {
@@ -217,7 +221,8 @@ test("saved photo endpoint returns decrypted binary only for its owner", async (
   const data = encrypt(plain),
     id = crypto.randomUUID();
   const execute = mock.method(db, "execute", async (sql, args) => {
-    if (sql.startsWith("SELECT s.id FROM user_sessions")) return [[{id: "active-session"}]];
+    if (sql.startsWith("SELECT s.id FROM user_sessions"))
+      return [[{ id: "active-session" }]];
     assert.match(sql, /a.user_id=\?/);
     assert.deepEqual(args, [id, "7"]);
     return [

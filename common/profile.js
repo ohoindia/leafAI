@@ -1,4 +1,45 @@
 export const userDetailSections = [
-  { title: "Contact", fields: [{ key: "phone", label: "Mobile number", placeholder: "e.g. +91 9876543210" }, { key: "alternatePhone", label: "Alternate phone", placeholder: "Optional alternate number" }] },
-  { title: "Address", fields: [{ key: "addressLine1", label: "House / street", placeholder: "House number, street or locality" }, { key: "addressLine2", label: "Address line 2", placeholder: "Landmark or additional address" }, { key: "village", label: "Village / town", placeholder: "Your village or town" }, { key: "district", label: "District", placeholder: "Your district" }, { key: "state", label: "State", placeholder: "Your state" }, { key: "country", label: "Country", placeholder: "Your country" }, { key: "postalCode", label: "Postal code", placeholder: "Your postal code" }] },
+  {
+    title: "Contact",
+    fields: [
+      {
+        key: "phone",
+        label: "Mobile number",
+        placeholder: "e.g. +91 9876543210",
+      },
+      {
+        key: "alternatePhone",
+        label: "Alternate phone",
+        placeholder: "Optional alternate number",
+      },
+    ],
+  },
+  {
+    title: "Address",
+    fields: [
+      {
+        key: "addressLine1",
+        label: "House / street",
+        placeholder: "House number, street or locality",
+      },
+      {
+        key: "addressLine2",
+        label: "Address line 2",
+        placeholder: "Landmark or additional address",
+      },
+      {
+        key: "village",
+        label: "Village / town",
+        placeholder: "Your village or town",
+      },
+      { key: "district", label: "District", placeholder: "Your district" },
+      { key: "state", label: "State", placeholder: "Your state" },
+      { key: "country", label: "Country", placeholder: "Your country" },
+      {
+        key: "postalCode",
+        label: "Postal code",
+        placeholder: "Your postal code",
+      },
+    ],
+  },
 ];

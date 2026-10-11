@@ -6,8 +6,14 @@ import { MarketService } from "./market.service.js";
 @Controller("market")
 @UseGuards(AuthGuard)
 class MarketController {
- constructor(private readonly service: MarketService) {}
- @Get() prices(@Req() req: ApiRequest) { return this.service.prices(req); }
+  constructor(private readonly service: MarketService) {}
+  @Get() prices(@Req() req: ApiRequest) {
+    return this.service.prices(req);
+  }
 }
-@Module({imports:[AuthModule],controllers:[MarketController],providers:[MarketService]})
+@Module({
+  imports: [AuthModule],
+  controllers: [MarketController],
+  providers: [MarketService],
+})
 export class MarketModule {}

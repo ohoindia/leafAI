@@ -1,10 +1,42 @@
-export type WeatherPeriod = Record<string, number | string | null> & { time: string };
+export type WeatherPeriod = Record<string, number | string | null> & {
+  time: string;
+};
 export type WeatherDay = WeatherPeriod & { hours: WeatherPeriod[] };
-export type WeatherPlace = { latitude: number; longitude: number; label?: string; source?: string };
-export type WeatherData = { location: WeatherPlace; timezone: string; fetchedAt: string; current: WeatherPeriod; currentExtra: WeatherPeriod; days: WeatherDay[]; units: { current: Record<string,string>; hourly: Record<string,string>; daily: Record<string,string> }; attribution: string; attributionUrl: string; modelNote: string };
+export type WeatherPlace = {
+  latitude: number;
+  longitude: number;
+  label?: string;
+  source?: string;
+};
+export type WeatherData = {
+  location: WeatherPlace;
+  timezone: string;
+  fetchedAt: string;
+  current: WeatherPeriod;
+  currentExtra: WeatherPeriod;
+  days: WeatherDay[];
+  units: {
+    current: Record<string, string>;
+    hourly: Record<string, string>;
+    daily: Record<string, string>;
+  };
+  attribution: string;
+  attributionUrl: string;
+  modelNote: string;
+};
 export function condition(code: unknown): string;
-export function formatValue(value: unknown, unit?: string, field?: string): string;
-export function weatherMetrics(record: Record<string,unknown>, units: Record<string,string>): { key: string; label: string; value: string }[];
-export function forecastSummary(days: WeatherDay[], language?: string): string[];
+export function formatValue(
+  value: unknown,
+  unit?: string,
+  field?: string,
+): string;
+export function weatherMetrics(
+  record: Record<string, unknown>,
+  units: Record<string, string>,
+): { key: string; label: string; value: string }[];
+export function forecastSummary(
+  days: WeatherDay[],
+  language?: string,
+): string[];
 export function weatherQuery(place?: WeatherPlace): string;
 export function dayLabel(date: string, language?: string): string;

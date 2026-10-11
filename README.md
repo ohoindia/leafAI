@@ -52,15 +52,15 @@ Use your existing AWS database. This workflow builds a ZIP on Windows and expose
 
 2. **Create the function** in AWS Console > Lambda > Create function > Author from scratch. Use these settings:
 
-   | Setting | Value |
-   | --- | --- |
-   | Function name | `leafcare-api` |
-   | Region | `ap-south-1` (or your chosen region) |
-   | Runtime | Node.js 22.x |
-   | Architecture | x86_64 |
-   | Handler, under Code > Runtime settings | `dist/lambda.handler` |
-   | Memory, under Configuration > General configuration | 1024 MB |
-   | Timeout | 120 seconds |
+   | Setting                                             | Value                                |
+   | --------------------------------------------------- | ------------------------------------ |
+   | Function name                                       | `leafcare-api`                       |
+   | Region                                              | `ap-south-1` (or your chosen region) |
+   | Runtime                                             | Node.js 22.x                         |
+   | Architecture                                        | x86_64                               |
+   | Handler, under Code > Runtime settings              | `dist/lambda.handler`                |
+   | Memory, under Configuration > General configuration | 1024 MB                              |
+   | Timeout                                             | 120 seconds                          |
 
    Under **Code > Upload from > .zip file**, select `server/lambda.zip`. Use an execution role with CloudWatch Logs access and both `s3:PutObject` and `s3:GetObject` permissions on your private upload bucket's objects. Configure access to your existing database; if it is private, select the appropriate existing VPC/subnets/security group and ensure outbound access to OpenAI. See the [full deployment guide](docs/lambda-deployment.md) for the network and role details.
 
@@ -233,15 +233,15 @@ To sign out, execute **POST /api/auth/logout** while authorized, then clear the 
 
 ### Troubleshooting
 
-| Symptom | What to check |
-| --- | --- |
-| `{"error":"Not found"}` | Open `/api/docs`, not `/swagger`. Restart the updated backend. For `npm start`, first run `npm --prefix server run build` from the repository root. |
-| `Authentication required` / HTTP 401 | Sign in and authorize with the entire `accessToken` value. Remove any manually added `Bearer` prefix. Renew expired tokens. |
-| `Invalid credentials` | Use an existing account's email/password. Five failed logins can lock the account for 15 minutes. |
-| HTTP 429 | Authentication requests are rate-limited; wait before retrying. |
-| Missing or invalid environment settings | Configure the named fields in the `server/.env`, then restart. Do not leave example secrets or a blank OpenAI API key. |
-| Database connection error | Start MySQL, check its credentials/port, and ensure the schema is imported. |
-| Login works but analysis fails | Check the server error, OpenAI key/model access, selected image, upload size, and consent. |
+| Symptom                                             | What to check                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `{"error":"Not found"}`                             | Open `/api/docs`, not `/swagger`. Restart the updated backend. For `npm start`, first run `npm --prefix server run build` from the repository root.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `Authentication required` / HTTP 401                | Sign in and authorize with the entire `accessToken` value. Remove any manually added `Bearer` prefix. Renew expired tokens.                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `Invalid credentials`                               | Use an existing account's email/password. Five failed logins can lock the account for 15 minutes.                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| HTTP 429                                            | Authentication requests are rate-limited; wait before retrying.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Missing or invalid environment settings             | Configure the named fields in the `server/.env`, then restart. Do not leave example secrets or a blank OpenAI API key.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Database connection error                           | Start MySQL, check its credentials/port, and ensure the schema is imported.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Login works but analysis fails                      | Check the server error, OpenAI key/model access, selected image, upload size, and consent.                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `UNABLE_TO_GET_ISSUER_CERT_LOCALLY` during analysis | Use Node.js 22.19 or later and restart with `npm run dev` or `npm --prefix server start`. These commands enable `--use-system-ca` so Node trusts the operating system's certificate store, including installed corporate/antivirus CAs, while keeping TLS verification enabled. For direct launches use `node --use-system-ca server/dist/main.js`. If your organization's CA is not installed, obtain its trusted PEM bundle from your administrator and set `NODE_EXTRA_CA_CERTS` in the shell before starting Node; setting it in `.env` is too late. |
 
 ## Model configuration
@@ -287,7 +287,6 @@ Open Profile → Farm and crops on web or mobile to save farm location, area and
 
 Before deploying the updated server to an existing database, apply `database/migrations/002_farmer_profile.sql` using your MySQL migration workflow. Fresh databases include the column in `database/schema.sql`.
 
-
 ## User contact, address and profile photo
 
 Account details includes personal contact numbers, a residential address, and a profile photo. These are stored separately from farm details. Web and mobile support camera capture, gallery selection, a preview, and explicit photo upload. Photos are validated as JPEG, PNG or WebP (up to 4 MiB), normalized to a 384-pixel square, stripped of source metadata, and encrypted at rest. The authenticated profile response supplies the saved photo for the account avatar.
@@ -295,4 +294,5 @@ Account details includes personal contact numbers, a residential address, and a 
 For existing databases, build the server and run `node server/scripts/migrate-user-details.mjs` before starting the updated API. The migration is safe to rerun and adds `users.user_details` and `users.profile_photo`; fresh databases use `database/schema.sql`. The equivalent SQL is `database/migrations/003_user_details.sql`.
 
 ### Market prices
+
 The Market footer tab loads AGMARKNET reports for the saved farm district, device location (OpenStreetMap reverse geocoding), or a manually entered state and district. Set `DATA_GOV_IN_API_KEY` on the server using your data.gov.in API key. No sample prices are used when the feed is unavailable. Each report shows its source date, variety, mandi, minimum, maximum and modal price in INR/quintal. Government MSPs are a separately maintained Kharif 2026-27 schedule sourced from PIB (13 May 2026); update `common/market.js` when a new schedule is announced. Paddy MSP must not be compared directly with milled rice; mirchi has no central MSP in this schedule.

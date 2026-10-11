@@ -13,7 +13,11 @@ export function loadEnvironment({
   return dotenv.config({
     path: target.DOTENV_CONFIG_PATH
       ? path.resolve(cwd, target.DOTENV_CONFIG_PATH)
-      : [path.resolve(root, "server/.env"), path.resolve(cwd, ".env"), path.resolve(root, ".env")],
+      : [
+          path.resolve(root, "server/.env"),
+          path.resolve(cwd, ".env"),
+          path.resolve(root, ".env"),
+        ],
     processEnv: target,
     override: false,
     quiet: true,

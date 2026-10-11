@@ -36,12 +36,17 @@ export async function createApplication() {
     res.setHeader("X-Request-Id", (req as ApiRequest).id);
     next();
   });
-  server.use(helmet({
-    crossOriginResourcePolicy: { policy: "same-site" },
-    contentSecurityPolicy: {
-      directives: { imgSrc: ["'self'", "data:", "blob:"], upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null },
-    },
-  }));
+  server.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "same-site" },
+      contentSecurityPolicy: {
+        directives: {
+          imgSrc: ["'self'", "data:", "blob:"],
+          upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null,
+        },
+      },
+    }),
+  );
   server.use(
     cors({
       origin: (origin, callback) =>
@@ -58,20 +63,37 @@ export async function createApplication() {
     rateLimit({ windowMs: 60_000, limit: 100, standardHeaders: "draft-8" }),
   );
   const authLimit = rateLimit({ windowMs: 15 * 60_000, limit: 10 });
-  server.post(["/api/auth/check-mobile", "/api/auth/request-otp", "/api/auth/verify-otp", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/change-password"], authLimit);
+  server.post(
+    [
+      "/api/auth/check-mobile",
+      "/api/auth/request-otp",
+      "/api/auth/verify-otp",
+      "/api/auth/login",
+      "/api/auth/forgot-password",
+      "/api/auth/reset-password",
+      "/api/auth/change-password",
+    ],
+    authLimit,
+  );
   app.setGlobalPrefix("api");
   app.useGlobalFilters(new ApiExceptionFilter());
   const swaggerConfig = new DocumentBuilder()
     .setTitle("Krishi Karshak API")
-    .setDescription("Sign in through /api/auth/login, then paste accessToken into Authorize to test protected endpoints.")
+    .setDescription(
+      "Sign in through /api/auth/login, then paste accessToken into Authorize to test protected endpoints.",
+    )
     .setVersion("1.0")
     .addBearerAuth()
     .build();
-  SwaggerModule.setup("api/docs", app,
-    () => SwaggerModule.createDocument(app, swaggerConfig), {
+  SwaggerModule.setup(
+    "api/docs",
+    app,
+    () => SwaggerModule.createDocument(app, swaggerConfig),
+    {
       jsonDocumentUrl: "api/docs-json",
       swaggerOptions: { persistAuthorization: false },
-    });
+    },
+  );
   if (env.NODE_ENV === "production" && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
     // Register the website before Nest's final 404 handler, bypassing every API request.
     const website = express.Router();

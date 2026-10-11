@@ -9,9 +9,17 @@ import { WeatherService } from "./weather.service.js";
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
 class WeatherController {
- constructor(private readonly service: WeatherService) {}
- @Get() forecast(@Req() req: ApiRequest) { return this.service.forecast(req); }
- @Get("locations") locations(@Query("q") query: string) { return this.service.locations(query); }
+  constructor(private readonly service: WeatherService) {}
+  @Get() forecast(@Req() req: ApiRequest) {
+    return this.service.forecast(req);
+  }
+  @Get("locations") locations(@Query("q") query: string) {
+    return this.service.locations(query);
+  }
 }
-@Module({ imports: [AuthModule], controllers: [WeatherController], providers: [WeatherService] })
+@Module({
+  imports: [AuthModule],
+  controllers: [WeatherController],
+  providers: [WeatherService],
+})
 export class WeatherModule {}

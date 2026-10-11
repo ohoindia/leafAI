@@ -1,49 +1,79 @@
 import { z } from "zod";
 const text = z.string().trim().max(300);
-const date = z.string().refine(v => !v || (/^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)) && new Date(v).toISOString().slice(0,10) === v), "Use a valid date (YYYY-MM-DD)");
-const number = (min: number, max: number) => text.refine(v => !v || (/^-?\d+(\.\d+)?$/.test(v) && Number(v) >= min && Number(v) <= max), `Enter a number between ${min} and ${max}`);
-export const farmDetailsSchema = z.object({
-  farmName: text.optional(),
-  phone: text.optional(),
-  village: text.optional(),
-  district: text.optional(),
-  state: text.optional(),
-  country: text.optional(),
-  postalCode: text.optional(),
-  latitude: number(-90, 90).optional(),
-  longitude: number(-180, 180).optional(),
-  area: number(0.000001, 1000000000).optional(),
-  areaUnit: z.enum(["", "acres", "hectares", "square metres"]).optional(),
-  ownership: z.enum(["", "Owned", "Leased", "Shared"]).optional(),
-  soilType: z.enum(["", "Clay", "Sandy", "Loamy", "Silty", "Black", "Red", "Other", "Unknown"]).optional(),
-  soilPh: number(0, 14).optional(),
-  soilTestDate: date.optional(),
-  waterSource: text.optional(),
-  irrigation: text.optional(),
-  drainage: text.optional(),
-  presentCrop: text.optional(),
-  presentVariety: text.optional(),
-  season: text.optional(),
-  sowingDate: date.optional(),
-  harvestDate: date.optional(),
-  cropArea: number(0.000001, 1000000000).optional(),
-  growthStage: text.optional(),
-  seedSource: text.optional(),
-  spacing: text.optional(),
-  irrigationSchedule: text.optional(),
-  fertilizers: z.string().trim().max(2000).optional(),
-  pesticides: z.string().trim().max(2000).optional(),
-  currentIssues: z.string().trim().max(2000).optional(),
-  previousCrop: text.optional(),
-  previousVariety: text.optional(),
-  previousSeason: text.optional(),
-  previousHarvestDate: date.optional(),
-  previousYield: text.optional(),
-  previousIssues: z.string().trim().max(2000).optional(),
-  previousTreatment: z.string().trim().max(2000).optional(),
-  residueManagement: z.string().trim().max(2000).optional(),
-  farmingMethod: z.enum(["", "Conventional", "Organic", "Integrated", "Other"]).optional(),
-  otherCrops: z.string().trim().max(2000).optional(),
-  weather: z.string().trim().max(2000).optional(),
-  notes: z.string().trim().max(2000).optional(),
-}).strict();
+const date = z
+  .string()
+  .refine(
+    (v) =>
+      !v ||
+      (/^\d{4}-\d{2}-\d{2}$/.test(v) &&
+        !Number.isNaN(Date.parse(v)) &&
+        new Date(v).toISOString().slice(0, 10) === v),
+    "Use a valid date (YYYY-MM-DD)",
+  );
+const number = (min: number, max: number) =>
+  text.refine(
+    (v) =>
+      !v || (/^-?\d+(\.\d+)?$/.test(v) && Number(v) >= min && Number(v) <= max),
+    `Enter a number between ${min} and ${max}`,
+  );
+export const farmDetailsSchema = z
+  .object({
+    farmName: text.optional(),
+    phone: text.optional(),
+    village: text.optional(),
+    district: text.optional(),
+    state: text.optional(),
+    country: text.optional(),
+    postalCode: text.optional(),
+    latitude: number(-90, 90).optional(),
+    longitude: number(-180, 180).optional(),
+    area: number(0.000001, 1000000000).optional(),
+    areaUnit: z.enum(["", "acres", "hectares", "square metres"]).optional(),
+    ownership: z.enum(["", "Owned", "Leased", "Shared"]).optional(),
+    soilType: z
+      .enum([
+        "",
+        "Clay",
+        "Sandy",
+        "Loamy",
+        "Silty",
+        "Black",
+        "Red",
+        "Other",
+        "Unknown",
+      ])
+      .optional(),
+    soilPh: number(0, 14).optional(),
+    soilTestDate: date.optional(),
+    waterSource: text.optional(),
+    irrigation: text.optional(),
+    drainage: text.optional(),
+    presentCrop: text.optional(),
+    presentVariety: text.optional(),
+    season: text.optional(),
+    sowingDate: date.optional(),
+    harvestDate: date.optional(),
+    cropArea: number(0.000001, 1000000000).optional(),
+    growthStage: text.optional(),
+    seedSource: text.optional(),
+    spacing: text.optional(),
+    irrigationSchedule: text.optional(),
+    fertilizers: z.string().trim().max(2000).optional(),
+    pesticides: z.string().trim().max(2000).optional(),
+    currentIssues: z.string().trim().max(2000).optional(),
+    previousCrop: text.optional(),
+    previousVariety: text.optional(),
+    previousSeason: text.optional(),
+    previousHarvestDate: date.optional(),
+    previousYield: text.optional(),
+    previousIssues: z.string().trim().max(2000).optional(),
+    previousTreatment: z.string().trim().max(2000).optional(),
+    residueManagement: z.string().trim().max(2000).optional(),
+    farmingMethod: z
+      .enum(["", "Conventional", "Organic", "Integrated", "Other"])
+      .optional(),
+    otherCrops: z.string().trim().max(2000).optional(),
+    weather: z.string().trim().max(2000).optional(),
+    notes: z.string().trim().max(2000).optional(),
+  })
+  .strict();

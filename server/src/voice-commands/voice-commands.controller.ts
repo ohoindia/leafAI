@@ -10,13 +10,19 @@ import { ApiBearerAuth, ApiBody, ApiTags } from "@nestjs/swagger";
 export class VoiceCommandsController {
   constructor(private readonly service: VoiceCommandsService) {}
   @Post()
-  @ApiBody({ schema: { type: "object", required: ["transcript", "language", "successful"], properties: {
-    transcript: { type: "string", minLength: 1, maxLength: 1000 },
-    language: { type: "string", enum: ["en", "te", "hi"] },
-    intent: { type: "string", maxLength: 80 },
-    successful: { type: "boolean" },
-    analysisId: { type: "string", format: "uuid", nullable: true },
-  } } })
+  @ApiBody({
+    schema: {
+      type: "object",
+      required: ["transcript", "language", "successful"],
+      properties: {
+        transcript: { type: "string", minLength: 1, maxLength: 1000 },
+        language: { type: "string", enum: ["en", "te", "hi"] },
+        intent: { type: "string", maxLength: 80 },
+        successful: { type: "boolean" },
+        analysisId: { type: "string", format: "uuid", nullable: true },
+      },
+    },
+  })
   @HttpCode(204)
   async create(@Req() req: ApiRequest) {
     await this.service.create(req);

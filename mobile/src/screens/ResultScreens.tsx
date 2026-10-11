@@ -47,33 +47,52 @@ export function ResultScreen() {
       <ResultPhoto />
       <Card title={localize(analysisStatus(a.result))}>
         <Text style={s.muted}>
-          {localize(a.result.status === "REVIEW_REQUIRED"
-            ? "The image or confidence needs closer review. Consider a clearer photo."
-            : "AI screening based on visible evidence.")}
+          {localize(
+            a.result.status === "REVIEW_REQUIRED"
+              ? "The image or confidence needs closer review. Consider a clearer photo."
+              : "AI screening based on visible evidence.",
+          )}
         </Text>
       </Card>
       {out ? (
         <>
           <Card title={localize(a.result.condition)}>
-            <Text style={s.body}>{localize("Confidence:")}{Math.round(a.result.confidence * 100)}%
+            <Text style={s.body}>
+              {localize("Confidence:")}
+              {Math.round(a.result.confidence * 100)}%
             </Text>
-            <Text style={s.body}>{localize("Severity:")}{a.result.severity}</Text>
+            <Text style={s.body}>
+              {localize("Severity:")}
+              {a.result.severity}
+            </Text>
           </Card>
           <Card title={localize("Summary")}>
             <Text style={s.body}>{out.summary}</Text>
           </Card>
           <Languages />
-          <Button secondary title={localize("Listen")} onPress={() => a.go("voice")} />
-          <Button title={localize("View full analysis →")} onPress={() => a.go("full")} />
+          <Button
+            secondary
+            title={localize("Listen")}
+            onPress={() => a.go("voice")}
+          />
+          <Button
+            title={localize("View full analysis →")}
+            onPress={() => a.go("full")}
+          />
           <Text style={s.muted}>{out.disclaimer}</Text>
         </>
       ) : (
         <Card
-          title={localize(a.result.status === "FAILED"
+          title={localize(
+            a.result.status === "FAILED"
               ? "Analysis could not be completed"
-              : "Result is not ready")}
+              : "Result is not ready",
+          )}
         >
-          <Button title={localize("Try again")} onPress={() => a.go("capture")} />
+          <Button
+            title={localize("Try again")}
+            onPress={() => a.go("capture")}
+          />
         </Card>
       )}
       <Audit />
@@ -113,8 +132,16 @@ export function FullScreen() {
       {resources ? (
         <>
           <Card title={localize("Get local guidance")}>
-            <Text style={s.body}>{localize("Share your photo and analysis with a local horticulturist or agricultural extension service, especially if symptoms spread.")}</Text>
-            <Text style={s.muted}>{localize("Follow product labels and local guidance before using treatments.")}</Text>
+            <Text style={s.body}>
+              {localize(
+                "Share your photo and analysis with a local horticulturist or agricultural extension service, especially if symptoms spread.",
+              )}
+            </Text>
+            <Text style={s.muted}>
+              {localize(
+                "Follow product labels and local guidance before using treatments.",
+              )}
+            </Text>
           </Card>
           <Button
             secondary
@@ -140,11 +167,19 @@ export function FullScreen() {
           </Card>
           <Text style={s.muted}>{out?.safety_note || x.safety_note}</Text>
           {a.lang !== "en" && !out?.treatment && (
-            <Text style={s.muted}>{localize("Summary, symptoms and actions use your selected language. Additional guidance is provided in English.")}</Text>
+            <Text style={s.muted}>
+              {localize(
+                "Summary, symptoms and actions use your selected language. Additional guidance is provided in English.",
+              )}
+            </Text>
           )}
         </>
       )}
-      <Button secondary title={localize("Voice assistant")} onPress={() => a.go("voice")} />
+      <Button
+        secondary
+        title={localize("Voice assistant")}
+        onPress={() => a.go("voice")}
+      />
     </Page>
   );
 }

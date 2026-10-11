@@ -43,12 +43,12 @@ ipconfig
 
 Edit `mobile/.env` and set `EXPO_PUBLIC_API_URL` to the backend origin, without `/api`:
 
-| Target | Example API URL |
-| --- | --- |
-| Android or iPhone on the same Wi-Fi | `http://192.168.1.100:8080` (replace with your PC's IPv4 address) |
-| Android Studio emulator | `http://10.0.2.2:8080` |
-| iOS Simulator on the backend's Mac | `http://localhost:8080` |
-| Deployed backend / standalone builds | `https://your-api-domain.example` |
+| Target                               | Example API URL                                                   |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| Android or iPhone on the same Wi-Fi  | `http://192.168.1.100:8080` (replace with your PC's IPv4 address) |
+| Android Studio emulator              | `http://10.0.2.2:8080`                                            |
+| iOS Simulator on the backend's Mac   | `http://localhost:8080`                                           |
+| Deployed backend / standalone builds | `https://your-api-domain.example`                                 |
 
 `localhost` on a phone means the phone, not your PC. Allow Node.js through Windows Firewall on your private network. Open the backend's `/api/health` URL from the phone first to verify connectivity. Use HTTPS if the device blocks local HTTP.
 

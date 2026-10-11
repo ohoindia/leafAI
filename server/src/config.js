@@ -7,8 +7,14 @@ const schema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
-  RESET_EMAIL_WEBHOOK_URL: z.preprocess(value => value === "" ? undefined : value, z.string().url().startsWith("https://").optional()),
-  RESET_EMAIL_WEBHOOK_SECRET: z.preprocess(value => value === "" ? undefined : value, z.string().min(32).optional()),
+  RESET_EMAIL_WEBHOOK_URL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().url().startsWith("https://").optional(),
+  ),
+  RESET_EMAIL_WEBHOOK_SECRET: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().min(32).optional(),
+  ),
   PORT: z.coerce.number().default(8080),
   DB_HOST: z.string(),
   DB_PORT: z.coerce.number().default(3306),
@@ -35,11 +41,13 @@ const schema = z.object({
 });
 const parsed = schema.safeParse(process.env);
 if (!parsed.success) {
-  const fields = [...new Set(parsed.error.issues.map((issue) => issue.path.join(".")))];
+  const fields = [
+    ...new Set(parsed.error.issues.map((issue) => issue.path.join("."))),
+  ];
   throw new Error(
     `Missing or invalid environment settings: ${fields.join(", ")}. ` +
-    "Configure server/.env using server/.env.example, or supply Lambda environment variables. " +
-    "Set database credentials, OPENAI_API_KEY, JWT secrets, and a 64-character hexadecimal UPLOAD_ENCRYPTION_KEY.",
+      "Configure server/.env using server/.env.example, or supply Lambda environment variables. " +
+      "Set database credentials, OPENAI_API_KEY, JWT secrets, and a 64-character hexadecimal UPLOAD_ENCRYPTION_KEY.",
   );
 }
 export const env = parsed.data;

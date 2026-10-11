@@ -1,4 +1,4 @@
-import { normalizeLanguage, translate } from '../../common/locale.js';
+import { normalizeLanguage, translate } from "../../common/locale.js";
 import { useLocale, LocaleContext } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -8,11 +8,32 @@ import { Market } from "./Market";
 import { Weather } from "./Weather";
 import { FarmOverview } from "./FarmOverview";
 import { FarmDetails } from "./FarmDetails";
-import { profileSettings, accountGreeting, languages, speechLanguages, brand, screens, careTips, photoChecks, photoTip, consentText, consentDetail, voiceCommands, analysisStatus, filterHistory } from '../../common/content.js';
-import { endpoints, uploadRules, requestApi } from '../../common/api.js';
+import {
+  profileSettings,
+  accountGreeting,
+  languages,
+  speechLanguages,
+  brand,
+  screens,
+  careTips,
+  photoChecks,
+  photoTip,
+  consentText,
+  consentDetail,
+  voiceCommands,
+  analysisStatus,
+  filterHistory,
+} from "../../common/content.js";
+import { endpoints, uploadRules, requestApi } from "../../common/api.js";
 function Leaf({ large = false }) {
   const localize = useLocale();
-  return <img className={large ? "leaf large" : "leaf"} src="/krishi-farmer-logo.png" alt={localize("Krishi Karshak farmer and plough logo")} />;
+  return (
+    <img
+      className={large ? "leaf large" : "leaf"}
+      src="/krishi-farmer-logo.png"
+      alt={localize("Krishi Karshak farmer and plough logo")}
+    />
+  );
 }
 function Icon({ name }) {
   const paths = {
@@ -23,7 +44,8 @@ function Icon({ name }) {
     camera: "M3 7h5l2-3h4l2 3h5v13H3Z M16 13a4 4 0 1 1-8 0 4 4 0 0 1 8 0",
     gallery: "M3 3h18v18H3Z m0 14 5-5 4 4 4-6 5 7 M8 7h.01",
     history: "M4 5v5h5 M4 10a8 8 0 1 1 0 5 M12 7v5l3 2",
-    language: "M3 12h18 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 3c-5 5-5 13 0 18 5-5 5-13 0-18",
+    language:
+      "M3 12h18 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 3c-5 5-5 13 0 18 5-5 5-13 0-18",
     security: "M5 10h14v11H5Z M8 10V7a4 4 0 0 1 8 0v3",
     profile: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M4 21v-2a8 8 0 0 1 16 0v2",
     learn: "M12 5C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Zm0 0v16",
@@ -48,38 +70,115 @@ function Icon({ name }) {
 function Language({ lang, change }) {
   const localize = useLocale();
   const dialog = useRef(null);
-  return <>
-    <button type="button" className="language-action" aria-haspopup="dialog" onClick={() => dialog.current.showModal()}>
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18M5 6.5h14M5 17.5h14" /></svg>{localize("Change language")}<span>{languages[lang]}</span>
-    </button>
-    <dialog ref={dialog} className="language-popup" aria-label={localize("Choose your language")} onClick={e => { if (e.target === e.currentTarget) dialog.current.close(); }}>
-      <div className="language-popup-header"><h2>{localize("Choose your language")}</h2><button type="button" className="icon-button" aria-label={localize("Close language selection")} onClick={() => dialog.current.close()}>×</button></div>
-      <p className="muted">{localize("Select your preferred language.")}</p>
-      <div className="language-options">
-        {Object.entries(languages).map(([id, text]) => <button type="button" key={id} lang={id} aria-pressed={lang === id} className={`language-option ${lang === id ? "selected" : ""}`} onClick={() => { change(id); dialog.current.close(); }}>
-          <span className="language-glyph">{localize(id === "en" ? "A" : id === "te" ? "అ" : "अ")}</span><span>{localize(text)}</span><span className="chevron">{localize(lang === id ? "✓" : "○")}</span>
-        </button>)}
-      </div>
-    </dialog>
-  </>;
+  return (
+    <>
+      <button
+        type="button"
+        className="language-action"
+        aria-haspopup="dialog"
+        onClick={() => dialog.current.showModal()}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <ellipse cx="12" cy="12" rx="4" ry="9" />
+          <path d="M3 12h18M5 6.5h14M5 17.5h14" />
+        </svg>
+        {localize("Change language")}
+        <span>{languages[lang]}</span>
+      </button>
+      <dialog
+        ref={dialog}
+        className="language-popup"
+        aria-label={localize("Choose your language")}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) dialog.current.close();
+        }}
+      >
+        <div className="language-popup-header">
+          <h2>{localize("Choose your language")}</h2>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label={localize("Close language selection")}
+            onClick={() => dialog.current.close()}
+          >
+            ×
+          </button>
+        </div>
+        <p className="muted">{localize("Select your preferred language.")}</p>
+        <div className="language-options">
+          {Object.entries(languages).map(([id, text]) => (
+            <button
+              type="button"
+              key={id}
+              lang={id}
+              aria-pressed={lang === id}
+              className={`language-option ${lang === id ? "selected" : ""}`}
+              onClick={() => {
+                change(id);
+                dialog.current.close();
+              }}
+            >
+              <span className="language-glyph">
+                {localize(id === "en" ? "A" : id === "te" ? "అ" : "अ")}
+              </span>
+              <span>{localize(text)}</span>
+              <span className="chevron">
+                {localize(lang === id ? "✓" : "○")}
+              </span>
+            </button>
+          ))}
+        </div>
+      </dialog>
+    </>
+  );
 }
 function PasswordField(props) {
   const localize = useLocale();
   const [visible, setVisible] = useState(false);
-  return <div className="password-field">
-    <input {...props} type={visible ? "text" : "password"} />
-    <button type="button" className="password-eye" aria-label={localize(visible ? "Hide password" : "Show password")} aria-pressed={visible} onClick={() => setVisible(!visible)}>
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" />
-        {visible && <path d="m3 3 18 18" />}
-      </svg>
-    </button>
-  </div>;
+  return (
+    <div className="password-field">
+      <input {...props} type={visible ? "text" : "password"} />
+      <button
+        type="button"
+        className="password-eye"
+        aria-label={localize(visible ? "Hide password" : "Show password")}
+        aria-pressed={visible}
+        onClick={() => setVisible(!visible)}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="22"
+          height="22"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="3" />
+          {visible && <path d="m3 3 18 18" />}
+        </svg>
+      </button>
+    </div>
+  );
 }
 function App() {
-  const localize = text => translate(lang, text);
+  const localize = (text) => translate(lang, text);
   const [screen, setScreen] = useState("login"),
-    [lang, setLang] = useState(() => normalizeLanguage(localStorage.getItem("leaf-language"))),
+    [lang, setLang] = useState(() =>
+      normalizeLanguage(localStorage.getItem("leaf-language")),
+    ),
     [token, setToken] = useState(""),
     [user, setUser] = useState(null),
     [error, setError] = useState(""),
@@ -130,7 +229,10 @@ function App() {
   }
   async function refresh() {
     if (!refreshRef.current)
-      refreshRef.current = requestApi(endpoints.refresh, { method: 'POST', credentials: 'include' })
+      refreshRef.current = requestApi(endpoints.refresh, {
+        method: "POST",
+        credentials: "include",
+      })
         .then((x) => {
           tokenRef.current = x.accessToken;
           setToken(x.accessToken);
@@ -140,11 +242,23 @@ function App() {
     return refreshRef.current;
   }
   async function api(url, opt = {}, image = false) {
-    const send = () => requestApi(url, { ...opt, credentials: 'include', token: tokenRef.current, responseType: image ? 'blob' : 'json' });
-    try { return await send(); }
-    catch (error) {
-      if (error.status !== 401 || url.startsWith('/api/auth/')) throw error;
-      try { await refresh(); } catch (refreshError) { clear(); throw refreshError; }
+    const send = () =>
+      requestApi(url, {
+        ...opt,
+        credentials: "include",
+        token: tokenRef.current,
+        responseType: image ? "blob" : "json",
+      });
+    try {
+      return await send();
+    } catch (error) {
+      if (error.status !== 401 || url.startsWith("/api/auth/")) throw error;
+      try {
+        await refresh();
+      } catch (refreshError) {
+        clear();
+        throw refreshError;
+      }
       return send();
     }
   }
@@ -185,80 +299,222 @@ function App() {
   const mobileLookup = useRef(null);
   async function checkAuthMobile(value) {
     mobileLookup.current?.abort();
-    const controller = new AbortController(); mobileLookup.current = controller;
-    const digits = value.replace(/\D/g, "").slice(0,10);
-    setAuthMobile(digits); setAuthStage("mobile"); setOtpChallenge(null); setAuthReset(false); setAuthName(""); setError(""); setAuthChecking(false);
+    const controller = new AbortController();
+    mobileLookup.current = controller;
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+    setAuthMobile(digits);
+    setAuthStage("mobile");
+    setOtpChallenge(null);
+    setAuthReset(false);
+    setAuthName("");
+    setError("");
+    setAuthChecking(false);
     if (digits.length !== 10) return;
-    if (!/^[6-9]\d{9}$/.test(digits)) { setError("Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9."); return; }
+    if (!/^[6-9]\d{9}$/.test(digits)) {
+      setError(
+        "Enter a valid 10-digit mobile number starting with 6, 7, 8 or 9.",
+      );
+      return;
+    }
     setAuthChecking(true);
     try {
-      const result = await api(endpoints.checkMobile, { method:"POST", body:JSON.stringify({mobileNumber:digits}), signal:controller.signal });
-      if (!controller.signal.aborted) setAuthStage(result.profileCreated ? "login-pin" : "request");
-    } catch(e) { if (!controller.signal.aborted) setError(e.message); }
-    finally { if (!controller.signal.aborted) setAuthChecking(false); }
+      const result = await api(endpoints.checkMobile, {
+        method: "POST",
+        body: JSON.stringify({ mobileNumber: digits }),
+        signal: controller.signal,
+      });
+      if (!controller.signal.aborted)
+        setAuthStage(result.profileCreated ? "login-pin" : "request");
+    } catch (e) {
+      if (!controller.signal.aborted) setError(e.message);
+    } finally {
+      if (!controller.signal.aborted) setAuthChecking(false);
+    }
   }
-  async function sendAuthOtp(resetPin=false) {
+  async function sendAuthOtp(resetPin = false) {
     if (busy || authChecking) return;
-    setBusy(true); setError("");
-    try {setOtpChallenge(await api(endpoints.requestOtp,{method:"POST",body:JSON.stringify({mobileNumber:authMobile,resetPin})}));setAuthReset(resetPin);setAuthStage("otp");}
-    catch(e){setError(e.message);}finally{setBusy(false);}
+    setBusy(true);
+    setError("");
+    try {
+      setOtpChallenge(
+        await api(endpoints.requestOtp, {
+          method: "POST",
+          body: JSON.stringify({ mobileNumber: authMobile, resetPin }),
+        }),
+      );
+      setAuthReset(resetPin);
+      setAuthStage("otp");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
   }
   async function auth(e) {
-    e.preventDefault(); if (busy || authChecking) return;
+    e.preventDefault();
+    if (busy || authChecking) return;
     const b = Object.fromEntries(new FormData(e.currentTarget));
-    if (authStage === "mobile") { await checkAuthMobile(authMobile); return; }
-    if (authStage === "request") { await sendAuthOtp(); return; }
-    setBusy(true);setError("");
+    if (authStage === "mobile") {
+      await checkAuthMobile(authMobile);
+      return;
+    }
+    if (authStage === "request") {
+      await sendAuthOtp();
+      return;
+    }
+    setBusy(true);
+    setError("");
     try {
       if (authStage === "otp") {
-        await api(endpoints.verifyOtp,{method:"POST",body:JSON.stringify({guid:otpChallenge.guid,otp:b.otp,...(!authReset?{fullName:authName}: {})})});setAuthStage("pin");return;
+        await api(endpoints.verifyOtp, {
+          method: "POST",
+          body: JSON.stringify({
+            guid: otpChallenge.guid,
+            otp: b.otp,
+            ...(!authReset ? { fullName: authName } : {}),
+          }),
+        });
+        setAuthStage("pin");
+        return;
       }
-      if (authStage === "pin" && b.pin !== b.confirmPin) throw Error("PINs do not match.");
-      const x=await api(endpoints.login,{method:"POST",body:JSON.stringify(authStage === "login-pin" ? {mobileNumber:authMobile,pin:b.pin} : {guid:otpChallenge.guid,pin:b.pin,language:lang})});
-      setAuthStage("mobile");setOtpChallenge(null);setAuthMobile("");setAuthName("");
-      tokenRef.current=x.accessToken;setToken(x.accessToken);setUser(x.user);change(x.user.language||lang);go("home");
-    } catch(e){setError(e.message);}finally{setBusy(false);}
+      if (authStage === "pin" && b.pin !== b.confirmPin)
+        throw Error("PINs do not match.");
+      const x = await api(endpoints.login, {
+        method: "POST",
+        body: JSON.stringify(
+          authStage === "login-pin"
+            ? { mobileNumber: authMobile, pin: b.pin }
+            : { guid: otpChallenge.guid, pin: b.pin, language: lang },
+        ),
+      });
+      setAuthStage("mobile");
+      setOtpChallenge(null);
+      setAuthMobile("");
+      setAuthName("");
+      tokenRef.current = x.accessToken;
+      setToken(x.accessToken);
+      setUser(x.user);
+      change(x.user.language || lang);
+      go("home");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
   }
-  async function saveFarmDetails(farmDetails, farmId, newCrop = false, addPreviousCrop = false) {
+  async function saveFarmDetails(
+    farmDetails,
+    farmId,
+    newCrop = false,
+    addPreviousCrop = false,
+  ) {
     if (busy) return false;
-    setBusy(true); setError(""); setNotice("");
+    setBusy(true);
+    setError("");
+    setNotice("");
     try {
-      const data = await api(endpoints.me, { method: "PATCH", body: JSON.stringify({ fullName: user.fullName, language: lang, farmDetails, farmId, newCrop, addPreviousCrop }) });
-      setUser(data); setNotice("Farm details saved.");
-      return farmId === "new" ? data.farms.find(f => !user.farms?.some(old => old.id === f.id))?.id || true : true;
-    } catch (e) { setError(e.message); return false; }
-    finally { setBusy(false); }
+      const data = await api(endpoints.me, {
+        method: "PATCH",
+        body: JSON.stringify({
+          fullName: user.fullName,
+          language: lang,
+          farmDetails,
+          farmId,
+          newCrop,
+          addPreviousCrop,
+        }),
+      });
+      setUser(data);
+      setNotice("Farm details saved.");
+      return farmId === "new"
+        ? data.farms.find((f) => !user.farms?.some((old) => old.id === f.id))
+            ?.id || true
+        : true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    } finally {
+      setBusy(false);
+    }
   }
   async function saveUserDetails(fullName, userDetails) {
     if (busy) return false;
-    setBusy(true); setError(""); setNotice("");
+    setBusy(true);
+    setError("");
+    setNotice("");
     try {
-      const data = await api(endpoints.me, { method: "PATCH", body: JSON.stringify({ fullName, language: lang, userDetails }) });
-      setUser(data); setNotice("User details saved."); return true;
-    } catch (e) { setError(e.message); return false; }
-    finally { setBusy(false); }
+      const data = await api(endpoints.me, {
+        method: "PATCH",
+        body: JSON.stringify({ fullName, language: lang, userDetails }),
+      });
+      setUser(data);
+      setNotice("User details saved.");
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    } finally {
+      setBusy(false);
+    }
   }
   async function uploadProfilePhoto(file) {
     if (busy) return false;
-    setBusy(true); setError(""); setNotice("");
+    setBusy(true);
+    setError("");
+    setNotice("");
     try {
-      const form = new FormData(); form.append("photo", file);
-      setUser(await api(endpoints.profilePhoto, { method: "POST", body: form }));
-      setNotice("Profile photo saved."); return true;
-    } catch (e) { setError(e.message); return false; }
-    finally { setBusy(false); }
+      const form = new FormData();
+      form.append("photo", file);
+      setUser(
+        await api(endpoints.profilePhoto, { method: "POST", body: form }),
+      );
+      setNotice("Profile photo saved.");
+      return true;
+    } catch (e) {
+      setError(e.message);
+      return false;
+    } finally {
+      setBusy(false);
+    }
   }
   async function account(e, action) {
-    e.preventDefault(); if (busy) return;
+    e.preventDefault();
+    if (busy) return;
     const b = Object.fromEntries(new FormData(e.currentTarget));
-    if (b.confirmPassword !== undefined && b.password !== b.confirmPassword) return setError("Passwords do not match.");
-    setBusy(true); setError(""); setNotice("");
+    if (b.confirmPassword !== undefined && b.password !== b.confirmPassword)
+      return setError("Passwords do not match.");
+    setBusy(true);
+    setError("");
+    setNotice("");
     try {
-      const data = await api(["profile", "farm"].includes(action) ? endpoints.me : endpoints[action], { method: ["profile", "farm"].includes(action) ? "PATCH" : "POST", body: JSON.stringify(action === "farm" ? { fullName: user.fullName, language: lang, farmDetails: b } : action === "profile" ? { fullName: b.fullName, language: lang } : b) });
-      if (["profile", "farm"].includes(action)) { setUser(data); setNotice("Profile saved."); }
-      else if (action === "forgotPassword") { go("reset"); setNotice(data.message); }
-      else { clear(); setNotice(data.message); }
-    } catch (e) { setError(e.message); } finally { setBusy(false); }
+      const data = await api(
+        ["profile", "farm"].includes(action) ? endpoints.me : endpoints[action],
+        {
+          method: ["profile", "farm"].includes(action) ? "PATCH" : "POST",
+          body: JSON.stringify(
+            action === "farm"
+              ? { fullName: user.fullName, language: lang, farmDetails: b }
+              : action === "profile"
+                ? { fullName: b.fullName, language: lang }
+                : b,
+          ),
+        },
+      );
+      if (["profile", "farm"].includes(action)) {
+        setUser(data);
+        setNotice("Profile saved.");
+      } else if (action === "forgotPassword") {
+        go("reset");
+        setNotice(data.message);
+      } else {
+        clear();
+        setNotice(data.message);
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
   }
   async function choose(e) {
     const f = e.target.files?.[0];
@@ -414,581 +670,1013 @@ function App() {
   const status = analysisStatus;
   const shown = filterHistory(history, query, filter);
   return (
-    <LocaleContext.Provider value={lang}><div className={`phone ${isAuth ? "botanical" : ""}`}>
-      <input
-        ref={camera}
-        hidden
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        capture="environment"
-        onChange={choose}
-      />
-      <input
-        ref={gallery}
-        hidden
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        onChange={choose}
-      />
-      {restoring ? (
-        <main className="restore">
-          <Leaf large />
-          <p>{localize("Opening Krishi Karshak…")}</p>
-        </main>
-      ) : (
-        <>
-          {!isAuth && (
-            <header>             
-              <div className="brand-inline">
-                <Leaf />
-                <div>
-                  <b>{brand.name}</b>
-                  <small>{localize(brand.tagline)}</small>
-                </div>
-              </div>
-              <button className="account-avatar" aria-label={localize(`Open profile for ${user?.fullName || "your account"}`)} onClick={() => go("profile")}>
-                <UserAvatar user={user} />
-              </button>
-            </header>
-          )}
-          {notice && <div className="notice" role="status">{notice}</div>}
-          {error && (
-            <div className="alert" role="alert">
-              {error}
-              <button
-                className="icon-button"
-                aria-label={localize("Dismiss error")}
-                onClick={() => setError("")}
-              >
-                ×
-              </button>
-            </div>
-          )}
-          <main className={isAuth ? "auth-content" : "content"}>
-            {["login", "register"].includes(screen) && (
-              <>                
-                <div className="brand">
-                  <Leaf large />
-                  <h1>{brand.name}</h1>
-                  <p>
-                    {screen === "login" ? (
-                      <>{localize("Good Plants")}<br />{localize("Brighter Days")}</>
-                    ) : (
-                      <>{localize("Grow Today")}<br />{localize("Greener Tomorrow")}</>
-                    )}
-                  </p>
-                </div>
-                <section className="mobile-auth-card">
-                <span className="auth-eyebrow">{localize("Account access")}</span>
-                <h2>{localize(authStage === "otp" ? "Verify OTP" : authStage === "pin" ? "Set your PIN" : "Welcome to Krishi Karshak")}</h2>
-                <p className="muted">{localize(authStage === "otp" ? "Enter the six-digit code sent to your mobile number." : authStage === "pin" ? "Choose a four-digit PIN to secure your account." : "Enter your mobile number to sign in or create an account.")}</p>
-                <form onSubmit={auth}>
-                  {["mobile","request","login-pin"].includes(authStage) && <>
-                    <label htmlFor="mobile-number">{localize("Enter mobile number")} <span className="required-marker" aria-hidden="true">*</span></label>
-                    <div className="mobile-phone-input"><span className="country-prefix" aria-label="Country code +91">+91</span>
-                      <input id="mobile-number" name="mobileNumber" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder={localize("Enter mobile number")} maxLength={11} pattern="[6-9][0-9]{4} ?[0-9]{5}" value={authMobile.replace(/(\d{5})(\d+)/,"$1 $2")} onChange={e=>void checkAuthMobile(e.target.value)} disabled={busy} required />
-                    </div>
-                  </>}
-                  {authChecking && <p role="status">{localize("Checking mobile number...")}</p>}
-                  {authStage === "login-pin" && <>
-                    <label>{localize("Enter 4-digit PIN")}<PasswordField key={authMobile} name="pin" autoComplete="current-password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required autoFocus /></label>
-                    <button type="button" className="text-button" disabled={busy} onClick={()=>void sendAuthOtp(true)}>{localize("Forgot PIN? Request OTP")}</button>
-                  </>}
-                  {authStage === "request" && <><p>{localize("Create your profile with OTP verification.")}</p><label>{localize("Full name")}<input name="fullName" autoComplete="name" minLength={2} maxLength={150} value={authName} onChange={e=>setAuthName(e.target.value)} required /></label></>}
-                  {authStage === "otp" && <>
-                    <p className="muted">+91 {authMobile}</p>
-                    <label>{localize("OTP")}<input name="otp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required /></label>
-                    {!authReset && <label>{localize("Full name")}<input name="fullName" autoComplete="name" minLength={2} maxLength={150} value={authName} onChange={e=>setAuthName(e.target.value)} required /></label>}
-                    {!otpChallenge.deliveryEnabled && otpChallenge.testOtp && <p role="status">{localize("Test OTP")}: <strong>{otpChallenge.testOtp}</strong></p>}
-                  </>}
-                  {authStage === "pin" && <>
-                    <label>{localize("Set 4-digit PIN")}<PasswordField name="pin" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required /></label>
-                    <label>{localize("Confirm PIN")}<PasswordField name="confirmPin" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required /></label>
-                  </>}
-                  <button disabled={busy || authChecking}>{localize(authStage === "mobile" ? "Continue" : authStage === "request" ? "Request OTP" : authStage === "login-pin" ? "Sign in" : authStage === "otp" ? "Verify OTP" : "Save and sign in")}</button>
-                </form>
-                {["otp","pin"].includes(authStage) && <button className="outline" disabled={busy} onClick={()=>void checkAuthMobile(authMobile)}>{localize("Back to mobile number")}</button>}
-                <Language lang={lang} change={change} />
-                <p className="auth-security muted">{localize("Your plants. Your care. All in one place.")}</p>
-                </section>
-                <Footer text="Your plants. Your care. All in one place." />
-              </>
-            )}
-            {screen === "home" && (
-              <>
-                <section className="greeting">
-                  <span className="sun">☀</span>
-                  <h1>
-                    {localize(accountGreeting(user?.fullName))}
-                  </h1>
-                  <p>{localize("Healthy plants make")}<br />{localize("a happier you.")}</p>
-                </section>
-                <Weather api={api} user={user} lang={lang} summary onOpen={() => go("weather")} />
-                <section className="analyze-card">
-                  <span className="camera-circle">
-                    <Icon name="camera" />
-                  </span>
-                  <h2>{localize("Analyze a leaf")}</h2>
-                  <p>{localize("Take a photo or choose from your gallery to detect plant issues, get insights and care recommendations.")}</p>
-                  <button className="light" onClick={() => go("capture")}>
-                    <Icon name="camera" />{localize("Take photo")}</button>
-                  <button
-                    className="glass"
-                    onClick={() => gallery.current.click()}
-                  >
-                    <Icon name="gallery" />{localize("Choose from gallery")}</button>
-                </section>
-                <button className="feature card" onClick={() => go("history")}>
-                  <span className="feature-icon">
-                    <Icon name="history" />
-                  </span>
-                  <span>
-                    <b>{localize("Recent analyses")}</b>
-                    <small>{localize("View your past leaf analyses and results")}</small>
-                  </span>
-                  <span>›</span>
-                </button>
-                <button className="feature card" onClick={() => go("learn")}>
-                  <span className="feature-icon yellow">☀</span>
-                  <span>
-                    <b>{localize("Plant care tips")}</b>
-                    <small>{localize("Everyday habits for healthier, happier plants")}</small>
-                  </span>
-                  <span>›</span>
-                </button>
-              </>
-            )}
-            {screen === "capture" && (
-              <>
-                <h2>{localize(screens.capture)}</h2>
-                <div className="camera-guide">
-                  <Leaf large />
-                  <div className="frame" />
-                  <p>{localize("Place one leaf inside the frame")}</p>
-                  <small>{localize("Your device camera opens when you tap below.")}</small>
-                </div>
-                <section className="soft card">
-                  <h3>{localize("A clearer photo helps")}</h3>
-                  <p>
-                    {localize(photoTip)}
-                  </p>
-                </section>
-                <button onClick={() => camera.current.click()}>{localize("Open camera")}</button>
-                <button
-                  className="outline"
-                  onClick={() => gallery.current.click()}
-                >{localize("Choose from gallery")}</button>
-              </>
-            )}
-            {screen === "review" && (
-              <>
-                <h2>{localize(screens.review)}</h2>
-                <img
-                  className="photo review-photo"
-                  src={preview}
-                  alt={localize("Selected leaf for review")}
-                />
-                <section className="soft card">
-                  <h3>{localize("Check your photo")}</h3>
-                  <p>{localize("Confirm these before continuing:")}</p>
-                  {photoChecks.map((text) => (
-                    <p className="quality" key={text}>
-                      <span>✓</span>
-                      {localize(text)}
-                    </p>
-                  ))}
-                </section>
-                <div className="button-row">
-                  <button className="outline" onClick={() => go("capture")}>{localize("Retake")}</button>
-                  <button onClick={() => go("details")}>{localize("Use photo")}</button>
-                </div>
-              </>
-            )}
-            {screen === "details" && (
-              <>
-                <h2>{localize(screens.details)}</h2>
-                <div className="ready soft card">
-                  <img src={preview} alt={localize("Leaf ready to analyze")} />
-                  <div>
-                    <h3>{localize("Ready to analyze")}</h3>
-                    <p>{localize("Add a few details (optional) for more helpful results.")}</p>
-                  </div>
-                </div>
-                <label>{localize("Plant name")}<span className="muted">{localize("(optional)")}</span>
-                  <input
-                    value={plantName}
-                    onChange={(e) => setPlantName(e.target.value)}
-                    maxLength={150}
-                    placeholder={localize("e.g. Tomato")}
-                  />
-                </label>
-                <label>{localize("Location")}<span className="muted">{localize("(optional)")}</span>
-                  <input
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    maxLength={255}
-                    placeholder={localize("e.g. Garden, Balcony, Indoors")}
-                  />
-                </label>
-                <label className="consent">
-                  <input
-                    type="checkbox"
-                    checked={consent}
-                    onChange={(e) => setConsent(e.target.checked)}
-                  />
-                  <span>
-                    {localize(consentText)}
-                    <small>
-                      {localize(consentDetail)}
-                    </small>
-                  </span>
-                </label>
-                <button disabled={!consent || busy} onClick={analyze}>{localize("Analyze leaf")}</button>
-              </>
-            )}
-            {screen === "processing" && (
-              <div className="processing" role="status" aria-live="polite">
-                <div className="scanner">
-                  <img src={preview} alt={localize("Leaf being analyzed")} />
-                  <div className="scan-line" />
-                </div>
-                <h2>{localize("Analyzing your leaf…")}</h2>
-                <p>{localize("Checking the photo and assessing visible plant health.")}</p>
-                <ol className="steps">
-                  <li>{localize("Image received")}</li>
-                  <li className="active">{localize("AI analysis in progress")}</li>
-                  <li>{localize("Preparing recommendations")}</li>
-                </ol>
-                <div className="soft card">{localize("This may take a few moments.")}<br />{localize("Good plant care is worth the wait!")}</div>
-              </div>
-            )}
-            {screen === "result" && result && (
-              <>
-                <Photo id={result.id} fallback={preview} api={api} />
-                <div className="status-banner">
-                  <b>{status(result)}</b>
-                  <small>
-                    {localize(result.status === "REVIEW_REQUIRED"
-                      ? "The image or confidence needs closer review. Consider a clearer photo."
-                      : "AI screening based on visible evidence.")}
-                  </small>
-                </div>
-                {out ? (
-                  <>
-                    <div className="metrics">
-                      <div>
-                        <small>{localize("Likely condition")}</small>
-                        <h2>{result.condition}</h2>
-                      </div>
-                      <div>
-                        <small>{localize("Confidence")}</small>
-                        <h2>{Math.round(result.confidence * 100)}%</h2>
-                      </div>
-                    </div>
-                    <p className="severity">{localize("Severity")}<b>{result.severity}</b>
-                    </p>
-                    <section className="soft card">
-                      <h3>{localize("Summary")}</h3>
-                      <p>{out.summary}</p>
-                    </section>
-                    <p className="small">{localize("Select language for results")}</p>
-                    <div className="result-languages">
-                      {Object.entries(languages).map(([id, text]) => (
-                        <button
-                          key={id}
-                          className={lang === id ? "" : "outline"}
-                          aria-pressed={lang === id}
-                          onClick={() => change(id)}
-                        >
-                          {localize(text)}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="button-row">
-                      <button
-                        className="outline"
-                        onClick={() => setVoiceOpen(true)}
-                      >{localize("◖ Listen")}</button>
-                      <button
-                        onClick={() => {
-                          setTab("analysis");
-                          go("full");
-                        }}
-                      >{localize("View full analysis →")}</button>
-                    </div>
-                    <p className="disclaimer">ⓘ {out.disclaimer}</p>
-                  </>
-                ) : (
-                  <section className="card">
-                    <h3>
-                      {localize(result.status === "FAILED"
-                        ? "Analysis could not be completed"
-                        : "Result is not ready")}
-                    </h3>
-                    <p>{localize("Take a new photo and try again.")}</p>
-                    <button onClick={() => go("capture")}>{localize("Try again")}</button>
-                  </section>
-                )}
-                <Audit result={result} />
-              </>
-            )}
-            {screen === "full" && result && (
-              <>
-                <div className="detail-title">
+    <LocaleContext.Provider value={lang}>
+      <div className={`phone ${isAuth ? "botanical" : ""}`}>
+        <input
+          ref={camera}
+          hidden
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          capture="environment"
+          onChange={choose}
+        />
+        <input
+          ref={gallery}
+          hidden
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={choose}
+        />
+        {restoring ? (
+          <main className="restore">
+            <Leaf large />
+            <p>{localize("Opening Krishi Karshak…")}</p>
+          </main>
+        ) : (
+          <>
+            {!isAuth && (
+              <header>
+                <div className="brand-inline">
                   <Leaf />
                   <div>
-                    <h2>{result.plant}</h2>
-                    <p>{result.condition}</p>
+                    <b>{brand.name}</b>
+                    <small>{localize(brand.tagline)}</small>
                   </div>
-                  <span className="badge">{status(result)}</span>
                 </div>
-                <div className="tabs">
-                  <button
-                    className={tab === "analysis" ? "active" : ""}
-                    onClick={() => setTab("analysis")}
-                  >{localize("Full analysis")}</button>
-                  <button
-                    className={tab === "resources" ? "active" : ""}
-                    onClick={() => setTab("resources")}
-                  >{localize("Related resources")}</button>
-                </div>
-                {tab === "analysis" ? (
-                  <>
-                    {[
-                      ["Visible symptoms", out?.symptoms],
-                      [
-                        "Likely causes",
-                        out?.likely_causes || result.likely_causes,
-                      ],
-                      ["Immediate actions", out?.actions],
-                      ["Treatment options", out?.treatment || result.treatment],
-                      ["Prevention", out?.prevention || result.prevention],
-                    ].map(([title, items]) => (
-                      <section className="card detail-section" key={title}>
-                        <h3>{localize(title)}</h3>
-                        <ul>
-                          {items?.map((text, i) => (
-                            <li key={i}>{localize(text)}</li>
-                          ))}
-                        </ul>
-                      </section>
-                    ))}
-                    <section className="expert card">
-                      <h3>{localize("When to consult an expert")}</h3>
-                      <p>
-                        {out?.when_to_consult_expert ||
-                          result.when_to_consult_expert}
-                      </p>
-                    </section>
-                    <p className="disclaimer">
-                      {out?.safety_note || result.safety_note}
-                    </p>
-                    {lang !== "en" && !out?.treatment && (
-                      <p className="small">{localize("Summary, symptoms and actions use your selected language. Additional guidance is provided in English.")}</p>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <section className="card">
-                      <h3>{localize("Get local guidance")}</h3>
-                      <p>{localize("Share your photo and analysis with a local horticulturist or agricultural extension service, especially if symptoms spread.")}</p>
-                      <p>{localize("Follow product labels and local guidance before using treatments.")}</p>
-                    </section>
-                    <button className="outline" onClick={() => go("learn")}>{localize("Open plant care tips")}</button>
-                  </>
-                )}
-                <button className="outline" onClick={() => setVoiceOpen(true)}>{localize("Voice assistant")}</button>
-              </>
-            )}
-            {screen === "history" && (
-              <>
-                <h2>{localize(screens.history)}</h2>
-                <p className="muted">{localize("Keep track of your plant health journey")}</p>
-                <input
-                  type="search"
-                  aria-label={localize("Search plants and conditions")}
-                  placeholder={localize("Search plants, conditions…")}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-                <select
-                  aria-label={localize("Filter analyses")}
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
+                <button
+                  className="account-avatar"
+                  aria-label={localize(
+                    `Open profile for ${user?.fullName || "your account"}`,
+                  )}
+                  onClick={() => go("profile")}
                 >
-                  <option value="all">{localize("All analyses")}</option>
-                  <option value="attention">{localize("Needs attention")}</option>
-                  <option value="review">{localize("Review required")}</option>
-                </select>
-                {busy && <p role="status">{localize("Opening analysis…")}</p>}
-                {shown.map((x) => (
-                  <button
-                    className="history-card card"
-                    key={x.id}
-                    disabled={busy}
-                    onClick={() => open(x)}
-                  >
-                    <div className="history-top">
-                      <Photo id={x.id} api={api} thumbnail />
-                      <div>
-                        <b>
-                          {x.plant_name ||
-                            x.provided_plant_name ||
-                            "Unidentified plant"}
-                        </b>
-                        <small>{x.disease_name || x.status}</small>
-                      </div>
-                      <span className="badge">{status(x)}</span>
-                      <span>›</span>
-                    </div>
-                    <small>
-                      {new Date(x.created_at).toLocaleDateString()} ·{" "}
-                      {localize(x.confidence == null
-                        ? "Confidence pending"
-                        : `${Math.round(x.confidence * 100)}% confidence`)}{" "}
-                      · {x.severity}
-                    </small>
-                  </button>
-                ))}
-                {!shown.length && (
-                  <section className="empty card">
-                    <Leaf large />
-                    <h3>
-                      {localize(history.length
-                        ? "No matching analyses"
-                        : "Your plant journey starts here")}
-                    </h3>
-                    <p>
-                      {localize(history.length
-                        ? "Try another search or filter."
-                        : "Analyze your first leaf to save its results here.")}
-                    </p>
-                    <button onClick={() => go("capture")}>{localize("Analyze a leaf")}</button>
-                  </section>
-                )}
-              </>
+                  <UserAvatar user={user} />
+                </button>
+              </header>
             )}
-            {screen === "learn" && (
-              <>
-                <h2>{localize(screens.learn)}</h2>
-                <p className="muted">{localize("Small habits. Healthier plants.")}</p>
-                {careTips.map(([title, text]) => (
-                  <section className="soft card" key={title}>
-                    <h3>{localize(title)}</h3>
-                    <p>{localize(text)}</p>
-                  </section>
-                ))}
-              </>
-            )}
-            {screen === "market" && <Market api={api} />}
-            {screen === "weather" && <Weather api={api} user={user} lang={lang} />}
-            {screen === "farm" && <><button className="text-button" onClick={() => go("profile")}>{localize("Back to profile")}</button><h2>{localize(screens.farm)}</h2><FarmOverview user={user} busy={busy} onSave={saveFarmDetails} onAdd={() => go("farm-details")} /></>}
-            {screen === "profile" && <>
-              <h2>{localize(screens.profile)}</h2>
-                <section className="profile-hero card">
-                  <UserAvatar user={user} large />
-                  <div><h3>{user?.fullName || "Your account"}</h3><p className="muted">{user?.email}</p></div>
-                </section>
-              <div className="profile-menu">
-                {profileSettings.map(item => <button key={item.route} className="profile-menu-card" onClick={() => go(item.route)}>
-                  <span className="profile-menu-icon"><Icon name={item.icon} /></span>
-                  <span className="profile-menu-copy"><strong>{localize(item.title)}</strong><small>{localize(item.subtitle)}</small></span><span aria-hidden="true">&#8250;</span>
-                </button>)}
+            {notice && (
+              <div className="notice" role="status">
+                {notice}
               </div>
-              <button className="profile-menu-card" disabled={busy} onClick={logout}><span className="profile-menu-icon">&#8618;</span><span className="profile-menu-copy"><strong>{localize("Sign out")}</strong><small>{localize("Sign out of your account")}</small></span><span aria-hidden="true">&#8250;</span></button>
-            </>}
-            {["language", "account-details", "security", "farm-details"].includes(screen) && <>
-              <button className="text-button" onClick={() => go(screen === "farm-details" ? "farm" : "profile")}>&#8592; {localize(screen === "farm-details" ? "Back to Farm" : "Back to profile")}</button>
-              <h2>{localize(screens[screen])}</h2>
-              {screen === "language" && <section className="card"><p className="muted">{localize("Choose your preferred language")}</p><Language lang={lang} change={change} /></section>}
-              {screen === "farm-details" && <FarmDetails creationOnly onCreated={() => go("farm")} farms={user?.farms || []} details={user?.farmDetails} busy={busy} onSave={saveFarmDetails} />}
-              {screen === "account-details" && <UserDetails user={user} busy={busy} onSave={saveUserDetails} onUpload={uploadProfilePhoto} />}
-              {screen === "security" && <section className="card"><h3>{localize("PIN & security")}</h3>
-                <p>{localize("Verify your mobile number with OTP to set a new PIN.")}</p>
-                <button disabled={busy} onClick={async () => { await api(endpoints.logout, { method: "POST" }); clear(); }}>{localize("Set PIN with OTP")}</button>
-              </section>}
-
-            </>}
-
-          </main>
-          {!isAuth && screen !== "processing" && (
-            <nav aria-label={localize("Main navigation")}>
-              {[
-                ["home", "home", "Home"],
-                ["market", "market", "Market"],
-                ["weather", "weather", "Weather"],
-                ["history", "history", "History"],
-                ["profile", "profile", "Profile"],
-              ].map(([next, icon, text]) => (
+            )}
+            {error && (
+              <div className="alert" role="alert">
+                {error}
                 <button
-                  key={next}
-                  className={(screen === next || (next === "profile" && ["farm", "farm-details", "language", "account-details", "security"].includes(screen))) ? "active" : ""}
-                  aria-current={(screen === next || (next === "profile" && ["farm", "farm-details", "language", "account-details", "security"].includes(screen))) ? "page" : undefined}
-                  onClick={() => go(next)}
+                  className="icon-button"
+                  aria-label={localize("Dismiss error")}
+                  onClick={() => setError("")}
                 >
-                  <Icon name={icon} />
-                  <small>{localize(text)}</small>
+                  ×
                 </button>
-              ))}
-            </nav>
-          )}
-          {voiceOpen && (
-            <div
-              className="modal-backdrop"
-              onClick={() => {
-                recognition.current?.abort();
-                setVoiceOpen(false);
-              }}
-            >
-              <section
-                className="voice-sheet"
-                role="dialog"
-                aria-modal="true"
-                aria-label={localize("Voice assistant")}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="handle" />
-                <h2>{localize("How can I help?")}</h2>
-                <p className="muted">{localize("Speak naturally. I’m here to help with your plant care.")}</p>
-                <button
-                  className={`microphone ${listening ? "listening" : ""}`}
-                  aria-label={localize("Start listening")}
-                  onClick={voice}
-                >
-                  <Icon name="mic" />
-                </button>
-                <b role="status">
-                  {localize(listening ? "Listening…" : "Tap the microphone to speak")}
-                </b>
-                {error && (
-                  <p className="alert" role="alert">
-                    {error}
-                  </p>
-                )}
-                <h3>{localize("Try saying:")}</h3>
-                {voiceCommands.map((text) => (
+              </div>
+            )}
+            <main className={isAuth ? "auth-content" : "content"}>
+              {["login", "register"].includes(screen) && (
+                <>
+                  <div className="brand">
+                    <Leaf large />
+                    <h1>{brand.name}</h1>
+                    <p>
+                      {screen === "login" ? (
+                        <>
+                          {localize("Good Plants")}
+                          <br />
+                          {localize("Brighter Days")}
+                        </>
+                      ) : (
+                        <>
+                          {localize("Grow Today")}
+                          <br />
+                          {localize("Greener Tomorrow")}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  <section className="mobile-auth-card">
+                    <span className="auth-eyebrow">
+                      {localize("Account access")}
+                    </span>
+                    <h2>
+                      {localize(
+                        authStage === "otp"
+                          ? "Verify OTP"
+                          : authStage === "pin"
+                            ? "Set your PIN"
+                            : "Welcome to Krishi Karshak",
+                      )}
+                    </h2>
+                    <p className="muted">
+                      {localize(
+                        authStage === "otp"
+                          ? "Enter the six-digit code sent to your mobile number."
+                          : authStage === "pin"
+                            ? "Choose a four-digit PIN to secure your account."
+                            : "Enter your mobile number to sign in or create an account.",
+                      )}
+                    </p>
+                    <form onSubmit={auth}>
+                      {["mobile", "request", "login-pin"].includes(
+                        authStage,
+                      ) && (
+                        <>
+                          <label htmlFor="mobile-number">
+                            {localize("Enter mobile number")}{" "}
+                            <span
+                              className="required-marker"
+                              aria-hidden="true"
+                            >
+                              *
+                            </span>
+                          </label>
+                          <div className="mobile-phone-input">
+                            <span
+                              className="country-prefix"
+                              aria-label="Country code +91"
+                            >
+                              +91
+                            </span>
+                            <input
+                              id="mobile-number"
+                              name="mobileNumber"
+                              type="tel"
+                              inputMode="numeric"
+                              autoComplete="tel-national"
+                              placeholder={localize("Enter mobile number")}
+                              maxLength={11}
+                              pattern="[6-9][0-9]{4} ?[0-9]{5}"
+                              value={authMobile.replace(
+                                /(\d{5})(\d+)/,
+                                "$1 $2",
+                              )}
+                              onChange={(e) =>
+                                void checkAuthMobile(e.target.value)
+                              }
+                              disabled={busy}
+                              required
+                            />
+                          </div>
+                        </>
+                      )}
+                      {authChecking && (
+                        <p role="status">
+                          {localize("Checking mobile number...")}
+                        </p>
+                      )}
+                      {authStage === "login-pin" && (
+                        <>
+                          <label>
+                            {localize("Enter 4-digit PIN")}
+                            <PasswordField
+                              key={authMobile}
+                              name="pin"
+                              autoComplete="current-password"
+                              inputMode="numeric"
+                              pattern="[0-9]{4}"
+                              maxLength={4}
+                              required
+                              autoFocus
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            className="text-button"
+                            disabled={busy}
+                            onClick={() => void sendAuthOtp(true)}
+                          >
+                            {localize("Forgot PIN? Request OTP")}
+                          </button>
+                        </>
+                      )}
+                      {authStage === "request" && (
+                        <>
+                          <p>
+                            {localize(
+                              "Create your profile with OTP verification.",
+                            )}
+                          </p>
+                          <label>
+                            {localize("Full name")}
+                            <input
+                              name="fullName"
+                              autoComplete="name"
+                              minLength={2}
+                              maxLength={150}
+                              value={authName}
+                              onChange={(e) => setAuthName(e.target.value)}
+                              required
+                            />
+                          </label>
+                        </>
+                      )}
+                      {authStage === "otp" && (
+                        <>
+                          <p className="muted">+91 {authMobile}</p>
+                          <label>
+                            {localize("OTP")}
+                            <input
+                              name="otp"
+                              inputMode="numeric"
+                              autoComplete="one-time-code"
+                              pattern="[0-9]{6}"
+                              maxLength={6}
+                              required
+                            />
+                          </label>
+                          {!authReset && (
+                            <label>
+                              {localize("Full name")}
+                              <input
+                                name="fullName"
+                                autoComplete="name"
+                                minLength={2}
+                                maxLength={150}
+                                value={authName}
+                                onChange={(e) => setAuthName(e.target.value)}
+                                required
+                              />
+                            </label>
+                          )}
+                          {!otpChallenge.deliveryEnabled &&
+                            otpChallenge.testOtp && (
+                              <p role="status">
+                                {localize("Test OTP")}:{" "}
+                                <strong>{otpChallenge.testOtp}</strong>
+                              </p>
+                            )}
+                        </>
+                      )}
+                      {authStage === "pin" && (
+                        <>
+                          <label>
+                            {localize("Set 4-digit PIN")}
+                            <PasswordField
+                              name="pin"
+                              inputMode="numeric"
+                              pattern="[0-9]{4}"
+                              maxLength={4}
+                              required
+                            />
+                          </label>
+                          <label>
+                            {localize("Confirm PIN")}
+                            <PasswordField
+                              name="confirmPin"
+                              inputMode="numeric"
+                              pattern="[0-9]{4}"
+                              maxLength={4}
+                              required
+                            />
+                          </label>
+                        </>
+                      )}
+                      <button disabled={busy || authChecking}>
+                        {localize(
+                          authStage === "mobile"
+                            ? "Continue"
+                            : authStage === "request"
+                              ? "Request OTP"
+                              : authStage === "login-pin"
+                                ? "Sign in"
+                                : authStage === "otp"
+                                  ? "Verify OTP"
+                                  : "Save and sign in",
+                        )}
+                      </button>
+                    </form>
+                    {["otp", "pin"].includes(authStage) && (
+                      <button
+                        className="outline"
+                        disabled={busy}
+                        onClick={() => void checkAuthMobile(authMobile)}
+                      >
+                        {localize("Back to mobile number")}
+                      </button>
+                    )}
+                    <Language lang={lang} change={change} />
+                    <p className="auth-security muted">
+                      {localize("Your plants. Your care. All in one place.")}
+                    </p>
+                  </section>
+                  <Footer text="Your plants. Your care. All in one place." />
+                </>
+              )}
+              {screen === "home" && (
+                <>
+                  <section className="greeting">
+                    <span className="sun">☀</span>
+                    <h1>{localize(accountGreeting(user?.fullName))}</h1>
+                    <p>
+                      {localize("Healthy plants make")}
+                      <br />
+                      {localize("a happier you.")}
+                    </p>
+                  </section>
+                  <Weather
+                    api={api}
+                    user={user}
+                    lang={lang}
+                    summary
+                    onOpen={() => go("weather")}
+                  />
+                  <section className="analyze-card">
+                    <span className="camera-circle">
+                      <Icon name="camera" />
+                    </span>
+                    <h2>{localize("Analyze a leaf")}</h2>
+                    <p>
+                      {localize(
+                        "Take a photo or choose from your gallery to detect plant issues, get insights and care recommendations.",
+                      )}
+                    </p>
+                    <button className="light" onClick={() => go("capture")}>
+                      <Icon name="camera" />
+                      {localize("Take photo")}
+                    </button>
+                    <button
+                      className="glass"
+                      onClick={() => gallery.current.click()}
+                    >
+                      <Icon name="gallery" />
+                      {localize("Choose from gallery")}
+                    </button>
+                  </section>
                   <button
-                    className="voice-command"
-                    key={text}
-                    onClick={() => command(text)}
+                    className="feature card"
+                    onClick={() => go("history")}
                   >
-                    {localize(text)}
+                    <span className="feature-icon">
+                      <Icon name="history" />
+                    </span>
+                    <span>
+                      <b>{localize("Recent analyses")}</b>
+                      <small>
+                        {localize("View your past leaf analyses and results")}
+                      </small>
+                    </span>
+                    <span>›</span>
+                  </button>
+                  <button className="feature card" onClick={() => go("learn")}>
+                    <span className="feature-icon yellow">☀</span>
+                    <span>
+                      <b>{localize("Plant care tips")}</b>
+                      <small>
+                        {localize(
+                          "Everyday habits for healthier, happier plants",
+                        )}
+                      </small>
+                    </span>
+                    <span>›</span>
+                  </button>
+                </>
+              )}
+              {screen === "capture" && (
+                <>
+                  <h2>{localize(screens.capture)}</h2>
+                  <div className="camera-guide">
+                    <Leaf large />
+                    <div className="frame" />
+                    <p>{localize("Place one leaf inside the frame")}</p>
+                    <small>
+                      {localize("Your device camera opens when you tap below.")}
+                    </small>
+                  </div>
+                  <section className="soft card">
+                    <h3>{localize("A clearer photo helps")}</h3>
+                    <p>{localize(photoTip)}</p>
+                  </section>
+                  <button onClick={() => camera.current.click()}>
+                    {localize("Open camera")}
+                  </button>
+                  <button
+                    className="outline"
+                    onClick={() => gallery.current.click()}
+                  >
+                    {localize("Choose from gallery")}
+                  </button>
+                </>
+              )}
+              {screen === "review" && (
+                <>
+                  <h2>{localize(screens.review)}</h2>
+                  <img
+                    className="photo review-photo"
+                    src={preview}
+                    alt={localize("Selected leaf for review")}
+                  />
+                  <section className="soft card">
+                    <h3>{localize("Check your photo")}</h3>
+                    <p>{localize("Confirm these before continuing:")}</p>
+                    {photoChecks.map((text) => (
+                      <p className="quality" key={text}>
+                        <span>✓</span>
+                        {localize(text)}
+                      </p>
+                    ))}
+                  </section>
+                  <div className="button-row">
+                    <button className="outline" onClick={() => go("capture")}>
+                      {localize("Retake")}
+                    </button>
+                    <button onClick={() => go("details")}>
+                      {localize("Use photo")}
+                    </button>
+                  </div>
+                </>
+              )}
+              {screen === "details" && (
+                <>
+                  <h2>{localize(screens.details)}</h2>
+                  <div className="ready soft card">
+                    <img
+                      src={preview}
+                      alt={localize("Leaf ready to analyze")}
+                    />
+                    <div>
+                      <h3>{localize("Ready to analyze")}</h3>
+                      <p>
+                        {localize(
+                          "Add a few details (optional) for more helpful results.",
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <label>
+                    {localize("Plant name")}
+                    <span className="muted">{localize("(optional)")}</span>
+                    <input
+                      value={plantName}
+                      onChange={(e) => setPlantName(e.target.value)}
+                      maxLength={150}
+                      placeholder={localize("e.g. Tomato")}
+                    />
+                  </label>
+                  <label>
+                    {localize("Location")}
+                    <span className="muted">{localize("(optional)")}</span>
+                    <input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      maxLength={255}
+                      placeholder={localize("e.g. Garden, Balcony, Indoors")}
+                    />
+                  </label>
+                  <label className="consent">
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={(e) => setConsent(e.target.checked)}
+                    />
+                    <span>
+                      {localize(consentText)}
+                      <small>{localize(consentDetail)}</small>
+                    </span>
+                  </label>
+                  <button disabled={!consent || busy} onClick={analyze}>
+                    {localize("Analyze leaf")}
+                  </button>
+                </>
+              )}
+              {screen === "processing" && (
+                <div className="processing" role="status" aria-live="polite">
+                  <div className="scanner">
+                    <img src={preview} alt={localize("Leaf being analyzed")} />
+                    <div className="scan-line" />
+                  </div>
+                  <h2>{localize("Analyzing your leaf…")}</h2>
+                  <p>
+                    {localize(
+                      "Checking the photo and assessing visible plant health.",
+                    )}
+                  </p>
+                  <ol className="steps">
+                    <li>{localize("Image received")}</li>
+                    <li className="active">
+                      {localize("AI analysis in progress")}
+                    </li>
+                    <li>{localize("Preparing recommendations")}</li>
+                  </ol>
+                  <div className="soft card">
+                    {localize("This may take a few moments.")}
+                    <br />
+                    {localize("Good plant care is worth the wait!")}
+                  </div>
+                </div>
+              )}
+              {screen === "result" && result && (
+                <>
+                  <Photo id={result.id} fallback={preview} api={api} />
+                  <div className="status-banner">
+                    <b>{status(result)}</b>
+                    <small>
+                      {localize(
+                        result.status === "REVIEW_REQUIRED"
+                          ? "The image or confidence needs closer review. Consider a clearer photo."
+                          : "AI screening based on visible evidence.",
+                      )}
+                    </small>
+                  </div>
+                  {out ? (
+                    <>
+                      <div className="metrics">
+                        <div>
+                          <small>{localize("Likely condition")}</small>
+                          <h2>{result.condition}</h2>
+                        </div>
+                        <div>
+                          <small>{localize("Confidence")}</small>
+                          <h2>{Math.round(result.confidence * 100)}%</h2>
+                        </div>
+                      </div>
+                      <p className="severity">
+                        {localize("Severity")}
+                        <b>{result.severity}</b>
+                      </p>
+                      <section className="soft card">
+                        <h3>{localize("Summary")}</h3>
+                        <p>{out.summary}</p>
+                      </section>
+                      <p className="small">
+                        {localize("Select language for results")}
+                      </p>
+                      <div className="result-languages">
+                        {Object.entries(languages).map(([id, text]) => (
+                          <button
+                            key={id}
+                            className={lang === id ? "" : "outline"}
+                            aria-pressed={lang === id}
+                            onClick={() => change(id)}
+                          >
+                            {localize(text)}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="button-row">
+                        <button
+                          className="outline"
+                          onClick={() => setVoiceOpen(true)}
+                        >
+                          {localize("◖ Listen")}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setTab("analysis");
+                            go("full");
+                          }}
+                        >
+                          {localize("View full analysis →")}
+                        </button>
+                      </div>
+                      <p className="disclaimer">ⓘ {out.disclaimer}</p>
+                    </>
+                  ) : (
+                    <section className="card">
+                      <h3>
+                        {localize(
+                          result.status === "FAILED"
+                            ? "Analysis could not be completed"
+                            : "Result is not ready",
+                        )}
+                      </h3>
+                      <p>{localize("Take a new photo and try again.")}</p>
+                      <button onClick={() => go("capture")}>
+                        {localize("Try again")}
+                      </button>
+                    </section>
+                  )}
+                  <Audit result={result} />
+                </>
+              )}
+              {screen === "full" && result && (
+                <>
+                  <div className="detail-title">
+                    <Leaf />
+                    <div>
+                      <h2>{result.plant}</h2>
+                      <p>{result.condition}</p>
+                    </div>
+                    <span className="badge">{status(result)}</span>
+                  </div>
+                  <div className="tabs">
+                    <button
+                      className={tab === "analysis" ? "active" : ""}
+                      onClick={() => setTab("analysis")}
+                    >
+                      {localize("Full analysis")}
+                    </button>
+                    <button
+                      className={tab === "resources" ? "active" : ""}
+                      onClick={() => setTab("resources")}
+                    >
+                      {localize("Related resources")}
+                    </button>
+                  </div>
+                  {tab === "analysis" ? (
+                    <>
+                      {[
+                        ["Visible symptoms", out?.symptoms],
+                        [
+                          "Likely causes",
+                          out?.likely_causes || result.likely_causes,
+                        ],
+                        ["Immediate actions", out?.actions],
+                        [
+                          "Treatment options",
+                          out?.treatment || result.treatment,
+                        ],
+                        ["Prevention", out?.prevention || result.prevention],
+                      ].map(([title, items]) => (
+                        <section className="card detail-section" key={title}>
+                          <h3>{localize(title)}</h3>
+                          <ul>
+                            {items?.map((text, i) => (
+                              <li key={i}>{localize(text)}</li>
+                            ))}
+                          </ul>
+                        </section>
+                      ))}
+                      <section className="expert card">
+                        <h3>{localize("When to consult an expert")}</h3>
+                        <p>
+                          {out?.when_to_consult_expert ||
+                            result.when_to_consult_expert}
+                        </p>
+                      </section>
+                      <p className="disclaimer">
+                        {out?.safety_note || result.safety_note}
+                      </p>
+                      {lang !== "en" && !out?.treatment && (
+                        <p className="small">
+                          {localize(
+                            "Summary, symptoms and actions use your selected language. Additional guidance is provided in English.",
+                          )}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <section className="card">
+                        <h3>{localize("Get local guidance")}</h3>
+                        <p>
+                          {localize(
+                            "Share your photo and analysis with a local horticulturist or agricultural extension service, especially if symptoms spread.",
+                          )}
+                        </p>
+                        <p>
+                          {localize(
+                            "Follow product labels and local guidance before using treatments.",
+                          )}
+                        </p>
+                      </section>
+                      <button className="outline" onClick={() => go("learn")}>
+                        {localize("Open plant care tips")}
+                      </button>
+                    </>
+                  )}
+                  <button
+                    className="outline"
+                    onClick={() => setVoiceOpen(true)}
+                  >
+                    {localize("Voice assistant")}
+                  </button>
+                </>
+              )}
+              {screen === "history" && (
+                <>
+                  <h2>{localize(screens.history)}</h2>
+                  <p className="muted">
+                    {localize("Keep track of your plant health journey")}
+                  </p>
+                  <input
+                    type="search"
+                    aria-label={localize("Search plants and conditions")}
+                    placeholder={localize("Search plants, conditions…")}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                  <select
+                    aria-label={localize("Filter analyses")}
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                  >
+                    <option value="all">{localize("All analyses")}</option>
+                    <option value="attention">
+                      {localize("Needs attention")}
+                    </option>
+                    <option value="review">
+                      {localize("Review required")}
+                    </option>
+                  </select>
+                  {busy && <p role="status">{localize("Opening analysis…")}</p>}
+                  {shown.map((x) => (
+                    <button
+                      className="history-card card"
+                      key={x.id}
+                      disabled={busy}
+                      onClick={() => open(x)}
+                    >
+                      <div className="history-top">
+                        <Photo id={x.id} api={api} thumbnail />
+                        <div>
+                          <b>
+                            {x.plant_name ||
+                              x.provided_plant_name ||
+                              "Unidentified plant"}
+                          </b>
+                          <small>{x.disease_name || x.status}</small>
+                        </div>
+                        <span className="badge">{status(x)}</span>
+                        <span>›</span>
+                      </div>
+                      <small>
+                        {new Date(x.created_at).toLocaleDateString()} ·{" "}
+                        {localize(
+                          x.confidence == null
+                            ? "Confidence pending"
+                            : `${Math.round(x.confidence * 100)}% confidence`,
+                        )}{" "}
+                        · {x.severity}
+                      </small>
+                    </button>
+                  ))}
+                  {!shown.length && (
+                    <section className="empty card">
+                      <Leaf large />
+                      <h3>
+                        {localize(
+                          history.length
+                            ? "No matching analyses"
+                            : "Your plant journey starts here",
+                        )}
+                      </h3>
+                      <p>
+                        {localize(
+                          history.length
+                            ? "Try another search or filter."
+                            : "Analyze your first leaf to save its results here.",
+                        )}
+                      </p>
+                      <button onClick={() => go("capture")}>
+                        {localize("Analyze a leaf")}
+                      </button>
+                    </section>
+                  )}
+                </>
+              )}
+              {screen === "learn" && (
+                <>
+                  <h2>{localize(screens.learn)}</h2>
+                  <p className="muted">
+                    {localize("Small habits. Healthier plants.")}
+                  </p>
+                  {careTips.map(([title, text]) => (
+                    <section className="soft card" key={title}>
+                      <h3>{localize(title)}</h3>
+                      <p>{localize(text)}</p>
+                    </section>
+                  ))}
+                </>
+              )}
+              {screen === "market" && <Market api={api} />}
+              {screen === "weather" && (
+                <Weather api={api} user={user} lang={lang} />
+              )}
+              {screen === "farm" && (
+                <>
+                  <button className="text-button" onClick={() => go("profile")}>
+                    {localize("Back to profile")}
+                  </button>
+                  <h2>{localize(screens.farm)}</h2>
+                  <FarmOverview
+                    user={user}
+                    busy={busy}
+                    onSave={saveFarmDetails}
+                    onAdd={() => go("farm-details")}
+                  />
+                </>
+              )}
+              {screen === "profile" && (
+                <>
+                  <h2>{localize(screens.profile)}</h2>
+                  <section className="profile-hero card">
+                    <UserAvatar user={user} large />
+                    <div>
+                      <h3>{user?.fullName || "Your account"}</h3>
+                      <p className="muted">{user?.email}</p>
+                    </div>
+                  </section>
+                  <div className="profile-menu">
+                    {profileSettings.map((item) => (
+                      <button
+                        key={item.route}
+                        className="profile-menu-card"
+                        onClick={() => go(item.route)}
+                      >
+                        <span className="profile-menu-icon">
+                          <Icon name={item.icon} />
+                        </span>
+                        <span className="profile-menu-copy">
+                          <strong>{localize(item.title)}</strong>
+                          <small>{localize(item.subtitle)}</small>
+                        </span>
+                        <span aria-hidden="true">&#8250;</span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    className="profile-menu-card"
+                    disabled={busy}
+                    onClick={logout}
+                  >
+                    <span className="profile-menu-icon">&#8618;</span>
+                    <span className="profile-menu-copy">
+                      <strong>{localize("Sign out")}</strong>
+                      <small>{localize("Sign out of your account")}</small>
+                    </span>
+                    <span aria-hidden="true">&#8250;</span>
+                  </button>
+                </>
+              )}
+              {[
+                "language",
+                "account-details",
+                "security",
+                "farm-details",
+              ].includes(screen) && (
+                <>
+                  <button
+                    className="text-button"
+                    onClick={() =>
+                      go(screen === "farm-details" ? "farm" : "profile")
+                    }
+                  >
+                    &#8592;{" "}
+                    {localize(
+                      screen === "farm-details"
+                        ? "Back to Farm"
+                        : "Back to profile",
+                    )}
+                  </button>
+                  <h2>{localize(screens[screen])}</h2>
+                  {screen === "language" && (
+                    <section className="card">
+                      <p className="muted">
+                        {localize("Choose your preferred language")}
+                      </p>
+                      <Language lang={lang} change={change} />
+                    </section>
+                  )}
+                  {screen === "farm-details" && (
+                    <FarmDetails
+                      creationOnly
+                      onCreated={() => go("farm")}
+                      farms={user?.farms || []}
+                      details={user?.farmDetails}
+                      busy={busy}
+                      onSave={saveFarmDetails}
+                    />
+                  )}
+                  {screen === "account-details" && (
+                    <UserDetails
+                      user={user}
+                      busy={busy}
+                      onSave={saveUserDetails}
+                      onUpload={uploadProfilePhoto}
+                    />
+                  )}
+                  {screen === "security" && (
+                    <section className="card">
+                      <h3>{localize("PIN & security")}</h3>
+                      <p>
+                        {localize(
+                          "Verify your mobile number with OTP to set a new PIN.",
+                        )}
+                      </p>
+                      <button
+                        disabled={busy}
+                        onClick={async () => {
+                          await api(endpoints.logout, { method: "POST" });
+                          clear();
+                        }}
+                      >
+                        {localize("Set PIN with OTP")}
+                      </button>
+                    </section>
+                  )}
+                </>
+              )}
+            </main>
+            {!isAuth && screen !== "processing" && (
+              <nav aria-label={localize("Main navigation")}>
+                {[
+                  ["home", "home", "Home"],
+                  ["market", "market", "Market"],
+                  ["weather", "weather", "Weather"],
+                  ["history", "history", "History"],
+                  ["profile", "profile", "Profile"],
+                ].map(([next, icon, text]) => (
+                  <button
+                    key={next}
+                    className={
+                      screen === next ||
+                      (next === "profile" &&
+                        [
+                          "farm",
+                          "farm-details",
+                          "language",
+                          "account-details",
+                          "security",
+                        ].includes(screen))
+                        ? "active"
+                        : ""
+                    }
+                    aria-current={
+                      screen === next ||
+                      (next === "profile" &&
+                        [
+                          "farm",
+                          "farm-details",
+                          "language",
+                          "account-details",
+                          "security",
+                        ].includes(screen))
+                        ? "page"
+                        : undefined
+                    }
+                    onClick={() => go(next)}
+                  >
+                    <Icon name={icon} />
+                    <small>{localize(text)}</small>
                   </button>
                 ))}
-                <button
-                  className="secondary"
-                  onClick={() => {
-                    recognition.current?.abort();
-                    window.speechSynthesis?.cancel();
-                    setVoiceOpen(false);
-                  }}
-                >{localize("Cancel")}</button>
-              </section>
-            </div>
-          )}
-        </>
-      )}
-    </div></LocaleContext.Provider>
+              </nav>
+            )}
+            {voiceOpen && (
+              <div
+                className="modal-backdrop"
+                onClick={() => {
+                  recognition.current?.abort();
+                  setVoiceOpen(false);
+                }}
+              >
+                <section
+                  className="voice-sheet"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={localize("Voice assistant")}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="handle" />
+                  <h2>{localize("How can I help?")}</h2>
+                  <p className="muted">
+                    {localize(
+                      "Speak naturally. I’m here to help with your plant care.",
+                    )}
+                  </p>
+                  <button
+                    className={`microphone ${listening ? "listening" : ""}`}
+                    aria-label={localize("Start listening")}
+                    onClick={voice}
+                  >
+                    <Icon name="mic" />
+                  </button>
+                  <b role="status">
+                    {localize(
+                      listening ? "Listening…" : "Tap the microphone to speak",
+                    )}
+                  </b>
+                  {error && (
+                    <p className="alert" role="alert">
+                      {error}
+                    </p>
+                  )}
+                  <h3>{localize("Try saying:")}</h3>
+                  {voiceCommands.map((text) => (
+                    <button
+                      className="voice-command"
+                      key={text}
+                      onClick={() => command(text)}
+                    >
+                      {localize(text)}
+                    </button>
+                  ))}
+                  <button
+                    className="secondary"
+                    onClick={() => {
+                      recognition.current?.abort();
+                      window.speechSynthesis?.cancel();
+                      setVoiceOpen(false);
+                    }}
+                  >
+                    {localize("Cancel")}
+                  </button>
+                </section>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </LocaleContext.Provider>
   );
 }
 function Footer({ text }) {
@@ -1076,7 +1764,11 @@ function Photo({ id, fallback, api, thumbnail = false }) {
       className={thumbnail ? "thumbnail" : "photo-container"}
     >
       {src ? (
-        <img className="photo result-photo" src={src} alt={localize("Analyzed leaf")} />
+        <img
+          className="photo result-photo"
+          src={src}
+          alt={localize("Analyzed leaf")}
+        />
       ) : (
         <div className="photo-placeholder">
           <Leaf large />

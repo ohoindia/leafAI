@@ -19,14 +19,14 @@ Complete these steps once, in order:
 
 ## Which steps to repeat after changes
 
-| What changed | How to publish it |
-| --- | --- |
-| Backend code or dependencies | Test, rebuild the ZIP, upload to the existing Lambda, wait, and verify. See [code updates](#deploy-code-or-dependency-changes). |
-| Backend environment, model, database endpoint, or origins | Export and apply the full environment map, wait, and verify. See [configuration updates](#deploy-environment-only-changes). |
-| Database schema | Back up and apply the migration before code that requires it. ZIP uploads do not apply SQL migrations. |
-| Website files in `client/` | Publish through Amplify. Lambda updates do not publish website changes. See [website updates](aws-deployment.md#update-the-website). |
-| Mobile files or `EXPO_PUBLIC_API_URL` | Follow the [mobile build guide](../mobile/README.md) and distribute an updated build as appropriate. Lambda updates do not replace the installed app. |
-| SAM template or SAM-managed backend | Use the [SAM update steps](aws-deployment.md#update-a-sam-managed-backend) with the same stack. |
+| What changed                                              | How to publish it                                                                                                                                     |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backend code or dependencies                              | Test, rebuild the ZIP, upload to the existing Lambda, wait, and verify. See [code updates](#deploy-code-or-dependency-changes).                       |
+| Backend environment, model, database endpoint, or origins | Export and apply the full environment map, wait, and verify. See [configuration updates](#deploy-environment-only-changes).                           |
+| Database schema                                           | Back up and apply the migration before code that requires it. ZIP uploads do not apply SQL migrations.                                                |
+| Website files in `client/`                                | Publish through Amplify. Lambda updates do not publish website changes. See [website updates](aws-deployment.md#update-the-website).                  |
+| Mobile files or `EXPO_PUBLIC_API_URL`                     | Follow the [mobile build guide](../mobile/README.md) and distribute an updated build as appropriate. Lambda updates do not replace the installed app. |
+| SAM template or SAM-managed backend                       | Use the [SAM update steps](aws-deployment.md#update-a-sam-managed-backend) with the same stack.                                                       |
 
 For changes affecting multiple components, perform every applicable row. Git pushes do not deploy a manually uploaded Lambda.
 
@@ -53,15 +53,15 @@ The result is `server/lambda.zip`. The packaging script compiles TypeScript, ins
 
 In the AWS Lambda console, choose **Create function > Author from scratch**:
 
-| Setting | Value |
-| --- | --- |
-| Function name | `leafcare-api` (or your chosen name) |
-| Runtime | Node.js 22.x |
-| Architecture | x86_64 |
-| Execution role | Role with CloudWatch Logs access and permission to write to your upload bucket |
-| Handler, under Code > Runtime settings | `dist/lambda.handler` |
-| Memory, under Configuration > General configuration | 1024 MB |
-| Timeout | 120 seconds |
+| Setting                                             | Value                                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Function name                                       | `leafcare-api` (or your chosen name)                                           |
+| Runtime                                             | Node.js 22.x                                                                   |
+| Architecture                                        | x86_64                                                                         |
+| Execution role                                      | Role with CloudWatch Logs access and permission to write to your upload bucket |
+| Handler, under Code > Runtime settings              | `dist/lambda.handler`                                                          |
+| Memory, under Configuration > General configuration | 1024 MB                                                                        |
+| Timeout                                             | 120 seconds                                                                    |
 
 Under **Code > Upload from > .zip file**, upload `server/lambda.zip`. If it exceeds the console's direct-upload limit, upload the ZIP to a private S3 bucket in the function's region and choose **Amazon S3 location** instead. The uncompressed package must fit Lambda's 250 MB deployment limit.
 

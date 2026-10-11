@@ -26,13 +26,50 @@ export function UserAvatar({ large = false }: { large?: boolean }) {
   const a = useLeafCare();
   const [failed, setFailed] = useState<string>();
   const size = large ? 96 : 48;
-  return a.user?.profilePhoto && failed !== a.user.profilePhoto ? <Image accessibilityLabel={localize("Your profile photo")} source={{ uri: a.user.profilePhoto }} style={{ width: size, height: size, borderRadius: size / 2 }} onError={() => setFailed(a.user?.profilePhoto || "")} /> : <View style={[s.accountAvatar, { width: size, height: size, borderRadius: size / 2 }]}><Text style={[s.avatarText, large && { fontSize: 30 }]}>{accountInitials(a.user?.fullName)}</Text></View>;
+  return a.user?.profilePhoto && failed !== a.user.profilePhoto ? (
+    <Image
+      accessibilityLabel={localize("Your profile photo")}
+      source={{ uri: a.user.profilePhoto }}
+      style={{ width: size, height: size, borderRadius: size / 2 }}
+      onError={() => setFailed(a.user?.profilePhoto || "")}
+    />
+  ) : (
+    <View
+      style={[
+        s.accountAvatar,
+        { width: size, height: size, borderRadius: size / 2 },
+      ]}
+    >
+      <Text style={[s.avatarText, large && { fontSize: 30 }]}>
+        {accountInitials(a.user?.fullName)}
+      </Text>
+    </View>
+  );
 }
 export function LeafLogo({ large = false }: { large?: boolean }) {
   const localize = useLocale();
-  return <Image source={require("../assets/krishi-farmer-logo.png")} resizeMode="contain" accessibilityLabel={localize("Krishi Karshak farmer and plough logo")} style={{ width: large ? 112 : 44, height: large ? 112 : 44, flexShrink: 0 }} />;
+  return (
+    <Image
+      source={require("../assets/krishi-farmer-logo.png")}
+      resizeMode="contain"
+      accessibilityLabel={localize("Krishi Karshak farmer and plough logo")}
+      style={{
+        width: large ? 112 : 44,
+        height: large ? 112 : 44,
+        flexShrink: 0,
+      }}
+    />
+  );
 }
-export function AnalysisPhoto({ id, fallback, thumbnail = false }: { id: string; fallback?: string; thumbnail?: boolean }) {
+export function AnalysisPhoto({
+  id,
+  fallback,
+  thumbnail = false,
+}: {
+  id: string;
+  fallback?: string;
+  thumbnail?: boolean;
+}) {
   const localize = useLocale();
   const a = useLeafCare();
   const [failedSource, setFailedSource] = useState("");
@@ -40,17 +77,38 @@ export function AnalysisPhoto({ id, fallback, thumbnail = false }: { id: string;
   return failedSource === uri ? (
     <View style={[s.image, thumbnail && s.thumbnail, s.photoPlaceholder]}>
       <LeafLogo />
-      {!thumbnail && <Text style={s.muted}>{localize("Photo unavailable")}</Text>}
+      {!thumbnail && (
+        <Text style={s.muted}>{localize("Photo unavailable")}</Text>
+      )}
     </View>
-  ) : <Image source={fallback ? { uri } : { uri, headers: { Authorization: `Bearer ${a.token}` } }} accessibilityLabel={localize("Analyzed leaf")} style={[s.image, thumbnail && s.thumbnail]} onError={() => setFailedSource(uri)} />;
+  ) : (
+    <Image
+      source={
+        fallback
+          ? { uri }
+          : { uri, headers: { Authorization: `Bearer ${a.token}` } }
+      }
+      accessibilityLabel={localize("Analyzed leaf")}
+      style={[s.image, thumbnail && s.thumbnail]}
+      onError={() => setFailedSource(uri)}
+    />
+  );
 }
 export function AuthBrand({ register = false }: { register?: boolean }) {
   const localize = useLocale();
-  return <View style={s.authBrand}>
-    <LeafLogo large />
-    <Text style={s.brandTitle}>{brand.name}</Text>
-    <Text style={[s.muted, { textAlign: "center" }]}>{localize(register ? "Grow Today\nGreener Tomorrow" : "Good Plants\nBrighter Days")}</Text>
-  </View>;
+  return (
+    <View style={s.authBrand}>
+      <LeafLogo large />
+      <Text style={s.brandTitle}>{brand.name}</Text>
+      <Text style={[s.muted, { textAlign: "center" }]}>
+        {localize(
+          register
+            ? "Grow Today\nGreener Tomorrow"
+            : "Good Plants\nBrighter Days",
+        )}
+      </Text>
+    </View>
+  );
 }
 export function Button({
   title,
@@ -105,39 +163,172 @@ export function Field(props: React.ComponentProps<typeof TextInput>) {
 export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
   const localize = useLocale();
   const [visible, setVisible] = useState(false);
-  return <View style={{ position: "relative" }}>
-    <TextInput placeholderTextColor="#63758a" {...props} secureTextEntry={!visible} style={[s.input, { paddingRight: 56 }]} />
-    <Pressable accessibilityRole="button" accessibilityLabel={localize(visible ? "Hide password" : "Show password")} accessibilityState={{ checked: visible }} onPress={() => setVisible(!visible)} style={{ position: "absolute", right: 4, top: 0, bottom: 0, width: 44, alignItems: "center", justifyContent: "center" }}>
-      <View accessible={false} style={{ width: 23, height: 15, borderWidth: 1.8, borderColor: "#63758a", borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
-        <View style={{ width: 7, height: 7, borderWidth: 1.5, borderColor: "#63758a", borderRadius: 4 }} />
-        {visible && <View style={{ position: "absolute", width: 29, height: 2, backgroundColor: "#63758a", transform: [{ rotate: "45deg" }] }} />}
-      </View>
-    </Pressable>
-  </View>;
+  return (
+    <View style={{ position: "relative" }}>
+      <TextInput
+        placeholderTextColor="#63758a"
+        {...props}
+        secureTextEntry={!visible}
+        style={[s.input, { paddingRight: 56 }]}
+      />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={localize(
+          visible ? "Hide password" : "Show password",
+        )}
+        accessibilityState={{ checked: visible }}
+        onPress={() => setVisible(!visible)}
+        style={{
+          position: "absolute",
+          right: 4,
+          top: 0,
+          bottom: 0,
+          width: 44,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <View
+          accessible={false}
+          style={{
+            width: 23,
+            height: 15,
+            borderWidth: 1.8,
+            borderColor: "#63758a",
+            borderRadius: 12,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              width: 7,
+              height: 7,
+              borderWidth: 1.5,
+              borderColor: "#63758a",
+              borderRadius: 4,
+            }}
+          />
+          {visible && (
+            <View
+              style={{
+                position: "absolute",
+                width: 29,
+                height: 2,
+                backgroundColor: "#63758a",
+                transform: [{ rotate: "45deg" }],
+              }}
+            />
+          )}
+        </View>
+      </Pressable>
+    </View>
+  );
 }
 export function Languages() {
   const localize = useLocale();
   const a = useLeafCare();
   const [open, setOpen] = useState(false);
-  return <>
-    <Button secondary title={`${localize("Change language")}: ${languages[a.lang]}`} onPress={() => setOpen(true)} />
-    <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#142b4180", padding: 20 }}>
-        <Pressable accessibilityLabel={localize("Close language selection")} onPress={() => setOpen(false)} style={StyleSheet.absoluteFill} />
-        <View accessibilityViewIsModal style={{ width: "100%", maxWidth: 350, backgroundColor: "#fff", borderRadius: 20, padding: 20, gap: 14 }}>
-          <View style={[s.row, { justifyContent: "space-between" }]}>
-            <Text style={s.heading}>{localize("Choose your language")}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel={localize("Close language selection")} onPress={() => setOpen(false)} style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}><Text style={s.heading}>×</Text></Pressable>
+  return (
+    <>
+      <Button
+        secondary
+        title={`${localize("Change language")}: ${languages[a.lang]}`}
+        onPress={() => setOpen(true)}
+      />
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#142b4180",
+            padding: 20,
+          }}
+        >
+          <Pressable
+            accessibilityLabel={localize("Close language selection")}
+            onPress={() => setOpen(false)}
+            style={StyleSheet.absoluteFill}
+          />
+          <View
+            accessibilityViewIsModal
+            style={{
+              width: "100%",
+              maxWidth: 350,
+              backgroundColor: "#fff",
+              borderRadius: 20,
+              padding: 20,
+              gap: 14,
+            }}
+          >
+            <View style={[s.row, { justifyContent: "space-between" }]}>
+              <Text style={s.heading}>{localize("Choose your language")}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={localize("Close language selection")}
+                onPress={() => setOpen(false)}
+                style={{
+                  minWidth: 44,
+                  minHeight: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={s.heading}>×</Text>
+              </Pressable>
+            </View>
+            <Text style={s.muted}>
+              {localize("Select your preferred language.")}
+            </Text>
+            {(Object.keys(languages) as Language[]).map((id) => (
+              <Pressable
+                key={id}
+                accessibilityRole="button"
+                accessibilityState={{ selected: a.lang === id }}
+                onPress={() => {
+                  a.change(id);
+                  setOpen(false);
+                }}
+                style={[
+                  s.language,
+                  a.lang === id && s.selected,
+                  {
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  },
+                ]}
+              >
+                <View>
+                  <Text style={[s.body, { fontWeight: "600" }]}>
+                    {languages[id]}
+                  </Text>
+                  <Text style={s.muted}>
+                    {localize(
+                      id === "en"
+                        ? "English"
+                        : id === "te"
+                          ? "Telugu"
+                          : "Hindi",
+                    )}
+                  </Text>
+                </View>
+                <Text style={{ color: "#007ca8", fontSize: 20 }}>
+                  {localize(a.lang === id ? "✓" : "○")}
+                </Text>
+              </Pressable>
+            ))}
           </View>
-          <Text style={s.muted}>{localize("Select your preferred language.")}</Text>
-          {(Object.keys(languages) as Language[]).map(id => <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: a.lang === id }} onPress={() => { a.change(id); setOpen(false); }} style={[s.language, a.lang === id && s.selected, { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }]}>
-            <View><Text style={[s.body, { fontWeight: "600" }]}>{languages[id]}</Text><Text style={s.muted}>{localize(id === "en" ? "English" : id === "te" ? "Telugu" : "Hindi")}</Text></View>
-            <Text style={{ color: "#007ca8", fontSize: 20 }}>{localize(a.lang === id ? "✓" : "○")}</Text>
-          </Pressable>)}
         </View>
-      </View>
-    </Modal>
-  </>;
+      </Modal>
+    </>
+  );
 }
 export function Page({
   title,
@@ -155,7 +346,13 @@ export function Page({
   const localize = useLocale();
   const a = useLeafCare();
   const pathname = usePathname();
-  const activeRoute = ["/review", "/details", "/processing"].includes(pathname) ? "/capture" : ["/result", "/full"].includes(pathname) ? "/history" : ["/language", "/account-details", "/security"].includes(pathname) ? "/profile" : pathname;
+  const activeRoute = ["/review", "/details", "/processing"].includes(pathname)
+    ? "/capture"
+    : ["/result", "/full"].includes(pathname)
+      ? "/history"
+      : ["/language", "/account-details", "/security"].includes(pathname)
+        ? "/profile"
+        : pathname;
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
   return (
@@ -164,43 +361,59 @@ export function Page({
         style={s.flex}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {!auth && <View style={s.header}>
-          <Pressable
-            disabled={processing}
-            accessibilityLabel={localize("Go back")}
-            accessibilityRole="button"
-            style={s.iconButton}
-            onPress={() =>
-              router.canGoBack()
-                ? router.back()
-                : a.go(auth ? "login" : "home")
-            }
-          >
-            <Text style={s.heading}>←</Text>
-          </Pressable>
-          <View style={s.flex}>
-            <View style={s.row}><LeafLogo /><Text style={s.heading}>{brand.name}</Text></View>
-            <Text style={s.small}>{localize(brand.tagline)}</Text>
-          </View>
-          {!auth && (
+        {!auth && (
+          <View style={s.header}>
             <Pressable
-              disabled={processing || a.busy}
+              disabled={processing}
+              accessibilityLabel={localize("Go back")}
               accessibilityRole="button"
-              accessibilityLabel={localize(`Open profile for ${a.user?.fullName || "your account"}`)}
-              style={s.accountAvatar}
-              onPress={() => a.go("profile")}
+              style={s.iconButton}
+              onPress={() =>
+                router.canGoBack()
+                  ? router.back()
+                  : a.go(auth ? "login" : "home")
+              }
             >
-              <UserAvatar />
+              <Text style={s.heading}>←</Text>
             </Pressable>
-          )}
-        </View>}
+            <View style={s.flex}>
+              <View style={s.row}>
+                <LeafLogo />
+                <Text style={s.heading}>{brand.name}</Text>
+              </View>
+              <Text style={s.small}>{localize(brand.tagline)}</Text>
+            </View>
+            {!auth && (
+              <Pressable
+                disabled={processing || a.busy}
+                accessibilityRole="button"
+                accessibilityLabel={localize(
+                  `Open profile for ${a.user?.fullName || "your account"}`,
+                )}
+                style={s.accountAvatar}
+                onPress={() => a.go("profile")}
+              >
+                <UserAvatar />
+              </Pressable>
+            )}
+          </View>
+        )}
         <ScrollView
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[s.container, auth && s.authContainer]}
         >
           {branding}
           <Text style={s.title}>{localize(title)}</Text>
-          {!!a.notice && <View style={s.notice}><Text accessibilityLiveRegion="polite" style={{ color: "#185b31" }}>{a.notice}</Text></View>}
+          {!!a.notice && (
+            <View style={s.notice}>
+              <Text
+                accessibilityLiveRegion="polite"
+                style={{ color: "#185b31" }}
+              >
+                {a.notice}
+              </Text>
+            </View>
+          )}
           {!!a.error && (
             <Card>
               <Text accessibilityRole="alert" style={s.error}>
@@ -215,7 +428,10 @@ export function Page({
           )}
           {children}
           {a.busy && (
-            <ActivityIndicator accessibilityLabel={localize("Working")} color="#007ca8" />
+            <ActivityIndicator
+              accessibilityLabel={localize("Working")}
+              color="#007ca8"
+            />
           )}
         </ScrollView>
         {!auth && !processing && (
@@ -233,13 +449,69 @@ export function Page({
                 disabled={a.busy}
                 accessibilityRole="button"
                 accessibilityLabel={localize(label)}
-                accessibilityState={{ selected: (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))), disabled: a.busy }}
+                accessibilityState={{
+                  selected:
+                    activeRoute === `/${route}` ||
+                    (route === "profile" &&
+                      [
+                        "/farm",
+                        "/farm-details",
+                        "/language",
+                        "/account-details",
+                        "/security",
+                      ].includes(activeRoute)),
+                  disabled: a.busy,
+                }}
                 key={route}
                 onPress={() => a.go(route)}
-                style={[s.navItem, (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))) && s.navSelected]}
+                style={[
+                  s.navItem,
+                  (activeRoute === `/${route}` ||
+                    (route === "profile" &&
+                      [
+                        "/farm",
+                        "/farm-details",
+                        "/language",
+                        "/account-details",
+                        "/security",
+                      ].includes(activeRoute))) &&
+                    s.navSelected,
+                ]}
               >
-                <NavigationIcon route={route} selected={(activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute)))} />
-                <Text style={[s.small, { color: "#63758a" }, (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))) && { color: "#007ca8", fontWeight: "700" }]}>{localize(label)}</Text>
+                <NavigationIcon
+                  route={route}
+                  selected={
+                    activeRoute === `/${route}` ||
+                    (route === "profile" &&
+                      [
+                        "/farm",
+                        "/farm-details",
+                        "/language",
+                        "/account-details",
+                        "/security",
+                      ].includes(activeRoute))
+                  }
+                />
+                <Text
+                  style={[
+                    s.small,
+                    { color: "#63758a" },
+                    (activeRoute === `/${route}` ||
+                      (route === "profile" &&
+                        [
+                          "/farm",
+                          "/farm-details",
+                          "/language",
+                          "/account-details",
+                          "/security",
+                        ].includes(activeRoute))) && {
+                      color: "#007ca8",
+                      fontWeight: "700",
+                    },
+                  ]}
+                >
+                  {localize(label)}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -249,12 +521,41 @@ export function Page({
   );
 }
 export const s = StyleSheet.create({
-  authContainer: { flexGrow: 1, justifyContent: "center", maxWidth: 430, paddingVertical: 28, gap: 20 },
+  authContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    maxWidth: 430,
+    paddingVertical: 28,
+    gap: 20,
+  },
   authBrand: { alignItems: "center", gap: 10, marginVertical: 12 },
-  brandTitle: { fontSize: 32, fontWeight: "800", color: "#12334a", textAlign: "center" },
-  iconButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
-  menuBackdrop: { flex: 1, backgroundColor: "#142b4180", padding: 20, justifyContent: "center", alignItems: "center" },
-  menuCard: { width: "100%", maxWidth: 350, padding: 20, gap: 14, borderRadius: 20, backgroundColor: "#fff" },
+  brandTitle: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#12334a",
+    textAlign: "center",
+  },
+  iconButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: "#142b4180",
+    padding: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  menuCard: {
+    width: "100%",
+    maxWidth: 350,
+    padding: 20,
+    gap: 14,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+  },
   notice: { backgroundColor: "#e8f6ee", padding: 16, borderRadius: 12 },
   thumbnail: { width: 55, height: 60, borderRadius: 10, resizeMode: "cover" },
   photoPlaceholder: { alignItems: "center", justifyContent: "center", gap: 12 },
@@ -325,7 +626,11 @@ export const s = StyleSheet.create({
     borderColor: "#d6e2ec",
     gap: 5,
   },
-  selected: { backgroundColor: "#edf8ff", borderColor: "#007ca8", borderWidth: 2 },
+  selected: {
+    backgroundColor: "#edf8ff",
+    borderColor: "#007ca8",
+    borderWidth: 2,
+  },
   image: {
     width: "100%",
     height: 280,
@@ -341,7 +646,23 @@ export const s = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#e0e9ef",
   },
-  accountAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: "#eaf7ff", borderWidth: 1, borderColor: "#c6e5f4", alignItems: "center", justifyContent: "center" },
+  accountAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#eaf7ff",
+    borderWidth: 1,
+    borderColor: "#c6e5f4",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   avatarText: { color: "#007ca8", fontSize: 18, fontWeight: "700" },
-  navItem: { flex: 1, minHeight: 64, paddingVertical: 10, gap: 4, alignItems: "center", justifyContent: "center" },
+  navItem: {
+    flex: 1,
+    minHeight: 64,
+    paddingVertical: 10,
+    gap: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

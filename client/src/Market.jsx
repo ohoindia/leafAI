@@ -1,17 +1,193 @@
 import { useEffect, useRef, useState } from "react";
 import { endpoints } from "../../common/api.js";
-import { mandiNote, mspNote, riceNote, mspPrices, mspSeason, marketSource, mspSource, price } from "../../common/market.js";
+import {
+  mandiNote,
+  mspNote,
+  riceNote,
+  mspPrices,
+  mspSeason,
+  marketSource,
+  mspSource,
+  price,
+} from "../../common/market.js";
 import { useLocale } from "./locale";
-export function Market({api}) {
- const t=useLocale(),[data,setData]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(""),[state,setState]=useState(""),[district,setDistrict]=useState(""),[crop,setCrop]=useState("all");
- const sequence=useRef(0);
- async function load(params="") {const id=++sequence.current;setBusy(true);setError("");setData(null);try{const result=await api(endpoints.market+params);if(id===sequence.current)setData(result);}catch(e){if(id===sequence.current)setError(e.message);}finally{if(id===sequence.current)setBusy(false);}}
- useEffect(()=>{load();return()=>{sequence.current++;};},[]);
- function locate(){if(!navigator.geolocation){setError("Location is unavailable. Enter your state and district.");return;}setBusy(true);navigator.geolocation.getCurrentPosition(p=>load(`?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`),()=>{setBusy(false);setError("Allow location access or enter your state and district.");},{timeout:10000});}
- const records=(data?.records||[]).filter(r=>crop==="all"||(crop==="rice"?/rice|paddy/i:crop==="cotton"?/cotton/i:/chilli|chili|mirchi/i).test(r.commodity));
- return <><h2>{t("Market")}</h2><p className="muted">{t("All prices in rupees per quintal (100 kg).")}</p>
- <section className="card"><h3>{t("Your market location")}</h3><form onSubmit={e=>{e.preventDefault();load("?"+new URLSearchParams({state:state.trim(),district:district.trim()}));}}><label>{t("State")}<input required minLength={2} maxLength={100} value={state} onChange={e=>setState(e.target.value)} placeholder="Telangana"/></label><label>{t("District")}<input required minLength={2} maxLength={100} value={district} onChange={e=>setDistrict(e.target.value)} placeholder="Warangal"/></label><button disabled={busy}>{t("Load prices")}</button></form><div className="market-actions"><button className="secondary" disabled={busy} onClick={locate}>{t("Use my location")}</button><button className="secondary" disabled={busy} onClick={()=>load()}>{t("Saved farm")}</button></div></section>
- <section className="card market-mandi"><h3>{t("Local mandi prices")}</h3><p>{t(mandiNote)}</p>{data?.location?.district&&<h4>{data.location.district}, {data.location.state}</h4>}<label>{t("Crop")}<select value={crop} onChange={e=>setCrop(e.target.value)}><option value="all">{t("All crops")}</option><option value="rice">{t("Rice / Paddy")}</option><option value="cotton">{t("Cotton")}</option><option value="mirchi">{t("Mirchi (chilli)")}</option></select></label>{busy&&<p role="status">{t("Loading market prices...")}</p>}{error&&<p role="alert">{t(error)}</p>}{data&&<p role="status">{t(data.message)}</p>}{data?.status==="ok"&&!records.length&&<p>{t("No reports for this crop in the selected district.")}</p>}
- <div className="market-list">{records.map((r,i)=><article className="market-row" key={i}><strong>{r.commodity} · {r.variety}</strong><p>{r.market} · {t("Reported")}: {r.date}</p><strong>{t("Modal price")}: {price(r.modal)}</strong><p>{t("Minimum")}: {price(r.min)} · {t("Maximum")}: {price(r.max)}</p></article>)}</div>{data?.truncated&&<p>{t("Showing the first 1,000 reports. See the source for more.")}</p>}<a href={marketSource} target="_blank" rel="noreferrer">AGMARKNET / data.gov.in</a></section>
- <section className="card market-msp"><h3>{t("Government Minimum Support Prices (MSP)")}</h3><p>{t(mspNote)}</p><p><strong>{mspSeason} · ₹ / {t("quintal (100 kg)")}</strong></p><p>{t(riceNote)}</p><div className="market-list">{mspPrices.map(([name,value])=><div className="market-row" key={name}><strong>{t(name)}</strong><span>{price(value)}</span></div>)}</div><a href={mspSource} target="_blank" rel="noreferrer">{t("Official MSP notification · 13 May 2026")}</a></section></>;
+export function Market({ api }) {
+  const t = useLocale(),
+    [data, setData] = useState(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [state, setState] = useState(""),
+    [district, setDistrict] = useState(""),
+    [crop, setCrop] = useState("all");
+  const sequence = useRef(0);
+  async function load(params = "") {
+    const id = ++sequence.current;
+    setBusy(true);
+    setError("");
+    setData(null);
+    try {
+      const result = await api(endpoints.market + params);
+      if (id === sequence.current) setData(result);
+    } catch (e) {
+      if (id === sequence.current) setError(e.message);
+    } finally {
+      if (id === sequence.current) setBusy(false);
+    }
+  }
+  useEffect(() => {
+    load();
+    return () => {
+      sequence.current++;
+    };
+  }, []);
+  function locate() {
+    if (!navigator.geolocation) {
+      setError("Location is unavailable. Enter your state and district.");
+      return;
+    }
+    setBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) =>
+        load(`?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`),
+      () => {
+        setBusy(false);
+        setError("Allow location access or enter your state and district.");
+      },
+      { timeout: 10000 },
+    );
+  }
+  const records = (data?.records || []).filter(
+    (r) =>
+      crop === "all" ||
+      (crop === "rice"
+        ? /rice|paddy/i
+        : crop === "cotton"
+          ? /cotton/i
+          : /chilli|chili|mirchi/i
+      ).test(r.commodity),
+  );
+  return (
+    <>
+      <h2>{t("Market")}</h2>
+      <p className="muted">{t("All prices in rupees per quintal (100 kg).")}</p>
+      <section className="card">
+        <h3>{t("Your market location")}</h3>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            load(
+              "?" +
+                new URLSearchParams({
+                  state: state.trim(),
+                  district: district.trim(),
+                }),
+            );
+          }}
+        >
+          <label>
+            {t("State")}
+            <input
+              required
+              minLength={2}
+              maxLength={100}
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              placeholder="Telangana"
+            />
+          </label>
+          <label>
+            {t("District")}
+            <input
+              required
+              minLength={2}
+              maxLength={100}
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              placeholder="Warangal"
+            />
+          </label>
+          <button disabled={busy}>{t("Load prices")}</button>
+        </form>
+        <div className="market-actions">
+          <button className="secondary" disabled={busy} onClick={locate}>
+            {t("Use my location")}
+          </button>
+          <button className="secondary" disabled={busy} onClick={() => load()}>
+            {t("Saved farm")}
+          </button>
+        </div>
+      </section>
+      <section className="card market-mandi">
+        <h3>{t("Local mandi prices")}</h3>
+        <p>{t(mandiNote)}</p>
+        {data?.location?.district && (
+          <h4>
+            {data.location.district}, {data.location.state}
+          </h4>
+        )}
+        <label>
+          {t("Crop")}
+          <select value={crop} onChange={(e) => setCrop(e.target.value)}>
+            <option value="all">{t("All crops")}</option>
+            <option value="rice">{t("Rice / Paddy")}</option>
+            <option value="cotton">{t("Cotton")}</option>
+            <option value="mirchi">{t("Mirchi (chilli)")}</option>
+          </select>
+        </label>
+        {busy && <p role="status">{t("Loading market prices...")}</p>}
+        {error && <p role="alert">{t(error)}</p>}
+        {data && <p role="status">{t(data.message)}</p>}
+        {data?.status === "ok" && !records.length && (
+          <p>{t("No reports for this crop in the selected district.")}</p>
+        )}
+        <div className="market-list">
+          {records.map((r, i) => (
+            <article className="market-row" key={i}>
+              <strong>
+                {r.commodity} · {r.variety}
+              </strong>
+              <p>
+                {r.market} · {t("Reported")}: {r.date}
+              </p>
+              <strong>
+                {t("Modal price")}: {price(r.modal)}
+              </strong>
+              <p>
+                {t("Minimum")}: {price(r.min)} · {t("Maximum")}: {price(r.max)}
+              </p>
+            </article>
+          ))}
+        </div>
+        {data?.truncated && (
+          <p>
+            {t("Showing the first 1,000 reports. See the source for more.")}
+          </p>
+        )}
+        <a href={marketSource} target="_blank" rel="noreferrer">
+          AGMARKNET / data.gov.in
+        </a>
+      </section>
+      <section className="card market-msp">
+        <h3>{t("Government Minimum Support Prices (MSP)")}</h3>
+        <p>{t(mspNote)}</p>
+        <p>
+          <strong>
+            {mspSeason} · ₹ / {t("quintal (100 kg)")}
+          </strong>
+        </p>
+        <p>{t(riceNote)}</p>
+        <div className="market-list">
+          {mspPrices.map(([name, value]) => (
+            <div className="market-row" key={name}>
+              <strong>{t(name)}</strong>
+              <span>{price(value)}</span>
+            </div>
+          ))}
+        </div>
+        <a href={mspSource} target="_blank" rel="noreferrer">
+          {t("Official MSP notification · 13 May 2026")}
+        </a>
+      </section>
+    </>
+  );
 }

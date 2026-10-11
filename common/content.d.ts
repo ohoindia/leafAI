@@ -33,7 +33,8 @@ export const consentDetail: string;
 export const voiceCommands: string[];
 export const careTips: string[][];
 export function analysisStatus(
-  item: Partial<Pick<Analysis, "status" | "condition" | "severity">> & Partial<Pick<HistoryItem, "disease_name">>,
+  item: Partial<Pick<Analysis, "status" | "condition" | "severity">> &
+    Partial<Pick<HistoryItem, "disease_name">>,
 ): string;
 export function filterHistory(
   items: HistoryItem[],
@@ -44,4 +45,9 @@ export function filterHistory(
 export function accountInitials(name?: string): string;
 export function accountGreeting(name?: string, hour?: number): string;
 
-export const profileSettings: { route: "farm" | "language" | "account-details" | "security"; title: string; subtitle: string; icon: string }[];
+export const profileSettings: {
+  route: "farm" | "language" | "account-details" | "security";
+  title: string;
+  subtitle: string;
+  icon: string;
+}[];

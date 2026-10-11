@@ -119,11 +119,11 @@ For mobile, set `EXPO_PUBLIC_API_URL` to the base URL in `mobile/.env` and resta
 
 Swagger is included in the backend and served on Lambda. No separate Swagger deployment or environment flag is needed. The stack outputs `SwaggerUrl` and `OpenApiUrl` alongside the function and API URL.
 
-| Environment | Swagger UI | OpenAPI JSON |
-| --- | --- | --- |
-| Local (default port) | `http://localhost:8080/api/docs` | `http://localhost:8080/api/docs-json` |
-| Lambda | `https://YOUR_FUNCTION_HOST/api/docs` | `https://YOUR_FUNCTION_HOST/api/docs-json` |
-| Amplify (after the API rewrite) | `https://YOUR_WEBSITE_HOST/api/docs` | `https://YOUR_WEBSITE_HOST/api/docs-json` |
+| Environment                     | Swagger UI                            | OpenAPI JSON                               |
+| ------------------------------- | ------------------------------------- | ------------------------------------------ |
+| Local (default port)            | `http://localhost:8080/api/docs`      | `http://localhost:8080/api/docs-json`      |
+| Lambda                          | `https://YOUR_FUNCTION_HOST/api/docs` | `https://YOUR_FUNCTION_HOST/api/docs-json` |
+| Amplify (after the API rewrite) | `https://YOUR_WEBSITE_HOST/api/docs`  | `https://YOUR_WEBSITE_HOST/api/docs-json`  |
 
 For local use, configure `server/.env` and run `npm run dev` from `server`. On Lambda, complete step 5's environment setup first. Include the origin where you open Swagger in `ALLOWED_ORIGINS` without a trailing slash, and leave Function URL CORS settings unset.
 

@@ -88,16 +88,47 @@ export function filterHistory(items, query, filter) {
 
 export function accountInitials(name = "") {
   const parts = name.trim().split(/\s+/).filter(Boolean);
-  return (parts.length > 1 ? parts.slice(0, 2).map(part => Array.from(part)[0]).join("") : Array.from(parts[0] || "").slice(0, 2).join("")).toLocaleUpperCase() || "KK";
+  return (
+    (parts.length > 1
+      ? parts
+          .slice(0, 2)
+          .map((part) => Array.from(part)[0])
+          .join("")
+      : Array.from(parts[0] || "")
+          .slice(0, 2)
+          .join("")
+    ).toLocaleUpperCase() || "KK"
+  );
 }
 export function accountGreeting(name = "", hour = new Date().getHours()) {
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   return `${greeting}${name.trim() ? `, ${name.trim()}` : ""}!`;
 }
 
 export const profileSettings = [
-  { route: "farm", title: "Farm and crops", subtitle: "Keep your farm and seasonal crop records up to date.", icon: "farm" },
-  { route: "language", title: "Change language", subtitle: "Choose your preferred language", icon: "language" },
-  { route: "account-details", title: "Account details", subtitle: "View and update your personal details", icon: "profile" },
-  { route: "security", title: "PIN & security", subtitle: "Manage your account PIN", icon: "security" },
+  {
+    route: "farm",
+    title: "Farm and crops",
+    subtitle: "Keep your farm and seasonal crop records up to date.",
+    icon: "farm",
+  },
+  {
+    route: "language",
+    title: "Change language",
+    subtitle: "Choose your preferred language",
+    icon: "language",
+  },
+  {
+    route: "account-details",
+    title: "Account details",
+    subtitle: "View and update your personal details",
+    icon: "profile",
+  },
+  {
+    route: "security",
+    title: "PIN & security",
+    subtitle: "Manage your account PIN",
+    icon: "security",
+  },
 ];

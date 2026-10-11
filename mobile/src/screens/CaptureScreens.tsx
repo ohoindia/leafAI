@@ -16,9 +16,15 @@ export function CaptureScreen() {
   return (
     <Page title={localize(screens.capture)}>
       <Card>
-        <View style={{ alignItems: "center" }}><LeafLogo large /></View>
-        <Text style={s.body}>{localize("Place one leaf inside the frame")}</Text>
-        <Text style={s.muted}>{localize("Your device camera opens when you tap below.")}</Text>
+        <View style={{ alignItems: "center" }}>
+          <LeafLogo large />
+        </View>
+        <Text style={s.body}>
+          {localize("Place one leaf inside the frame")}
+        </Text>
+        <Text style={s.muted}>
+          {localize("Your device camera opens when you tap below.")}
+        </Text>
       </Card>
       <Card title={localize("A clearer photo helps")}>
         <Text style={s.body}>{localize(photoTip)}</Text>
@@ -59,7 +65,11 @@ export function ReviewScreen() {
           </Text>
         ))}
       </Card>
-      <Button secondary title={localize("Retake")} onPress={() => a.go("capture")} />
+      <Button
+        secondary
+        title={localize("Retake")}
+        onPress={() => a.go("capture")}
+      />
       <Button title={localize("Use photo")} onPress={() => a.go("details")} />
     </Page>
   );
@@ -72,7 +82,9 @@ export function DetailsScreen() {
     <Page title={localize(screens.details)}>
       <Card title={localize("Ready to analyze")}>
         <Image source={{ uri: a.photo }} style={s.image} />
-        <Text style={s.muted}>{localize("Add a few details (optional) for more helpful results.")}</Text>
+        <Text style={s.muted}>
+          {localize("Add a few details (optional) for more helpful results.")}
+        </Text>
       </Card>
       <Field
         accessibilityLabel={localize("Plant name (optional)")}
@@ -118,13 +130,19 @@ export function ProcessingScreen() {
     <Page processing title={localize(screens.processing)}>
       {a.photo && <Image source={{ uri: a.photo }} style={s.image} />}
       <ActivityIndicator size="large" color="#007ca8" />
-      <Text accessibilityLiveRegion="polite" style={s.body}>{localize("Checking the photo and assessing visible plant health.")}</Text>
+      <Text accessibilityLiveRegion="polite" style={s.body}>
+        {localize("Checking the photo and assessing visible plant health.")}
+      </Text>
       <Card>
         <Text style={s.body}>{localize("1. Image received")}</Text>
         <Text style={s.body}>{localize("2. AI analysis in progress")}</Text>
         <Text style={s.body}>{localize("3. Preparing recommendations")}</Text>
       </Card>
-      <Text style={s.muted}>{localize("This may take a few moments. Good plant care is worth the wait!")}</Text>
+      <Text style={s.muted}>
+        {localize(
+          "This may take a few moments. Good plant care is worth the wait!",
+        )}
+      </Text>
     </Page>
   );
 }
