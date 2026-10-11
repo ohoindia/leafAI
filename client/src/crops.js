@@ -2,7 +2,7 @@ export const cropCategories = ["Cereals & Millets", "Pulses", "Oilseeds", "Fibre
 export const categoryImages = {
   "Cereals & Millets": "Paddy", Pulses: "Moong", Oilseeds: "Sunflower seed",
   "Fibre crops": "Cotton", Vegetables: "Tomato", Fruits: "Mango",
-  Spices: "Sesame", "Other crops": "Crop plant", all: "Crop plant",
+  Spices: "Turmeric", "Other crops": "Crop plant", all: "Crop plant",
 };
 
 const crops = [

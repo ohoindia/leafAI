@@ -1,0 +1,128 @@
+{
+  "cotton": {
+    "source": "https://commons.wikimedia.org/wiki/File:Mature_cotton_boll_in_Raichur,_Karnataka.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/w/index.php?title=Nanditha_Gogate,_WELL_Labs&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"Nanditha Gogate, WELL Labs (page does not exist)\">Nanditha Gogate, WELL Labs</a>",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  "rice": {
+    "source": "https://commons.wikimedia.org/wiki/File:Mushqbudji_rice_grains_close-up.jpg",
+    "author": "Zahoor Ahmad Reshi",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  "maize": {
+    "source": "https://commons.wikimedia.org/wiki/File:Corn_cobs_in_colander.jpg",
+    "author": "Nutrition, Food Safety &amp; Health",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  "jowar": {
+    "source": "https://commons.wikimedia.org/wiki/File:Sorghum_rice_(2).jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Fumikas_Sagisavas\" title=\"User:Fumikas Sagisavas\">Fumikas Sagisavas</a>",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  "ragi": {
+    "source": "https://commons.wikimedia.org/wiki/File:Finger_Millet_Seed.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Gaurav_Dhwaj_Khadka\" title=\"User:Gaurav Dhwaj Khadka\">Gaurav Dhwaj Khadka</a>",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
+  },
+  "bajra": {
+    "source": "https://commons.wikimedia.org/wiki/File:Pearl_millet_grain.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Sznu&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Sznu (page does not exist)\">Sznu</a>",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  "groundnut": {
+    "source": "https://commons.wikimedia.org/wiki/File:Peanuts_(Arachis_hypogaea)_-_in_shell,_shell_cracked_open,_shelled,_peeled.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Iifar\" title=\"User:Iifar\">Ivar Leidus</a>",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  "tomato": {
+    "source": "https://commons.wikimedia.org/wiki/File:Tomato_je.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Softeis&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Softeis (page does not exist)\">Softeis</a>",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "vegetable": {
+    "source": "https://commons.wikimedia.org/wiki/File:Salad_greens_and_vegetables_-_Cambridge,_MA.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Daderot\" title=\"User:Daderot\">Daderot</a>",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+  },
+  "fruit": {
+    "source": "https://commons.wikimedia.org/wiki/File:Mangos_-_single_and_halved.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Iifar\" title=\"User:Iifar\">Ivar Leidus</a>",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  "seed": {
+    "source": "https://commons.wikimedia.org/wiki/File:Bumbu_dan_Rempah_-_rempah.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Galeri_ega&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Galeri ega (page does not exist)\">Galeri ega</a>",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  "plant": {
+    "source": "https://commons.wikimedia.org/wiki/File:Green_rice_sheaves_planted_in_a_paddy_field_with_long_shadows_at_golden_hour_in_Don_Det_Laos.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Basile_Morin\" title=\"User:Basile Morin\">Basile Morin</a>",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  "grain": {
+    "source": "https://commons.wikimedia.org/wiki/File:Wheat_close-up.JPG",
+    "author": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Bluemoose&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Bluemoose (page does not exist)\">User:Bluemoose</a>",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "chilli": {
+    "source": "https://commons.wikimedia.org/wiki/File:Red_chillies.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Challiyan\" title=\"User:Challiyan\">Challiyan</a>",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+  },
+  "niger": {
+    "source": "https://commons.wikimedia.org/wiki/File:Guizotia_abyssinica_niger.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Silvestresbrasileiros\" title=\"User:Silvestresbrasileiros\">Silvestresbrasileiros</a>",
+    "license": "Public domain",
+    "licenseUrl": ""
+  },
+  "soybean": {
+    "source": "https://commons.wikimedia.org/wiki/File:Soybean.USDA.jpg",
+    "author": "",
+    "license": "Public domain",
+    "licenseUrl": ""
+  },
+  "urad": {
+    "source": "https://commons.wikimedia.org/wiki/File:Black_gram.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/wiki/User:Sanjay_ach\" title=\"User:Sanjay ach\">Sanjay Acharya</a>",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "pulse": {
+    "source": "https://commons.wikimedia.org/wiki/File:Mung_beans_raw.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:Lucianne&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:Lucianne (page does not exist)\">Lucianne</a>",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+  },
+  "sesame": {
+    "source": "https://commons.wikimedia.org/wiki/File:Sesame-Seeds.jpg",
+    "author": "No machine-readable author provided. <a href=\"//commons.wikimedia.org/wiki/User:Ies\" title=\"User:Ies\">Ies</a> assumed (based on copyright claims).",
+    "license": "Public domain",
+    "licenseUrl": ""
+  },
+  "tur": {
+    "source": "https://commons.wikimedia.org/wiki/File:Pigeon_peas.jpg",
+    "author": "<a href=\"//commons.wikimedia.org/w/index.php?title=User:C.L._Ramjohn&amp;action=edit&amp;redlink=1\" class=\"new\" title=\"User:C.L. Ramjohn (page does not exist)\">User:C.L. Ramjohn</a>",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+  },
+  "sunflower": {
+    "source": "https://commons.wikimedia.org/wiki/File:Sunflower_sky_backdrop.jpg",
+    "author": "Fir0002",
+    "license": "GFDL 1.2",
+    "licenseUrl": "http://www.gnu.org/licenses/old-licenses/fdl-1.2.html"
+  }
+}

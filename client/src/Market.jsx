@@ -11,7 +11,7 @@ import {
   price,
 } from "../../common/market.js";
 import { useLocale } from "./locale";
-import { CropImage } from "./CropImage";
+import { CropIcon, CropSymbol } from "./CropIcon";
 import { cropCategories, categoryImages, cropDetails, groupCrops } from "./crops";
 export function Market({ api }) {
   const t = useLocale(),
@@ -73,10 +73,10 @@ export function Market({ api }) {
   return (
     <div className="market-page">
       <header className="market-page-header">
-        <h2>{t("Market")}</h2>
+        <div><span className="market-eyebrow">{t("Crop prices & market insights")}</span><h2>{t("Market")}</h2></div>
         <p className="muted">{t("All prices in rupees per quintal (100 kg).")}</p>
       </header>
-      <section className="card">
+      <section className="card market-location">
         <h3>{t("Your market location")}</h3>
         <form
           onSubmit={(e) => {
@@ -132,7 +132,7 @@ export function Market({ api }) {
           </svg>
           {t("Local mandi prices")}
         </h3>
-        <p>{t(mandiNote)}</p>
+        <p className="market-description">{t(mandiNote)}</p>
         {data?.location?.district && (
           <h4>
             {data.location.district}, {data.location.state}
@@ -154,7 +154,7 @@ export function Market({ api }) {
                 aria-pressed={crop === key}
                 onClick={() => { setCrop(key); setCategory("all"); }}
               >
-                <span aria-hidden="true"><CropImage name={image} /></span>
+                <span aria-hidden="true"><CropSymbol name={image} /></span>
                 <span>{t(label)}</span>
               </button>
             ))}
@@ -168,10 +168,11 @@ export function Market({ api }) {
                 type="button"
                 key={name}
                 className="market-category-option"
+                data-category={name}
                 aria-pressed={category === name}
                 onClick={() => { setCategory(name); setCrop("all"); }}
               >
-                <span aria-hidden="true"><CropImage name={categoryImages[name]} /></span>
+                <span aria-hidden="true"><CropSymbol name={categoryImages[name]} /></span>
                 <span>{t(name === "all" ? "All categories" : name)}</span>
               </button>
             ))}
@@ -185,12 +186,12 @@ export function Market({ api }) {
         )}
         <div className="market-list">
           {groupCrops(records, (r) => r.commodity).map((group) => (
-            <section className="crop-category" key={group.category}>
-              <h4 className="crop-category-heading"><CropImage name={categoryImages[group.category]} />{t(group.category)} <span className="muted">({group.items.length})</span></h4>
+            <section className="crop-category" data-category={group.category} key={group.category}>
+              <h4 className="crop-category-heading"><span className="category-heading-icon"><CropIcon name={categoryImages[group.category]} /></span>{t(group.category)} <span className="market-count">{group.items.length}</span></h4>
               <div className="crop-grid">
           {group.items.map((r, i) => (
             <article className="market-row crop-market-row" key={i}>
-              <CropImage name={r.commodity} />
+              <CropSymbol name={r.commodity} />
               <div className="crop-price-details">
               <strong>
                 {r.commodity} · {r.variety}
@@ -222,26 +223,25 @@ export function Market({ api }) {
       </section>
       <section className="card market-msp">
         <div className="market-section-header"><h3>{t("Government Minimum Support Prices (MSP)")}</h3><span className="market-season">{mspSeason}</span></div>
-        <p>{t(mspNote)}</p>
-        <p>
-          <strong>
-            {mspSeason} · ₹ / {t("quintal (100 kg)")}
-          </strong>
-        </p>
-        <p>{t(riceNote)}</p>
+        <p className="market-description">{t("Government support prices for the current kharif season.")}</p>
+        <details className="market-explainer">
+          <summary>{t("How MSP works")}</summary>
+          <p>{t(mspNote)}</p>
+          <p>{t(riceNote)}</p>
+        </details>
         <div className="market-list">
           {groupCrops(mspPrices, ([name]) => name).map((group) => (
-            <section className="crop-category" key={group.category}>
-              <h4 className="crop-category-heading"><CropImage name={categoryImages[group.category]} />{t(group.category)}</h4>
+            <section className="crop-category" data-category={group.category} key={group.category}>
+              <h4 className="crop-category-heading"><span className="category-heading-icon"><CropIcon name={categoryImages[group.category]} /></span>{t(group.category)}</h4>
               <div className="crop-grid">
           {group.items.map(([name, value]) => (
-            <div className="market-row crop-market-row" key={name}>
-              <CropImage name={name} />
+            <article className="market-row crop-market-row msp-price-card" key={name}>
+              <CropSymbol name={name} />
               <div className="crop-price-details">
               <strong>{t(name)}</strong>
-              <span className="market-price">{price(value)}</span>
+              <div className="msp-card-price"><span className="market-price">{price(value).split(" / ")[0]}</span><span className="market-price-unit">{t("per quintal (100 kg)")}</span></div>
               </div>
-            </div>
+            </article>
           ))}
               </div>
             </section>
