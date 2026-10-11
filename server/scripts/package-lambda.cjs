@@ -17,6 +17,9 @@ fs.mkdirSync(artifact, { recursive: true });
 fs.cpSync(path.join(serverRoot, "dist"), path.join(artifact, "dist"), {
   recursive: true,
 });
+fs.cpSync(path.join(serverRoot, "assets"), path.join(artifact, "assets"), {
+  recursive: true,
+});
 for (const name of ["package.json", "package-lock.json"]) {
   fs.copyFileSync(path.join(serverRoot, name), path.join(artifact, name));
 }

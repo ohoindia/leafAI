@@ -7,6 +7,7 @@ try {
   & node 'node_modules/typescript/bin/tsc' -p tsconfig.json --outDir (Join-Path $stage 'dist')
   if ($LASTEXITCODE -ne 0) { throw 'Backend compilation failed.' }
   Copy-Item -LiteralPath 'package.json','package-lock.json' -Destination $stage
+  Copy-Item -LiteralPath 'assets' -Destination $stage -Recurse
   Push-Location $stage
   try {
     # Fetch Linux prebuilds instead of copying Windows node_modules.
@@ -22,10 +23,10 @@ try {
     $archive = Join-Path $serverRoot 'lambda.zip'
     # Windows bsdtar preserves ZIP path separators and handles many small files quickly.
     if (Get-Command tar.exe -ErrorAction SilentlyContinue) {
-      & tar.exe -a -c -f $archive dist node_modules package.json
+      & tar.exe -a -c -f $archive dist assets node_modules package.json
       if ($LASTEXITCODE -ne 0) { throw 'ZIP creation failed.' }
     } else {
-      Compress-Archive -LiteralPath 'dist','node_modules','package.json' -DestinationPath $archive -Force
+      Compress-Archive -LiteralPath 'dist','assets','node_modules','package.json' -DestinationPath $archive -Force
     }
     Write-Output "Lambda ZIP created: $archive (Node.js 22, x86_64, handler dist/lambda.handler)"
     Write-Output 'Environment files and secrets are excluded. Configure Lambda environment variables separately.'

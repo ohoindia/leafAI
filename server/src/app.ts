@@ -15,6 +15,7 @@ import { AppModule } from "./app.module.js";
 import { ApiExceptionFilter } from "./common/api-exception.filter.js";
 import type { ApiRequest } from "./common/api-request.js";
 import { env, origins } from "./config.js";
+import { cropIconAssets } from "./common/crop-icons.js";
 
 export async function createApplication() {
   const server = express();
@@ -57,6 +58,7 @@ export async function createApplication() {
     }),
   );
   server.use(express.json({ limit: "100kb" }));
+  server.use("/api/crop-icons/v1", cropIconAssets());
   server.use(cookieParser());
   server.use(
     "/api",
