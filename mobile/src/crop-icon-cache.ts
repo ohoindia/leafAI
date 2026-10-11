@@ -13,8 +13,14 @@ const file = (key: string) => {
 export const recoverCropIcon = createCropIconCache({
   async read(key) {
     if (Platform.OS === "web" || !FileSystem.cacheDirectory) return null;
-    const info = await FileSystem.getInfoAsync(file(key));
-    return info.exists && !info.isDirectory && info.size > 0 ? info.uri : null;
+    try {
+      const info = await FileSystem.getInfoAsync(file(key));
+      if (!info.exists || info.isDirectory || info.size === 0) return null;
+      const signature = await FileSystem.readAsStringAsync(info.uri, { encoding: "base64", position: 0, length: 8 });
+      return signature === "iVBORw0KGgo=" ? info.uri : null;
+    } catch {
+      return null;
+    }
   },
   async remove(key) {
     if (Platform.OS !== "web" && FileSystem.cacheDirectory)
@@ -36,6 +42,9 @@ export const recoverCropIcon = createCropIconCache({
       const info = await FileSystem.getInfoAsync(temporary);
       if (!response || response.status !== 200 || !type.startsWith("image/png") || !info.exists || info.isDirectory || info.size === 0)
         throw new Error("Crop icon download failed.");
+      const signature = await FileSystem.readAsStringAsync(temporary, { encoding: "base64", position: 0, length: 8 });
+      if (signature !== "iVBORw0KGgo=") throw new Error("Invalid crop icon file.");
+      await FileSystem.deleteAsync(target, { idempotent: true });
       await FileSystem.moveAsync({ from: temporary, to: target });
       return target;
     } finally {

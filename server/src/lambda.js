@@ -35,7 +35,7 @@ async function initialize() {
   const { createApplication } = await import("./app.js");
   const app = await createApplication();
   return serverless(app.getHttpAdapter().getInstance(), {
-    binary: ["image/jpeg"],
+    binary: ["image/jpeg", "image/png"],
   });
 }
 

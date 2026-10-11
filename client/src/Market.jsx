@@ -126,8 +126,8 @@ export function Market({ api }) {
       <section className="card market-mandi">
         <h3 className="mandi-heading">
           <svg viewBox="0 0 32 32" aria-hidden="true" className="mandi-icon">
-            <path d="M5 14h22v14H5z" fill="#e3efce" stroke="currentColor" strokeWidth="2" />
-            <path d="M3 14l4-9h18l4 9Z" fill="#8cb65b" stroke="currentColor" strokeWidth="2" />
+            <path d="M5 14h22v14H5z" fill="#d9edf7" stroke="currentColor" strokeWidth="2" />
+            <path d="M3 14l4-9h18l4 9Z" fill="#73b7d1" stroke="currentColor" strokeWidth="2" />
             <path d="M12 28V18h8v10M11 5l-1 9M21 5l1 9" fill="none" stroke="currentColor" strokeWidth="2" />
           </svg>
           {t("Local mandi prices")}
