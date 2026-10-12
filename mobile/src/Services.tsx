@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Linking, Platform, Text, View } from "react-native";
+import { Image, Linking, Platform, Text, View } from "react-native";
 import * as IntentLauncher from "expo-intent-launcher";
 import { useLocale } from "./locale";
 import { Page, Card, Button, s } from "./ui";
@@ -8,10 +8,10 @@ import { fertilizerPackage, fertilizerStore, officerContacts, fertilizerDescript
 import Svg, { Path } from "react-native-svg";
 import { serviceIconPaths } from "../../common/service-icons.js";
 
-function ServiceHeading({ icon, title }: { icon: keyof typeof serviceIconPaths; title: string }) {
+function ServiceHeading({ icon, title }: { icon: "fertilizer" | keyof typeof serviceIconPaths; title: string }) {
   return <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
     <View accessible={false} style={{ width: 52, height: 52, borderRadius: 16, backgroundColor: icon === "fertilizer" ? "#e8f6ee" : "#eaf7ff", alignItems: "center", justifyContent: "center" }}>
-      <Svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke={icon === "fertilizer" ? "#237044" : "#007ca8"} strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><Path d={serviceIconPaths[icon]} /></Svg>
+      {icon === "fertilizer" ? <Image source={require("../assets/fertilizer-sale-icon.png")} style={{ width: 52, height: 52, borderRadius: 16 }} /> : <Svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="#007ca8" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round"><Path d={serviceIconPaths[icon]} /></Svg>}
     </View>
     <Text style={[s.heading, { flex: 1 }]}>{title}</Text>
   </View>;

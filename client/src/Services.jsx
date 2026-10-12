@@ -6,7 +6,7 @@ import { serviceIconPaths } from "../../common/service-icons.js";
 function ServiceHeading({ icon, children }) {
   return <div className="service-heading">
     <span className={`service-icon service-icon-${icon}`} aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={serviceIconPaths[icon]} /></svg>
+      {icon === "fertilizer" ? <img src="/fertilizer-sale-icon.png" alt="" width="52" height="52" /> : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={serviceIconPaths[icon]} /></svg>}
     </span>
     <h3>{children}</h3>
   </div>;
