@@ -5,7 +5,10 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { UserDetails, UserAvatar } from "./UserDetails";
 import { Subscription, SubscriptionPopup } from "./Subscription";
-import { subscriptionRequired, subscriptionMessage } from "../../common/subscription.js";
+import {
+  subscriptionRequired,
+  subscriptionMessage,
+} from "../../common/subscription.js";
 import { Services } from "./Services";
 import { Market } from "./Market";
 import { Weather } from "./Weather";
@@ -204,7 +207,10 @@ function App() {
     [listening, setListening] = useState(false),
     [tab, setTab] = useState("analysis");
   const [notice, setNotice] = useState("");
-  const featureLocked = Boolean(user && subscriptionRequired(screen, subscriptionEnabled, subscriptionAccess));
+  const featureLocked = Boolean(
+    user &&
+    subscriptionRequired(screen, subscriptionEnabled, subscriptionAccess),
+  );
   const camera = useRef(),
     gallery = useRef(),
     recognition = useRef(),
@@ -217,7 +223,12 @@ function App() {
       setSubscriptionPopup(true);
       return;
     }
-    setSubscriptionPopup(Boolean(user && subscriptionRequired(next, subscriptionEnabled, subscriptionAccess)));
+    setSubscriptionPopup(
+      Boolean(
+        user &&
+        subscriptionRequired(next, subscriptionEnabled, subscriptionAccess),
+      ),
+    );
     setScreen(next);
     window.scrollTo(0, 0);
   }
@@ -266,7 +277,11 @@ function App() {
     try {
       return await send();
     } catch (error) {
-      if (error.status === 402) { setSubscriptionEnabled(true); setSubscriptionAccess(false); setSubscriptionPopup(true); }
+      if (error.status === 402) {
+        setSubscriptionEnabled(true);
+        setSubscriptionAccess(false);
+        setSubscriptionPopup(true);
+      }
       if (error.status !== 401 || url.startsWith("/api/auth/")) throw error;
       try {
         await refresh();
@@ -281,13 +296,28 @@ function App() {
   useEffect(() => {
     setSubscriptionAccess(null);
     let active = true;
-    const check = () => api("/api/billing").then(value => { if (active) { setSubscriptionEnabled(value.enabled); setSubscriptionAccess(value.access); } }).catch(() => { if (active) setSubscriptionAccess(false); });
+    const check = () =>
+      api("/api/billing")
+        .then((value) => {
+          if (active) {
+            setSubscriptionEnabled(value.enabled);
+            setSubscriptionAccess(value.access);
+          }
+        })
+        .catch(() => {
+          if (active) setSubscriptionAccess(false);
+        });
     if (user && token) {
       check();
       const interval = setInterval(check, 60000);
-      return () => { active = false; clearInterval(interval); };
+      return () => {
+        active = false;
+        clearInterval(interval);
+      };
     }
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [Boolean(user), Boolean(token)]);
 
   useEffect(() => {
@@ -304,9 +334,9 @@ function App() {
   useEffect(() => {
     if (token) {
       if (subscriptionAccess === true)
-      api(endpoints.analyses)
-        .then(setHistory)
-        .catch((e) => setError(e.message));
+        api(endpoints.analyses)
+          .then(setHistory)
+          .catch((e) => setError(e.message));
       api(endpoints.me)
         .then(setUser)
         .catch((e) => setError(e.message));
@@ -706,7 +736,9 @@ function App() {
   const shown = filterHistory(history, query, filter);
   return (
     <LocaleContext.Provider value={lang}>
-      <div className={`phone ${isAuth ? "botanical" : ""} ${featureLocked || subscriptionPopup ? "subscription-page-frozen" : ""}`}>
+      <div
+        className={`phone ${isAuth ? "botanical" : ""} ${featureLocked || subscriptionPopup ? "subscription-page-frozen" : ""}`}
+      >
         <input
           ref={camera}
           hidden
@@ -766,8 +798,19 @@ function App() {
                 </button>
               </div>
             )}
-            {featureLocked && <div className="notice" role="status"><span>{subscriptionMessage}</span><button onClick={() => setSubscriptionPopup(true)}>View plans</button></div>}
-            <main inert={featureLocked} aria-disabled={featureLocked || undefined} className={`${isAuth ? "auth-content" : "content"}${featureLocked ? " subscription-locked" : ""}`}>
+            {featureLocked && (
+              <div className="notice" role="status">
+                <span>{subscriptionMessage}</span>
+                <button onClick={() => setSubscriptionPopup(true)}>
+                  View plans
+                </button>
+              </div>
+            )}
+            <main
+              inert={featureLocked}
+              aria-disabled={featureLocked || undefined}
+              className={`${isAuth ? "auth-content" : "content"}${featureLocked ? " subscription-locked" : ""}`}
+            >
               {["login", "register"].includes(screen) && (
                 <>
                   <div className="brand">
@@ -999,7 +1042,14 @@ function App() {
               )}
               {screen === "home" && (
                 <>
-                  {subscriptionEnabled && subscriptionAccess !== true && <section className="card" role="status"><p>{subscriptionMessage}</p><button onClick={() => go("subscription")}>View subscription plans</button></section>}
+                  {subscriptionEnabled && subscriptionAccess !== true && (
+                    <section className="card" role="status">
+                      <p>{subscriptionMessage}</p>
+                      <button onClick={() => go("subscription")}>
+                        View subscription plans
+                      </button>
+                    </section>
+                  )}
                   <section className="greeting">
                     <span className="sun">☀</span>
                     <h1>{localize(accountGreeting(user?.fullName))}</h1>
@@ -1378,7 +1428,9 @@ function App() {
                   </button>
                 </>
               )}
-              {screen === "subscription" && <Subscription api={api} onAccess={setSubscriptionAccess} />}
+              {screen === "subscription" && (
+                <Subscription api={api} onAccess={setSubscriptionAccess} />
+              )}
               {screen === "services" && <Services />}
               {screen === "history" && (
                 <>
@@ -1505,7 +1557,12 @@ function App() {
                     </div>
                   </section>
                   <div className="profile-menu">
-                    <button className="profile-menu-card" onClick={() => go("subscription")}>Subscription and AutoPay</button>
+                    <button
+                      className="profile-menu-card"
+                      onClick={() => go("subscription")}
+                    >
+                      Subscription and AutoPay
+                    </button>
                     {profileSettings.map((item) => (
                       <button
                         key={item.route}
@@ -1606,7 +1663,16 @@ function App() {
                 </>
               )}
             </main>
-            {(subscriptionPopup || featureLocked) && <SubscriptionPopup api={api} onNavigate={go} onAccess={access => { setSubscriptionAccess(access); if (access && featureLocked) setSubscriptionPopup(false); }} />}
+            {(subscriptionPopup || featureLocked) && (
+              <SubscriptionPopup
+                api={api}
+                onNavigate={go}
+                onAccess={(access) => {
+                  setSubscriptionAccess(access);
+                  if (access && featureLocked) setSubscriptionPopup(false);
+                }}
+              />
+            )}
             {!isAuth && screen !== "processing" && (
               <nav aria-label={localize("Main navigation")}>
                 {[
@@ -1646,7 +1712,11 @@ function App() {
                     }
                     onClick={() => go(next)}
                   >
-                    <span className={`nav-icon${next === "home" ? " nav-icon-home" : ""}`}><Icon name={icon} /></span>
+                    <span
+                      className={`nav-icon${next === "home" ? " nav-icon-home" : ""}`}
+                    >
+                      <Icon name={icon} />
+                    </span>
                     <small>{localize(text)}</small>
                   </button>
                 ))}

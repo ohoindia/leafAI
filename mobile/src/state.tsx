@@ -26,14 +26,25 @@ function useAppState() {
   const [token, setToken] = useState("");
   const [user, setUser] = useState<User>();
   const [subscriptionPopup, setSubscriptionPopup] = useState(false);
-  const [billingStatus, setBillingStatus] = useState<{enabled: boolean; access: boolean | null}>({enabled: false, access: null});
+  const [billingStatus, setBillingStatus] = useState<{
+    enabled: boolean;
+    access: boolean | null;
+  }>({ enabled: false, access: null });
   useEffect(() => {
     let active = true;
-    const check = () => request<{enabled: boolean; access: boolean}>("/api/billing", token).then(value => { if (active) setBillingStatus(value); }).catch(() => {});
+    const check = () =>
+      request<{ enabled: boolean; access: boolean }>("/api/billing", token)
+        .then((value) => {
+          if (active) setBillingStatus(value);
+        })
+        .catch(() => {});
     if (!token) return;
     void check();
     const timer = setInterval(() => void check(), 60000);
-    return () => { active = false; clearInterval(timer); };
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
   }, [token]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -48,7 +59,7 @@ function useAppState() {
   const [result, setResult] = useState<Analysis>();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   useEffect(() => {
-    const unsubscribe = session.subscribe(accessToken => {
+    const unsubscribe = session.subscribe((accessToken) => {
       setToken(accessToken);
       if (accessToken) setRestoring(false);
       if (!accessToken) {
@@ -72,18 +83,32 @@ function useAppState() {
         if (active && accessToken) {
           const profile = await request<User>(endpoints.me, accessToken);
           if (active) setUser(profile);
-          const billing = await request<{enabled: boolean; access: boolean}>("/api/billing", accessToken);
+          const billing = await request<{ enabled: boolean; access: boolean }>(
+            "/api/billing",
+            accessToken,
+          );
           if (active) setBillingStatus(billing);
           if (billing.access) {
-            const analyses = await request<HistoryItem[]>(endpoints.analyses, accessToken);
+            const analyses = await request<HistoryItem[]>(
+              endpoints.analyses,
+              accessToken,
+            );
             if (active) setHistory(analyses);
           }
         }
       } catch (e) {
-        if (active) setError(e instanceof Error ? e.message : "Unable to restore your session.");
-      } finally { if (active) setRestoring(false); }
+        if (active)
+          setError(
+            e instanceof Error ? e.message : "Unable to restore your session.",
+          );
+      } finally {
+        if (active) setRestoring(false);
+      }
     })();
-    return () => { active = false; unsubscribe(); };
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
   useEffect(
     () => () => {
@@ -94,14 +119,20 @@ function useAppState() {
   function go(screen: keyof typeof screens) {
     setError("");
     setNotice("");
-    setSubscriptionPopup(subscriptionRequired(screen, billingStatus.enabled, billingStatus.access));
+    setSubscriptionPopup(
+      subscriptionRequired(screen, billingStatus.enabled, billingStatus.access),
+    );
     router.push(`/${screen}`);
   }
   function change(value: Language) {
     const language = normalizeLanguage(value);
     setLang(language);
-    languageWrites.current = languageWrites.current.catch(() => {}).then(() => preferenceStorage.set("leaf-language", language));
-    void languageWrites.current.catch(() => setError("Unable to save your language preference."));
+    languageWrites.current = languageWrites.current
+      .catch(() => {})
+      .then(() => preferenceStorage.set("leaf-language", language));
+    void languageWrites.current.catch(() =>
+      setError("Unable to save your language preference."),
+    );
     void Speech.stop();
   }
   async function clearSession() {
@@ -145,9 +176,15 @@ function useAppState() {
     }
   }
   async function loadHistory(accessToken = token) {
-    const billing = await request<{enabled: boolean; access: boolean}>("/api/billing", accessToken);
+    const billing = await request<{ enabled: boolean; access: boolean }>(
+      "/api/billing",
+      accessToken,
+    );
     setBillingStatus(billing);
-    if (!billing.access) { setHistory([]); return; }
+    if (!billing.access) {
+      setHistory([]);
+      return;
+    }
     setHistory(await request<HistoryItem[]>(endpoints.analyses, accessToken));
   }
   async function authenticate(
@@ -163,12 +200,25 @@ function useAppState() {
           method: "POST",
           body: JSON.stringify(
             pinLogin
-              ? { mobileNumber: identifier, pin, language: lang, sessionType: "mobile" }
-              : { guid: identifier, pin, language: lang, sessionType: "mobile" },
+              ? {
+                  mobileNumber: identifier,
+                  pin,
+                  language: lang,
+                  sessionType: "mobile",
+                }
+              : {
+                  guid: identifier,
+                  pin,
+                  language: lang,
+                  sessionType: "mobile",
+                },
           ),
         },
       );
-      await session.save({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+      await session.save({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      });
       setUser(data.user);
       router.replace("/home");
       await loadHistory(data.accessToken);
@@ -410,7 +460,11 @@ function useAppState() {
       if (/history|చరిత్ర|इतिहास/i.test(transcript)) {
         intent = "history";
         go("history");
-      } else if (/telugu|తెలుగు|hindi|हिंदी|kannada|ಕನ್ನಡ|tamil|தமிழ்|english/i.test(transcript)) {
+      } else if (
+        /telugu|తెలుగు|hindi|हिंदी|kannada|ಕನ್ನಡ|tamil|தமிழ்|english/i.test(
+          transcript,
+        )
+      ) {
         intent = "language";
         const language = /telugu|తెలుగు/i.test(transcript)
           ? "te"
@@ -449,8 +503,11 @@ function useAppState() {
   }
   async function logout() {
     await run(async () => {
-      try { await request(endpoints.logout, token, { method: "POST" }); }
-      finally { await clearSession(); }
+      try {
+        await request(endpoints.logout, token, { method: "POST" });
+      } finally {
+        await clearSession();
+      }
     });
   }
   return {
@@ -499,9 +556,19 @@ function useAppState() {
 const Context = createContext<ReturnType<typeof useAppState> | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const state = useAppState();
-  return <Context.Provider value={state}>{state.restoring
-    ? <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}><ActivityIndicator /></View>
-    : children}</Context.Provider>;
+  return (
+    <Context.Provider value={state}>
+      {state.restoring ? (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator />
+        </View>
+      ) : (
+        children
+      )}
+    </Context.Provider>
+  );
 }
 export function useLeafCare() {
   const state = useContext(Context);

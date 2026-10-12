@@ -755,7 +755,10 @@ Voice assistant|ಧ್ವನಿ ಸಹಾಯಕ|குரல் உதவிய�
 Good morning|ಶುಭೋದಯ|காலை வணக்கம்
 Good afternoon|ಶುಭ ಮಧ್ಯಾಹ್ನ|மதிய வணக்கம்
 Good evening|ಶುಭ ಸಂಜೆ|மாலை வணக்கம்
-`.trim().split("\n").map((line) => line.split("|"))) {
+`
+  .trim()
+  .split("\n")
+  .map((line) => line.split("|"))) {
   const entry = localeLabels[key] ?? [key, key];
   localeLabels[key] = [entry[0], entry[1], kn, ta];
 }
@@ -776,6 +779,7 @@ export function translate(language, text) {
   const greeting = key.match(
     /^(Good morning|Good afternoon|Good evening)(.*)$/,
   );
-  if (greeting) return (localeLabels[greeting[1]][index] ?? greeting[1]) + greeting[2];
+  if (greeting)
+    return (localeLabels[greeting[1]][index] ?? greeting[1]) + greeting[2];
   return localeLabels[key]?.[index] ?? text;
 }

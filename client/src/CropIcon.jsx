@@ -3,7 +3,11 @@ import { cropDetails } from "./crops";
 import { cropIconSlots } from "../../common/crop-icons.js";
 
 export function CropSymbol({ name }) {
-  return <span className="crop-symbol" role="img" aria-label={`${name} crop icon`}><CropIcon name={name} /></span>;
+  return (
+    <span className="crop-symbol" role="img" aria-label={`${name} crop icon`}>
+      <CropIcon name={name} />
+    </span>
+  );
 }
 
 export function CropIcon({ name, className = "" }) {
@@ -20,7 +24,11 @@ export function CropIcon({ name, className = "" }) {
       focusable="false"
       viewBox={`${columns[column]} ${rows[row]} ${columns[column + 1] - columns[column]} ${rows[row + 1] - rows[row]}`}
     >
-      <image href="/crop-icons/realistic-crops-v1.png" width="1254" height="1254" />
+      <image
+        href="/crop-icons/realistic-crops-v1.png"
+        width="1254"
+        height="1254"
+      />
     </svg>
   );
 }

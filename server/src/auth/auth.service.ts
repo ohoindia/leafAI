@@ -617,7 +617,10 @@ export class AuthService {
     const sid = crypto.randomUUID();
     const persistent = req.body.sessionType === "mobile";
     if (b.language) {
-      await this.db.execute("UPDATE users SET preferred_language=? WHERE id=?", [b.language, u.id]);
+      await this.db.execute(
+        "UPDATE users SET preferred_language=? WHERE id=?",
+        [b.language, u.id],
+      );
       u.preferred_language = b.language;
     }
     const tokens = this.security.issueTokens(u, sid, persistent);
@@ -661,9 +664,10 @@ export class AuthService {
   }
   async refresh(req: ApiRequest) {
     try {
-      const token = req.body?.refreshToken !== undefined
-        ? z.string().min(1).max(2048).parse(req.body.refreshToken)
-        : req.cookies?.refreshToken;
+      const token =
+        req.body?.refreshToken !== undefined
+          ? z.string().min(1).max(2048).parse(req.body.refreshToken)
+          : req.cookies?.refreshToken;
       const p = jwt.verify(token, env.JWT_REFRESH_SECRET, {
         issuer: "leaf-care-ai",
         audience: "leaf-care-web",

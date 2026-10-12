@@ -40,7 +40,11 @@ export class AnalysesController {
           description: `JPEG, PNG or WebP; at least 300 x 300 pixels; maximum ${env.MAX_UPLOAD_BYTES} bytes.`,
         },
         consent: { type: "string", enum: ["true"] },
-        language: { type: "string", enum: ["en", "te", "hi", "kn", "ta"], default: "en" },
+        language: {
+          type: "string",
+          enum: ["en", "te", "hi", "kn", "ta"],
+          default: "en",
+        },
         plantName: { type: "string", maxLength: 150 },
         location: { type: "string", maxLength: 255 },
       },

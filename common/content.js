@@ -2,8 +2,20 @@ export const brand = {
   name: "Krishi Karshak",
   tagline: "Healthier Plants. Brighter Tomorrows.",
 };
-export const languages = { en: "English", te: "తెలుగు", hi: "हिंदी", kn: "ಕನ್ನಡ", ta: "தமிழ்" };
-export const speechLanguages = { en: "en-IN", te: "te-IN", hi: "hi-IN", kn: "kn-IN", ta: "ta-IN" };
+export const languages = {
+  en: "English",
+  te: "తెలుగు",
+  hi: "हिंदी",
+  kn: "ಕನ್ನಡ",
+  ta: "தமிழ்",
+};
+export const speechLanguages = {
+  en: "en-IN",
+  te: "te-IN",
+  hi: "hi-IN",
+  kn: "kn-IN",
+  ta: "ta-IN",
+};
 export const screens = {
   language: "Choose your language",
   login: "Sign in",

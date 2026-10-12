@@ -1,5 +1,6 @@
 // Columns: Telugu, Hindi, Kannada, Tamil. Keep API values unchanged for filtering.
-export const marketLabels = Object.fromEntries(`
+export const marketLabels = Object.fromEntries(
+  `
 Crop prices & market insights|పంట ధరలు మరియు మార్కెట్ సమాచారం|फसल मूल्य और बाजार जानकारी|ಬೆಳೆ ಬೆಲೆಗಳು ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಮಾಹಿತಿ|பயிர் விலைகள் மற்றும் சந்தை தகவல்கள்
 Your crop. Your market.|మీ పంట. మీ మార్కెట్.|आपकी फसल। आपका बाजार।|ನಿಮ್ಮ ಬೆಳೆ. ನಿಮ್ಮ ಮಾರುಕಟ್ಟೆ.|உங்கள் பயிர். உங்கள் சந்தை.
 All prices in rupees per quintal (100 kg).|అన్ని ధరలు క్వింటాల్ (100 కిలోలు)కు రూపాయల్లో.|सभी मूल्य रुपये प्रति क्विंटल (100 किलो) में।|ಎಲ್ಲ ಬೆಲೆಗಳು ಕ್ವಿಂಟಾಲ್‌ಗೆ (100 ಕೆಜಿ) ರೂಪಾಯಿಗಳಲ್ಲಿ.|அனைத்து விலைகளும் குவிண்டாலுக்கு (100 கிலோ) ரூபாயில்.
@@ -85,4 +86,11 @@ No market reports found for this district. Check the spelling or try a nearby di
 Government mandi data is temporarily unavailable. Please try again.|ప్రభుత్వ మార్కెట్ డేటా తాత్కాలికంగా అందుబాటులో లేదు. మళ్లీ ప్రయత్నించండి.|सरकारी मंडी डेटा अस्थायी रूप से उपलब्ध नहीं है। फिर प्रयास करें।|ಸರ್ಕಾರಿ ಮಂಡಿ ಮಾಹಿತಿ ತಾತ್ಕಾಲಿಕವಾಗಿ ಲಭ್ಯವಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.|அரசு மண்டி தரவு தற்காலிகமாகக் கிடைக்கவில்லை. மீண்டும் முயற்சிக்கவும்.
 No reports for this crop in the selected district.|ఎంచుకున్న జిల్లాలో ఈ పంటకు నివేదికలు లేవు.|चुने गए जिले में इस फसल की रिपोर्ट नहीं है।|ಆಯ್ದ ಜಿಲ್ಲೆಯಲ್ಲಿ ಈ ಬೆಳೆಗೆ ವರದಿಗಳಿಲ್ಲ.|தேர்ந்தெடுத்த மாவட்டத்தில் இந்த பயிருக்கு அறிக்கைகள் இல்லை.
 Showing the first 1,000 reports. See the source for more.|మొదటి 1,000 నివేదికలు చూపుతున్నాము. మరిన్ని కోసం మూలం చూడండి.|पहली 1,000 रिपोर्ट दिखाई गई हैं। अधिक के लिए स्रोत देखें।|ಮೊದಲ 1,000 ವರದಿಗಳನ್ನು ತೋರಿಸಲಾಗಿದೆ. ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗೆ ಮೂಲ ನೋಡಿ.|முதல் 1,000 அறிக்கைகள் காட்டப்படுகின்றன. மேலும் அறிய மூலத்தைப் பார்க்கவும்.
-`.trim().split("\n").map((line) => { const [key, ...values] = line.split("|"); return [key, values]; }));
+`
+    .trim()
+    .split("\n")
+    .map((line) => {
+      const [key, ...values] = line.split("|");
+      return [key, values];
+    }),
+);

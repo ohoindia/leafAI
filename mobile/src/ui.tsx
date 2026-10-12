@@ -353,7 +353,13 @@ export function Page({
   const localize = useLocale();
   const a = useLeafCare();
   const pathname = usePathname();
-  const featureLocked = !auth && subscriptionRequired(pathname, a.billingStatus.enabled, a.billingStatus.access);
+  const featureLocked =
+    !auth &&
+    subscriptionRequired(
+      pathname,
+      a.billingStatus.enabled,
+      a.billingStatus.access,
+    );
   const scrollRef = useRef<ScrollView>(null);
   const keyboardScrollFrame = useRef<number | null>(null);
   const revealFocusedInput = useCallback(() => {
@@ -374,7 +380,10 @@ export function Page({
   useEffect(() => {
     if (!auth || Platform.OS === "web") return;
     // Wait for the resized viewport before measuring the active field.
-    const subscription = Keyboard.addListener("keyboardDidShow", revealFocusedInput);
+    const subscription = Keyboard.addListener(
+      "keyboardDidShow",
+      revealFocusedInput,
+    );
     return () => {
       subscription.remove();
       if (keyboardScrollFrame.current !== null)
@@ -394,7 +403,9 @@ export function Page({
     <SafeAreaView style={[s.safe, auth && { backgroundColor: "#eaf7ff" }]}>
       <KeyboardAvoidingView
         style={s.flex}
-        behavior={Platform.OS === "ios" ? "padding" : auth ? "height" : undefined}
+        behavior={
+          Platform.OS === "ios" ? "padding" : auth ? "height" : undefined
+        }
       >
         {!auth && (
           <View style={s.header}>
@@ -433,14 +444,22 @@ export function Page({
             )}
           </View>
         )}
-        {featureLocked && <View style={s.notice}><Text style={s.body}>Subscribe to use this feature. Weather remains available.</Text></View>}
+        {featureLocked && (
+          <View style={s.notice}>
+            <Text style={s.body}>
+              Subscribe to use this feature. Weather remains available.
+            </Text>
+          </View>
+        )}
         <ScrollView
           ref={scrollRef}
           style={[s.flex, featureLocked && { opacity: 0.5 }]}
           pointerEvents={featureLocked ? "none" : "auto"}
           scrollEnabled={!featureLocked}
           accessibilityElementsHidden={featureLocked}
-          importantForAccessibility={featureLocked ? "no-hide-descendants" : "auto"}
+          importantForAccessibility={
+            featureLocked ? "no-hide-descendants" : "auto"
+          }
           onLayout={revealFocusedInput}
           onContentSizeChange={revealFocusedInput}
           keyboardShouldPersistTaps="handled"
@@ -523,21 +542,21 @@ export function Page({
                 ]}
               >
                 <View style={[s.navIcon, route === "home" && s.navHomeIcon]}>
-                <NavigationIcon
-                  route={route}
-                  inverted={route === "home"}
-                  selected={
-                    activeRoute === `/${route}` ||
-                    (route === "profile" &&
-                      [
-                        "/farm",
-                        "/farm-details",
-                        "/language",
-                        "/account-details",
-                        "/security",
-                      ].includes(activeRoute))
-                  }
-                />
+                  <NavigationIcon
+                    route={route}
+                    inverted={route === "home"}
+                    selected={
+                      activeRoute === `/${route}` ||
+                      (route === "profile" &&
+                        [
+                          "/farm",
+                          "/farm-details",
+                          "/language",
+                          "/account-details",
+                          "/security",
+                        ].includes(activeRoute))
+                    }
+                  />
                 </View>
                 <Text
                   style={[
@@ -564,9 +583,29 @@ export function Page({
           </View>
         )}
       </KeyboardAvoidingView>
-      <Modal transparent animationType="fade" visible={a.subscriptionPopup || featureLocked} onRequestClose={() => {}}>
-        <View style={{ flex: 1, justifyContent: "center", padding: 20, backgroundColor: "rgba(18,51,74,0.2)" }}>
-          <View accessibilityViewIsModal style={{ maxHeight: "85%", backgroundColor: "white", borderRadius: 22, overflow: "hidden" }}>
+      <Modal
+        transparent
+        animationType="fade"
+        visible={a.subscriptionPopup || featureLocked}
+        onRequestClose={() => {}}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            padding: 20,
+            backgroundColor: "rgba(18,51,74,0.2)",
+          }}
+        >
+          <View
+            accessibilityViewIsModal
+            style={{
+              maxHeight: "85%",
+              backgroundColor: "white",
+              borderRadius: 22,
+              overflow: "hidden",
+            }}
+          >
             <Subscription compact />
           </View>
         </View>

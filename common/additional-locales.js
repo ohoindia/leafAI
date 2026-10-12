@@ -1,6 +1,7 @@
 // Additional Kannada and Tamil copy shared by the browser and mobile apps.
 // English keys remain stable; stored values and API identifiers are unchanged.
-export const additionalLabels = Object.fromEntries(`
+export const additionalLabels = Object.fromEntries(
+  `
 Use natural light, keep the leaf in focus and choose a plain background.|ನೈಸರ್ಗಿಕ ಬೆಳಕು ಬಳಸಿ, ಎಲೆಯನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಇರಿಸಿ ಮತ್ತು ಸರಳ ಹಿನ್ನೆಲೆ ಆಯ್ಕೆಮಾಡಿ.|இயற்கை வெளிச்சத்தில் இலையைத் தெளிவாக வைத்து எளிய பின்னணியைத் தேர்ந்தெடுக்கவும்.
 Your photo is stored securely with your analysis history and processed to analyze plant health.|ನಿಮ್ಮ ಫೋಟೋವನ್ನು ವಿಶ್ಲೇಷಣೆಯ ಇತಿಹಾಸದೊಂದಿಗೆ ಸುರಕ್ಷಿತವಾಗಿ ಉಳಿಸಿ ಸಸ್ಯದ ಆರೋಗ್ಯ ವಿಶ್ಲೇಷಿಸಲು ಬಳಸಲಾಗುತ್ತದೆ.|உங்கள் புகைப்படம் பகுப்பாய்வு வரலாற்றுடன் பாதுகாப்பாகச் சேமிக்கப்பட்டு தாவர ஆரோக்கியத்தைப் பகுப்பாய்வு செய்யப் பயன்படுத்தப்படுகிறது.
 Check soil moisture before watering. Water at the base and let excess water drain.|ನೀರು ಹಾಕುವ ಮೊದಲು ಮಣ್ಣಿನ ತೇವಾಂಶ ಪರಿಶೀಲಿಸಿ. ಬುಡಕ್ಕೆ ನೀರು ಹಾಕಿ ಹೆಚ್ಚುವರಿ ನೀರು ಹರಿದುಹೋಗಲು ಬಿಡಿ.|நீர் பாய்ச்சும் முன் மண்ணின் ஈரத்தைப் பாருங்கள். அடிப்பகுதியில் நீர் பாய்ச்சி அதிக நீரை வடிக்க விடவும்.
@@ -327,7 +328,11 @@ Next five days: about {value} mm total precipitation forecast.|ಮುಂದಿ�
 Highest daytime temperature: {value} °C.|ಗರಿಷ್ಠ ಹಗಲಿನ ತಾಪಮಾನ: {value} °C.|அதிகபட்ச பகல் வெப்பநிலை: {value} °C.
 Strongest forecast gusts: {value} km/h.|ಗರಿಷ್ಠ ಗಾಳಿಯ ರಭಸದ ಮುನ್ಸೂಚನೆ: {value} ಕಿಮೀ/ಗಂ.|அதிகபட்ச காற்று வீச்சு: {value} கிமீ/மணி.
 Thunderstorms are possible on {value}.|{value} ರಂದು ಗುಡುಗು ಮಳೆಯ ಸಾಧ್ಯತೆ ಇದೆ.|{value} அன்று இடிமழை பெய்ய வாய்ப்புள்ளது.
-`.trim().split("\n").map((line) => {
-  const [key, kn, ta] = line.split("|");
-  return [key, [kn, ta]];
-}));
+`
+    .trim()
+    .split("\n")
+    .map((line) => {
+      const [key, kn, ta] = line.split("|");
+      return [key, [kn, ta]];
+    }),
+);

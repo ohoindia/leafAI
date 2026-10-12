@@ -127,7 +127,8 @@ export class AuthController {
   }
   @Post("refresh")
   @ApiOperation({
-    summary: "Refresh using the web HttpOnly cookie or a mobile refreshToken body",
+    summary:
+      "Refresh using the web HttpOnly cookie or a mobile refreshToken body",
   })
   @HttpCode(200)
   async refresh(

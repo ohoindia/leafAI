@@ -1,5 +1,6 @@
 // Telugu, Hindi, Kannada, Tamil translations for newer UI labels.
-export const uiLabels = Object.fromEntries(`
+export const uiLabels = Object.fromEntries(
+  `
 Your farm identity, area and land ownership.|మీ పొలం పేరు, విస్తీర్ణం మరియు యాజమాన్యం.|खेत की पहचान, क्षेत्रफल और भूमि स्वामित्व।|ನಿಮ್ಮ ಜಮೀನಿನ ಗುರುತು, ವಿಸ್ತೀರ್ಣ ಮತ್ತು ಮಾಲೀಕತ್ವ.|பண்ணையின் அடையாளம், பரப்பளவு மற்றும் நில உரிமை.
 Start with your farm name, area and ownership.|మీ పొలం పేరు, విస్తీర్ణం మరియు యాజమాన్యంతో ప్రారంభించండి.|खेत के नाम, क्षेत्रफल और स्वामित्व से शुरू करें।|ಜಮೀನಿನ ಹೆಸರು, ವಿಸ್ತೀರ್ಣ ಮತ್ತು ಮಾಲೀಕತ್ವದಿಂದ ಪ್ರಾರಂಭಿಸಿ.|பண்ணைப் பெயர், பரப்பளவு மற்றும் உரிமையுடன் தொடங்கவும்.
 Where your farm is located.|మీ పొలం ఉన్న ప్రదేశం.|आपका खेत कहाँ स्थित है।|ನಿಮ್ಮ ಜಮೀನು ಇರುವ ಸ್ಥಳ.|உங்கள் பண்ணை அமைந்துள்ள இடம்.
@@ -208,7 +209,11 @@ Welcome to Krishi Karshak|కృషి కర్షక్‌కు స్వా�
 Enter your mobile number to sign in or create an account.|సైన్ ఇన్ చేయడానికి లేదా ఖాతా సృష్టించడానికి మీ మొబైల్ నంబర్ నమోదు చేయండి.|साइन इन करने या खाता बनाने के लिए अपना मोबाइल नंबर दर्ज करें।|ಸೈನ್ ಇನ್ ಮಾಡಲು ಅಥವಾ ಖಾತೆ ರಚಿಸಲು ನಿಮ್ಮ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ.|உள்நுழைய அல்லது கணக்கை உருவாக்க உங்கள் கைபேசி எண்ணை உள்ளிடவும்.
 High temperature|అత్యధిక ఉష్ణోగ్రత|अधिकतम तापमान|ಗರಿಷ್ಠ ತಾಪಮಾನ|அதிகபட்ச வெப்பநிலை
 Low temperature|అత్యల్ప ఉష్ణోగ్రత|न्यूनतम तापमान|ಕನಿಷ್ಠ ತಾಪಮಾನ|குறைந்தபட்ச வெப்பநிலை
-`.trim().split("\n").map((line) => {
-  const [key, ...translations] = line.split("|");
-  return [key, translations];
-}));
+`
+    .trim()
+    .split("\n")
+    .map((line) => {
+      const [key, ...translations] = line.split("|");
+      return [key, translations];
+    }),
+);

@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, View, type ImageSourcePropType } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  View,
+  type ImageSourcePropType,
+} from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { cropDetails } from "../../common/crops.js";
 import { recoverCropIcon } from "./crop-icon-cache";
@@ -34,14 +39,18 @@ export function CropIcon({ name, size = 56 }: { name: string; size?: number }) {
 }
 
 function IconImage({ iconKey, size }: { iconKey: string; size: number }) {
-  const [source, setSource] = useState<ImageSourcePropType | null>(bundled[iconKey] || null);
+  const [source, setSource] = useState<ImageSourcePropType | null>(
+    bundled[iconKey] || null,
+  );
   const [loading, setLoading] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const attempts = useRef(0);
   const active = useRef(true);
   useEffect(() => {
     active.current = true;
-    return () => { active.current = false; };
+    return () => {
+      active.current = false;
+    };
   }, []);
   const recover = useCallback(async () => {
     if (loading || unavailable) return;
@@ -64,12 +73,34 @@ function IconImage({ iconKey, size }: { iconKey: string; size: number }) {
     if (!source) void recover();
   }, [source, recover]);
   return (
-    <View accessible={false} style={{ width: size, height: size, borderRadius: 10, backgroundColor: "#f0f7fb", alignItems: "center", justifyContent: "center" }}>
+    <View
+      accessible={false}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 10,
+        backgroundColor: "#f0f7fb",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       {unavailable ? (
-        <Svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" accessible={false}>
-          <Path d="M12 22V10M12 15C5 15 3 9 4 5C10 5 13 9 12 15M12 11C18 12 22 7 20 3C14 4 11 7 12 11" stroke="#007ca8" strokeWidth={1.5} fill="#d9edf7" />
+        <Svg
+          width={size * 0.5}
+          height={size * 0.5}
+          viewBox="0 0 24 24"
+          accessible={false}
+        >
+          <Path
+            d="M12 22V10M12 15C5 15 3 9 4 5C10 5 13 9 12 15M12 11C18 12 22 7 20 3C14 4 11 7 12 11"
+            stroke="#007ca8"
+            strokeWidth={1.5}
+            fill="#d9edf7"
+          />
         </Svg>
-      ) : loading ? <ActivityIndicator size="small" color="#007ca8" /> : source ? (
+      ) : loading ? (
+        <ActivityIndicator size="small" color="#007ca8" />
+      ) : source ? (
         <Image
           source={source}
           accessible={false}

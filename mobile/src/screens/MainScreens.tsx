@@ -35,7 +35,15 @@ export function HomeScreen() {
   const a = useLeafCare();
   return (
     <Page title={localize(accountGreeting(a.user?.fullName))}>
-      {a.billingStatus.enabled && a.billingStatus.access !== true && <Card title="Subscription required"><Text style={s.body}>{subscriptionMessage}</Text><Button title="View subscription plans" onPress={() => a.setSubscriptionPopup(true)} /></Card>}
+      {a.billingStatus.enabled && a.billingStatus.access !== true && (
+        <Card title="Subscription required">
+          <Text style={s.body}>{subscriptionMessage}</Text>
+          <Button
+            title="View subscription plans"
+            onPress={() => a.setSubscriptionPopup(true)}
+          />
+        </Card>
+      )}
       <Text style={s.body}>
         {localize("Healthy plants make a happier you.")}
       </Text>
@@ -263,7 +271,10 @@ export function ProfileScreen() {
           </View>
         </View>
       </Card>
-      <Button title="Subscription and AutoPay" onPress={() => a.setSubscriptionPopup(true)} />
+      <Button
+        title="Subscription and AutoPay"
+        onPress={() => a.setSubscriptionPopup(true)}
+      />
       {profileSettings.map((item) => (
         <ProfileMenuCard
           key={item.route}

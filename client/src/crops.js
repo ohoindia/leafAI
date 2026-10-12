@@ -1,1 +1,6 @@
-export { cropCategories, categoryImages, cropDetails, groupCrops } from "../../common/crops.js";
+export {
+  cropCategories,
+  categoryImages,
+  cropDetails,
+  groupCrops,
+} from "../../common/crops.js";

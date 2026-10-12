@@ -146,7 +146,9 @@ export function weatherQuery(place) {
 }
 export function dayLabel(date, language = "en") {
   return new Date(`${date}T12:00:00Z`).toLocaleDateString(
-    { en: "en-IN", te: "te-IN", hi: "hi-IN", kn: "kn-IN", ta: "ta-IN" }[language] || "en-IN",
+    { en: "en-IN", te: "te-IN", hi: "hi-IN", kn: "kn-IN", ta: "ta-IN" }[
+      language
+    ] || "en-IN",
     { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" },
   );
 }

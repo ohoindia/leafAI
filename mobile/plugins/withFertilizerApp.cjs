@@ -6,7 +6,11 @@ module.exports = function withFertilizerApp(config) {
     manifest.queries = manifest.queries || [];
     const query = manifest.queries[0] || {};
     query.package = query.package || [];
-    if (!query.package.some((item) => item.$?.["android:name"] === "com.agristack.fsas")) {
+    if (
+      !query.package.some(
+        (item) => item.$?.["android:name"] === "com.agristack.fsas",
+      )
+    ) {
       query.package.push({ $: { "android:name": "com.agristack.fsas" } });
     }
     manifest.queries[0] = query;

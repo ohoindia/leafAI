@@ -21,9 +21,19 @@ export function issueTokens(user, sessionId, persistent = false) {
       { expiresIn: "15m", issuer: "leaf-care-ai", audience: "leaf-care-web" },
     ),
     refreshToken: jwt.sign(
-      { sub: String(user.id), sid: sessionId, type: "refresh", ...(persistent ? { persistent: true } : {}) },
+      {
+        sub: String(user.id),
+        sid: sessionId,
+        type: "refresh",
+        ...(persistent ? { persistent: true } : {}),
+      },
       env.JWT_REFRESH_SECRET,
-      { ...(persistent ? {} : { expiresIn: "7d" }), jwtid: crypto.randomUUID(), issuer: "leaf-care-ai", audience: "leaf-care-web" },
+      {
+        ...(persistent ? {} : { expiresIn: "7d" }),
+        jwtid: crypto.randomUUID(),
+        issuer: "leaf-care-ai",
+        audience: "leaf-care-web",
+      },
     ),
   };
 }

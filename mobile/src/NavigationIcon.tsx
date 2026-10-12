@@ -1,7 +1,13 @@
 import Svg, { Circle, Path } from "react-native-svg";
 
 type NavigationRoute =
-  "market" | "weather" | "home" | "capture" | "history" | "services" | "profile";
+  | "market"
+  | "weather"
+  | "home"
+  | "capture"
+  | "history"
+  | "services"
+  | "profile";
 
 export function NavigationIcon({
   route,
@@ -39,7 +45,9 @@ export function NavigationIcon({
           <Path d="m16 16 5 5" />
         </>
       )}
-      {route === "services" && <Path d="M3 3h7v7H3ZM14 3h7v7h-7ZM3 14h7v7H3ZM14 14h7v7h-7Z" />}
+      {route === "services" && (
+        <Path d="M3 3h7v7H3ZM14 3h7v7h-7ZM3 14h7v7H3ZM14 14h7v7h-7Z" />
+      )}
       {route === "history" && (
         <>
           <Path d="M3 11a9 9 0 1 1 2.7 7.4M3 4v7h7M12 7v5l3 2" />

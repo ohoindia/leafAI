@@ -15,9 +15,14 @@ test("mobile crop icon endpoint serves PNGs with caching, and missing files retu
     assert.match(response.headers.get("content-type"), /image\/png/);
     assert.match(response.headers.get("cache-control"), /immutable/);
     const bytes = new Uint8Array(await response.arrayBuffer());
-    assert.equal(Buffer.from(bytes.subarray(0, 8)).toString("hex"), "89504e470d0a1a0a");
+    assert.equal(
+      Buffer.from(bytes.subarray(0, 8)).toString("hex"),
+      "89504e470d0a1a0a",
+    );
     assert.equal((await fetch(`${root}/missing.png`)).status, 404);
   } finally {
-    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+    await new Promise((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
   }
 });

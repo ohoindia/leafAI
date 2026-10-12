@@ -8,7 +8,9 @@ export async function request<T>(
   token = "",
   options: RequestInit = {},
 ): Promise<T> {
-  return sessionRequest ? sessionRequest<T>(path, token, options) : rawRequest<T>(path, token, options);
+  return sessionRequest
+    ? sessionRequest<T>(path, token, options)
+    : rawRequest<T>(path, token, options);
 }
 let sessionRequest: typeof request | undefined;
 export function configureSessionRequest(handler: typeof request) {

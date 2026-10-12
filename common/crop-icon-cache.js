@@ -6,7 +6,7 @@ export function createCropIconCache(store) {
     const work = (async () => {
       if (refresh) await store.remove(key);
       const cached = await store.read(key);
-      return cached || await store.download(key);
+      return cached || (await store.download(key));
     })();
     pending.set(key, work);
     work.finally(() => pending.delete(key)).catch(() => {});
