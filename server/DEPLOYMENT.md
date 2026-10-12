@@ -56,7 +56,7 @@ MAX_UPLOAD_BYTES=4194304
 TRUST_PROXY=0
 ```
 
-Set `DB_SSL` for your database; `DB_SSL_CA` is required when it is `true`. Enter real PEM contents, not the example text. Lambda's total environment limit is 4 KB. Do not set `APP_SECRET_ARN` for this workflow. `server/.env` is local only and never included in the artifact. Preserve the encryption key and photo bucket so saved photos remain readable. LeafAI's application settings live in environment variables; it does not use OHO's `ConfigValues`/`ConfigSecrets` tables.
+Set `DB_SSL` for your database; `DB_SSL_CA` is required when it is `true`. Enter real PEM contents, not the example text. Lambda's total environment limit is 4 KB. Do not set `APP_SECRET_ARN` for this workflow. `server/.env` is local only and never included in the artifact. Preserve the encryption key and photo bucket so saved photos remain readable. Infrastructure settings use environment variables. Application settings including subscription enablement use `ConfigValues`; Razorpay credentials and plan IDs use `ConfigSecrets`. See `../RAZORPAY_SETUP.md`.
 
 ## 3. Database network and photo storage
 

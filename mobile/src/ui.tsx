@@ -21,6 +21,8 @@ import { endpoints } from "../../common/api.js";
 import { apiUrl } from "./api";
 import type { Language } from "../../common/types";
 import { useLeafCare } from "./state";
+import { subscriptionRequired } from "../../common/subscription.js";
+import { Subscription } from "./Subscription";
 import { NavigationIcon } from "./NavigationIcon";
 export function UserAvatar({ large = false }: { large?: boolean }) {
   const localize = useLocale();
@@ -351,6 +353,7 @@ export function Page({
   const localize = useLocale();
   const a = useLeafCare();
   const pathname = usePathname();
+  const featureLocked = !auth && subscriptionRequired(pathname, a.billingStatus.enabled, a.billingStatus.access);
   const scrollRef = useRef<ScrollView>(null);
   const keyboardScrollFrame = useRef<number | null>(null);
   const revealFocusedInput = useCallback(() => {
@@ -430,9 +433,14 @@ export function Page({
             )}
           </View>
         )}
+        {featureLocked && <View style={s.notice}><Text style={s.body}>Subscribe to use this feature. Weather remains available.</Text></View>}
         <ScrollView
           ref={scrollRef}
-          style={s.flex}
+          style={[s.flex, featureLocked && { opacity: 0.5 }]}
+          pointerEvents={featureLocked ? "none" : "auto"}
+          scrollEnabled={!featureLocked}
+          accessibilityElementsHidden={featureLocked}
+          importantForAccessibility={featureLocked ? "no-hide-descendants" : "auto"}
           onLayout={revealFocusedInput}
           onContentSizeChange={revealFocusedInput}
           keyboardShouldPersistTaps="handled"
@@ -553,6 +561,13 @@ export function Page({
           </View>
         )}
       </KeyboardAvoidingView>
+      <Modal transparent animationType="fade" visible={a.subscriptionPopup || featureLocked} onRequestClose={() => {}}>
+        <View style={{ flex: 1, justifyContent: "center", padding: 20, backgroundColor: "rgba(18,51,74,0.2)" }}>
+          <View accessibilityViewIsModal style={{ maxHeight: "85%", backgroundColor: "white", borderRadius: 22, overflow: "hidden" }}>
+            <Subscription compact />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

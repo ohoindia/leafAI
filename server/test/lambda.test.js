@@ -221,6 +221,7 @@ test("saved photo endpoint returns decrypted binary only for its owner", async (
   const data = encrypt(plain),
     id = crypto.randomUUID();
   const execute = mock.method(db, "execute", async (sql, args) => {
+    if (sql.includes("FROM ConfigValues")) return [[{ConfigValue: "false"}]];
     if (sql.startsWith("SELECT s.id FROM user_sessions"))
       return [[{ id: "active-session" }]];
     assert.match(sql, /a.user_id=\?/);

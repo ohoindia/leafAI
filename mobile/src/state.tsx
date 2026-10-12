@@ -16,6 +16,7 @@ import { endpoints, uploadRules } from "../../common/api.js";
 import { speechLanguages, brand, screens } from "../../common/content.js";
 import type { Analysis, HistoryItem, Language, User } from "../../common/types";
 import { normalizeLanguage } from "../../common/locale.js";
+import { subscriptionRequired } from "../../common/subscription.js";
 import { session, preferenceStorage } from "./session";
 import type { SessionTokens } from "../../common/persistent-session.js";
 
@@ -24,6 +25,16 @@ function useAppState() {
   const [restoring, setRestoring] = useState(true);
   const [token, setToken] = useState("");
   const [user, setUser] = useState<User>();
+  const [subscriptionPopup, setSubscriptionPopup] = useState(false);
+  const [billingStatus, setBillingStatus] = useState<{enabled: boolean; access: boolean | null}>({enabled: false, access: null});
+  useEffect(() => {
+    let active = true;
+    const check = () => request<{enabled: boolean; access: boolean}>("/api/billing", token).then(value => { if (active) setBillingStatus(value); }).catch(() => {});
+    if (!token) return;
+    void check();
+    const timer = setInterval(() => void check(), 60000);
+    return () => { active = false; clearInterval(timer); };
+  }, [token]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -41,6 +52,7 @@ function useAppState() {
       setToken(accessToken);
       if (accessToken) setRestoring(false);
       if (!accessToken) {
+        setSubscriptionPopup(false);
         setUser(undefined);
         setHistory([]);
         setResult(undefined);
@@ -60,8 +72,12 @@ function useAppState() {
         if (active && accessToken) {
           const profile = await request<User>(endpoints.me, accessToken);
           if (active) setUser(profile);
-          const analyses = await request<HistoryItem[]>(endpoints.analyses, accessToken);
-          if (active) setHistory(analyses);
+          const billing = await request<{enabled: boolean; access: boolean}>("/api/billing", accessToken);
+          if (active) setBillingStatus(billing);
+          if (billing.access) {
+            const analyses = await request<HistoryItem[]>(endpoints.analyses, accessToken);
+            if (active) setHistory(analyses);
+          }
         }
       } catch (e) {
         if (active) setError(e instanceof Error ? e.message : "Unable to restore your session.");
@@ -78,6 +94,7 @@ function useAppState() {
   function go(screen: keyof typeof screens) {
     setError("");
     setNotice("");
+    setSubscriptionPopup(subscriptionRequired(screen, billingStatus.enabled, billingStatus.access));
     router.push(`/${screen}`);
   }
   function change(value: Language) {
@@ -128,6 +145,9 @@ function useAppState() {
     }
   }
   async function loadHistory(accessToken = token) {
+    const billing = await request<{enabled: boolean; access: boolean}>("/api/billing", accessToken);
+    setBillingStatus(billing);
+    if (!billing.access) { setHistory([]); return; }
     setHistory(await request<HistoryItem[]>(endpoints.analyses, accessToken));
   }
   async function authenticate(
@@ -434,6 +454,10 @@ function useAppState() {
     });
   }
   return {
+    subscriptionPopup,
+    setSubscriptionPopup,
+    billingStatus,
+    setBillingStatus,
     lang,
     restoring,
     change,

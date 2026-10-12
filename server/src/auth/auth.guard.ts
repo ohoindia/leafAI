@@ -1,4 +1,6 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, UnauthorizedException, HttpException } from "@nestjs/common";
+import { entitled } from "../billing/policy.js";
+import { subscriptionEnabled } from "../billing/configuration.js";
 import type { CanActivate, ExecutionContext } from "@nestjs/common";
 import { DatabaseService } from "../common/database.service.js";
 import jwt from "jsonwebtoken";
@@ -25,8 +27,13 @@ export class AuthGuard implements CanActivate {
       );
       if (!rows.length) throw new Error("Session expired");
       req.user = claims as SessionClaims;
+      if (!/^\/api\/(auth|billing|weather)(\/|$)/.test(req.path) && await subscriptionEnabled(this.db)) {
+        const [subscriptions] = await this.db.execute("SELECT access_until FROM subscriptions WHERE user_id=?", [claims.sub]);
+        if (!entitled(subscriptions[0])) throw new HttpException("An active subscription is required. Open Subscription to enable AutoPay.", 402);
+      }
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof HttpException && error.getStatus() === 402) throw error;
       throw new UnauthorizedException("Authentication required");
     }
   }

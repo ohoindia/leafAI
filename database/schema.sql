@@ -195,3 +195,24 @@ CREATE TABLE MobileOTPHistory (
  purpose ENUM('REGISTRATION','PIN_RESET') NOT NULL DEFAULT 'REGISTRATION',
  INDEX ix_otp_user_time(user_id,GeneratedOn), FOREIGN KEY(user_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+  user_id BIGINT UNSIGNED PRIMARY KEY,
+  razorpay_id VARCHAR(80) NULL UNIQUE,
+  plan VARCHAR(10) NULL,
+  status VARCHAR(30) NOT NULL DEFAULT 'created',
+  intro_used BOOLEAN NOT NULL DEFAULT FALSE,
+  intro_end BIGINT UNSIGNED NULL,
+  access_until BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+-- Text-backed boolean: only 'true' enables subscription enforcement.
+INSERT IGNORE INTO ConfigValues (ConfigKey,ConfigValue) VALUES ('EnableSubscription','false');
+-- Placeholders only. Preserve existing credentials when this migration is repeated.
+INSERT IGNORE INTO ConfigSecrets (ConfigKey,ConfigValue) VALUES
+('RAZORPAY_KEY_ID',''),
+('RAZORPAY_KEY_SECRET',''),
+('RAZORPAY_WEBHOOK_SECRET',''),
+('RAZORPAY_MONTHLY_PLAN_ID',''),
+('RAZORPAY_YEARLY_PLAN_ID','');

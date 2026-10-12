@@ -1824,3 +1824,10 @@ textarea:focus-visible {
 .service-fields { display: grid; gap: 12px; margin: 16px 0; }
 .service-fields label { display: grid; gap: 6px; font-weight: 600; }
 .service-link { display: inline-block; padding: 12px 18px; border-radius: 10px; margin: 8px 8px 8px 0; text-decoration: none; background: #007ca8; color: white; }
+.subscription-panel { padding: 28px; }
+.subscription-panel button { margin: 6px 0; padding: 12px 16px; border-radius: 12px; cursor: pointer; }
+.subscription-locked { opacity: 0.5; pointer-events: none; user-select: none; }
+.subscription-page-frozen { height: 100dvh; overflow: hidden; overscroll-behavior: none; }
+.subscription-overlay { position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 430px); box-sizing: border-box; z-index: 2000; display: grid; place-items: center; padding: 16px; background: rgba(18, 51, 74, 0.35); overscroll-behavior: none; }
+.subscription-popup { position: relative; box-sizing: border-box; background: #fff; border-radius: 22px; width: 100%; min-width: 0; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere; box-shadow: 0 18px 65px rgba(18, 51, 74, 0.25); }
+.subscription-safe-navigation { display: flex; gap: 12px; padding: 0 28px 24px; }

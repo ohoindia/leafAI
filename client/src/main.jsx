@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { UserDetails, UserAvatar } from "./UserDetails";
+import { Subscription, SubscriptionPopup } from "./Subscription";
+import { subscriptionRequired, subscriptionMessage } from "../../common/subscription.js";
 import { Services } from "./Services";
 import { Market } from "./Market";
 import { Weather } from "./Weather";
@@ -176,6 +178,9 @@ function PasswordField(props) {
   );
 }
 function App() {
+  const [subscriptionAccess, setSubscriptionAccess] = useState(null);
+  const [subscriptionEnabled, setSubscriptionEnabled] = useState(false);
+  const [subscriptionPopup, setSubscriptionPopup] = useState(false);
   const localize = (text) => translate(lang, text);
   const [screen, setScreen] = useState("login"),
     [lang, setLang] = useState(() =>
@@ -199,6 +204,7 @@ function App() {
     [listening, setListening] = useState(false),
     [tab, setTab] = useState("analysis");
   const [notice, setNotice] = useState("");
+  const featureLocked = Boolean(user && subscriptionRequired(screen, subscriptionEnabled, subscriptionAccess));
   const camera = useRef(),
     gallery = useRef(),
     recognition = useRef(),
@@ -207,6 +213,11 @@ function App() {
   function go(next) {
     setError("");
     setNotice("");
+    if (next === "subscription") {
+      setSubscriptionPopup(true);
+      return;
+    }
+    setSubscriptionPopup(Boolean(user && subscriptionRequired(next, subscriptionEnabled, subscriptionAccess)));
     setScreen(next);
     window.scrollTo(0, 0);
   }
@@ -221,6 +232,7 @@ function App() {
     tokenRef.current = "";
     setToken("");
     setUser(null);
+    setSubscriptionPopup(false);
     setHistory([]);
     setResult(null);
     setPreview("");
@@ -254,6 +266,7 @@ function App() {
     try {
       return await send();
     } catch (error) {
+      if (error.status === 402) { setSubscriptionEnabled(true); setSubscriptionAccess(false); setSubscriptionPopup(true); }
       if (error.status !== 401 || url.startsWith("/api/auth/")) throw error;
       try {
         await refresh();
@@ -264,6 +277,18 @@ function App() {
       return send();
     }
   }
+
+  useEffect(() => {
+    setSubscriptionAccess(null);
+    let active = true;
+    const check = () => api("/api/billing").then(value => { if (active) { setSubscriptionEnabled(value.enabled); setSubscriptionAccess(value.access); } }).catch(() => { if (active) setSubscriptionAccess(false); });
+    if (user && token) {
+      check();
+      const interval = setInterval(check, 60000);
+      return () => { active = false; clearInterval(interval); };
+    }
+    return () => { active = false; };
+  }, [Boolean(user), Boolean(token)]);
 
   useEffect(() => {
     sessionStorage.removeItem("token");
@@ -278,6 +303,7 @@ function App() {
   }, []);
   useEffect(() => {
     if (token) {
+      if (subscriptionAccess === true)
       api(endpoints.analyses)
         .then(setHistory)
         .catch((e) => setError(e.message));
@@ -285,7 +311,7 @@ function App() {
         .then(setUser)
         .catch((e) => setError(e.message));
     }
-  }, [token, result]);
+  }, [token, result, subscriptionAccess]);
   useEffect(
     () => () => {
       if (preview) URL.revokeObjectURL(preview);
@@ -680,7 +706,7 @@ function App() {
   const shown = filterHistory(history, query, filter);
   return (
     <LocaleContext.Provider value={lang}>
-      <div className={`phone ${isAuth ? "botanical" : ""}`}>
+      <div className={`phone ${isAuth ? "botanical" : ""} ${featureLocked || subscriptionPopup ? "subscription-page-frozen" : ""}`}>
         <input
           ref={camera}
           hidden
@@ -740,7 +766,8 @@ function App() {
                 </button>
               </div>
             )}
-            <main className={isAuth ? "auth-content" : "content"}>
+            {featureLocked && <div className="notice" role="status"><span>{subscriptionMessage}</span><button onClick={() => setSubscriptionPopup(true)}>View plans</button></div>}
+            <main inert={featureLocked} aria-disabled={featureLocked || undefined} className={`${isAuth ? "auth-content" : "content"}${featureLocked ? " subscription-locked" : ""}`}>
               {["login", "register"].includes(screen) && (
                 <>
                   <div className="brand">
@@ -972,6 +999,7 @@ function App() {
               )}
               {screen === "home" && (
                 <>
+                  {subscriptionEnabled && subscriptionAccess !== true && <section className="card" role="status"><p>{subscriptionMessage}</p><button onClick={() => go("subscription")}>View subscription plans</button></section>}
                   <section className="greeting">
                     <span className="sun">☀</span>
                     <h1>{localize(accountGreeting(user?.fullName))}</h1>
@@ -1350,6 +1378,7 @@ function App() {
                   </button>
                 </>
               )}
+              {screen === "subscription" && <Subscription api={api} onAccess={setSubscriptionAccess} />}
               {screen === "services" && <Services />}
               {screen === "history" && (
                 <>
@@ -1476,6 +1505,7 @@ function App() {
                     </div>
                   </section>
                   <div className="profile-menu">
+                    <button className="profile-menu-card" onClick={() => go("subscription")}>Subscription and AutoPay</button>
                     {profileSettings.map((item) => (
                       <button
                         key={item.route}
@@ -1576,6 +1606,7 @@ function App() {
                 </>
               )}
             </main>
+            {(subscriptionPopup || featureLocked) && <SubscriptionPopup api={api} onNavigate={go} onAccess={access => { setSubscriptionAccess(access); if (access && featureLocked) setSubscriptionPopup(false); }} />}
             {!isAuth && screen !== "processing" && (
               <nav aria-label={localize("Main navigation")}>
                 {[

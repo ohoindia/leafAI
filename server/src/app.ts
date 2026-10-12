@@ -42,6 +42,9 @@ export async function createApplication() {
       crossOriginResourcePolicy: { policy: "same-site" },
       contentSecurityPolicy: {
         directives: {
+          scriptSrc: ["'self'", "https://checkout.razorpay.com"],
+          frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
+          connectSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com"],
           imgSrc: ["'self'", "data:", "blob:"],
           upgradeInsecureRequests: env.NODE_ENV === "production" ? [] : null,
         },
@@ -57,7 +60,7 @@ export async function createApplication() {
       credentials: true,
     }),
   );
-  server.use(express.json({ limit: "100kb" }));
+  server.use(express.json({ limit: "100kb", verify: (req, _res, buffer) => { (req as any).rawBody = buffer; } }));
   server.use("/api/crop-icons/v1", cropIconAssets());
   server.use(cookieParser());
   server.use(
