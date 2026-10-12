@@ -102,14 +102,7 @@ export function AuthBrand({ register = false }: { register?: boolean }) {
   return (
     <View style={s.authBrand}>
       <LeafLogo large />
-      <Text style={s.brandTitle}>{brand.name}</Text>
-      <Text style={[s.muted, { textAlign: "center" }]}>
-        {localize(
-          register
-            ? "Grow Today\nGreener Tomorrow"
-            : "Good Plants\nBrighter Days",
-        )}
-      </Text>
+     
     </View>
   );
 }
@@ -425,7 +418,6 @@ export function Page({
             <View style={s.flex}>
               <View style={s.row}>
                 <LeafLogo />
-                <Text style={s.heading}>{brand.name}</Text>
               </View>
               <Text style={s.small}>{localize(brand.tagline)}</Text>
             </View>

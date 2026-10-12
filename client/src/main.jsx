@@ -765,10 +765,7 @@ function App() {
               <header>
                 <div className="brand-inline">
                   <Leaf />
-                  <div>
-                    <b>{brand.name}</b>
-                    <small>{localize(brand.tagline)}</small>
-                  </div>
+                  
                 </div>
                 <button
                   className="account-avatar"
@@ -815,7 +812,6 @@ function App() {
                 <>
                   <div className="brand">
                     <Leaf large />
-                    <h1>{brand.name}</h1>
                     <p>
                       {screen === "login" ? (
                         <>
