@@ -1796,6 +1796,13 @@ function Footer({ text }) {
     <footer>
       <Leaf />
       <p>{localize(text)}</p>
+      <nav className="public-policy-links" aria-label="Public information">
+        <a href="/pricing.html">Pricing</a>
+        <a href="/terms.html">Terms of use</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/refunds.html">Refunds &amp; cancellation</a>
+        <a href="/support.html">Support</a>
+      </nav>
     </footer>
   );
 }

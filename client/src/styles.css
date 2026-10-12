@@ -2322,3 +2322,14 @@ nav button > small {
   height: 52px;
   border-radius: 16px;
 }
+.public-policy-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  font-size: 13px;
+}
+.public-policy-links a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
