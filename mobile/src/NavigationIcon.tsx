@@ -6,9 +6,11 @@ type NavigationRoute =
 export function NavigationIcon({
   route,
   selected,
+  inverted = false,
 }: {
   route: NavigationRoute;
   selected: boolean;
+  inverted?: boolean;
 }) {
   return (
     <Svg
@@ -16,7 +18,7 @@ export function NavigationIcon({
       height={24}
       viewBox="0 0 24 24"
       fill="none"
-      stroke={selected ? "#007ca8" : "#63758a"}
+      stroke={inverted ? "#fff" : selected ? "#007ca8" : "#63758a"}
       strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"

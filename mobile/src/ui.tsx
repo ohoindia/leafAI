@@ -482,9 +482,9 @@ export function Page({
           <View style={s.nav}>
             {(
               [
-                ["home", "Home"],
                 ["market", "Market"],
                 ["weather", "Weather"],
+                ["home", "Home"],
                 ["services", "Services"],
                 ["profile", "Profile"],
               ] as const
@@ -522,8 +522,10 @@ export function Page({
                     s.navSelected,
                 ]}
               >
+                <View style={[s.navIcon, route === "home" && s.navHomeIcon]}>
                 <NavigationIcon
                   route={route}
+                  inverted={route === "home"}
                   selected={
                     activeRoute === `/${route}` ||
                     (route === "profile" &&
@@ -536,6 +538,7 @@ export function Page({
                       ].includes(activeRoute))
                   }
                 />
+                </View>
                 <Text
                   style={[
                     s.small,
@@ -610,7 +613,7 @@ export const s = StyleSheet.create({
   notice: { backgroundColor: "#e8f6ee", padding: 16, borderRadius: 12 },
   thumbnail: { width: 55, height: 60, borderRadius: 10, resizeMode: "cover" },
   photoPlaceholder: { alignItems: "center", justifyContent: "center", gap: 12 },
-  navSelected: { backgroundColor: "#eaf7ff" },
+  navSelected: { backgroundColor: "#f5fbff", borderRadius: 28 },
   divider: { textAlign: "center", color: "#63758a" },
   safe: { flex: 1, backgroundColor: "#f7fafc" },
   flex: { flex: 1 },
@@ -690,12 +693,31 @@ export const s = StyleSheet.create({
     backgroundColor: "#edf8ff",
   },
   error: { color: "#a12c22" },
+  navIcon: {
+    width: 40,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  navHomeIcon: {
+    width: 60,
+    height: 60,
+    marginTop: -14,
+    borderRadius: 30,
+    backgroundColor: "#102c70",
+    boxShadow: "0 2px 6px rgba(16, 44, 112, 0.16)",
+  },
   nav: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 12,
+    borderRadius: 36,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    boxShadow: "0 2px 20px rgba(18, 35, 58, 0.14)",
     flexShrink: 0,
     flexDirection: "row",
     backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderColor: "#e0e9ef",
   },
   accountAvatar: {
     width: 48,
@@ -710,8 +732,8 @@ export const s = StyleSheet.create({
   avatarText: { color: "#007ca8", fontSize: 18, fontWeight: "700" },
   navItem: {
     flex: 1,
-    minHeight: 64,
-    paddingVertical: 10,
+    minHeight: 56,
+    paddingVertical: 4,
     gap: 4,
     alignItems: "center",
     justifyContent: "center",

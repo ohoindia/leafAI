@@ -1831,3 +1831,52 @@ textarea:focus-visible {
 .subscription-overlay { position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 430px); box-sizing: border-box; z-index: 2000; display: grid; place-items: center; padding: 16px; background: rgba(18, 51, 74, 0.35); overscroll-behavior: none; }
 .subscription-popup { position: relative; box-sizing: border-box; background: #fff; border-radius: 22px; width: 100%; min-width: 0; max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; overflow-wrap: anywhere; box-shadow: 0 18px 65px rgba(18, 51, 74, 0.25); }
 .subscription-safe-navigation { display: flex; gap: 12px; padding: 0 28px 24px; }
+
+/* Floating rounded footer, matching the Paytm reference. */
+nav {
+  box-sizing: border-box;
+  background: #fff;
+  width: min(calc(100% - 32px), 398px);
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 36px;
+  padding: 5px 8px;
+  box-shadow: 0 2px 20px rgba(18, 35, 58, .14);
+  overflow: visible;
+}
+nav button {
+  min-height: 56px;
+  padding: 0 2px;
+  gap: 5px;
+  color: #20252c;
+  border-radius: 28px;
+}
+nav button.active { background: transparent; color: #007ca8; }
+nav .nav-icon {
+  width: 40px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+}
+nav .nav-icon .icon { width: 24px; height: 24px; }
+nav button.active .nav-icon { background: #eaf7ff; }
+nav .nav-icon.nav-icon-home,
+nav button.active .nav-icon.nav-icon-home {
+  width: 60px;
+  height: 60px;
+  margin-top: -14px;
+  background: #102c70;
+  color: #fff;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(16, 44, 112, .16);
+}
+nav button:focus-visible { outline: 2px solid #00baf2; outline-offset: 2px; }
+nav button > small { font-size: 11px; line-height: 16px; }
+
+.service-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.service-heading h3 { margin: 0; flex: 1; }
+.service-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0; background: #eaf7ff; color: #007ca8; }
+.service-icon-fertilizer { background: #e8f6ee; color: #237044; }
+.service-icon svg { width: 30px; height: 30px; }
