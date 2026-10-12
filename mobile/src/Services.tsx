@@ -29,7 +29,7 @@ function ServiceHeading({
           width: 52,
           height: 52,
           borderRadius: 16,
-          backgroundColor: icon === "fertilizer" ? "#e8f6ee" : "#eaf7ff",
+          backgroundColor: icon === "fertilizer" ? "#e8f6ee" : "#edf7f0",
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -45,7 +45,7 @@ function ServiceHeading({
             height={30}
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#007ca8"
+            stroke="#218653"
             strokeWidth={1.7}
             strokeLinecap="round"
             strokeLinejoin="round"

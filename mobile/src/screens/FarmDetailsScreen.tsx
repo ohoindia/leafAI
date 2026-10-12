@@ -128,7 +128,7 @@ export function FarmDetailsForm({
       {selected !== "choose" && !embedded && (
         <View
           style={{
-            backgroundColor: "#eaf7ff",
+            backgroundColor: "#edf7f0",
             padding: 22,
             borderRadius: 20,
             gap: 8,
@@ -264,7 +264,7 @@ export function FarmDetailsForm({
                         <View
                           style={{
                             padding: 16,
-                            backgroundColor: "#f7fafc",
+                            backgroundColor: "#f6f9f6",
                             borderRadius: 12,
                             gap: 6,
                           }}

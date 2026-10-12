@@ -1,3 +1,4 @@
+import { typography } from "./theme";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, Button } from "react-native";
 import * as Linking from "expo-linking";
@@ -82,7 +83,7 @@ export function Subscription({
         gap: 18,
       }}
     >
-      <Text style={{ fontSize: 26, fontWeight: "bold" }}>
+      <Text style={{ fontFamily: typography.fontFamily, fontSize: 26, fontWeight: "bold" }}>
         Subscription and AutoPay
       </Text>
       <Text>

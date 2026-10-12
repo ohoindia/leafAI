@@ -765,7 +765,7 @@ function App() {
               <header>
                 <div className="brand-inline">
                   <Leaf />
-                  
+                  <b>{localize(brand.name)}</b>
                 </div>
                 <button
                   className="account-avatar"
@@ -812,21 +812,22 @@ function App() {
                 <>
                   <div className="brand">
                     <Leaf large />
-                    <p>
-                      {screen === "login" ? (
-                        <>
-                          {localize("Good Plants")}
-                          <br />
-                          {localize("Brighter Days")}
-                        </>
-                      ) : (
+                    {screen === "login" && (
+                      <p>
+                        {localize("Healthy Crops")}
+                        <br />
+                        {localize("Thriving Farms")}
+                      </p>
+                    )}
+                    {screen === "register" && (
+                      <p>
                         <>
                           {localize("Grow Today")}
                           <br />
                           {localize("Greener Tomorrow")}
                         </>
-                      )}
-                    </p>
+                      </p>
+                    )}
                   </div>
                   <section className="mobile-auth-card">
                     <span className="auth-eyebrow">
@@ -1545,7 +1546,7 @@ function App() {
               {screen === "profile" && (
                 <>
                   <h2>{localize(screens.profile)}</h2>
-                  <section className="profile-hero card">
+                  <section className="profile-hero">
                     <UserAvatar user={user} large />
                     <div>
                       <h3>{user?.fullName || "Your account"}</h3>
@@ -1557,7 +1558,9 @@ function App() {
                       className="profile-menu-card"
                       onClick={() => go("subscription")}
                     >
-                      Subscription and AutoPay
+                      <span className="profile-menu-icon" aria-hidden="true">◈</span>
+                      <span className="profile-menu-copy"><strong>{localize("Subscription and AutoPay")}</strong></span>
+                      <span aria-hidden="true">›</span>
                     </button>
                     {profileSettings.map((item) => (
                       <button

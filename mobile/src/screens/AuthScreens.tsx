@@ -1,3 +1,4 @@
+import { typography } from "../theme";
 import { useLocale } from "../locale";
 import { useRef, useState } from "react";
 import { Text, TextInput, View } from "react-native";
@@ -167,9 +168,9 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
               style={{
                 flexDirection: "row",
                 alignItems: "center",
-                backgroundColor: "#f8fafc",
+                backgroundColor: "#f6f9f6",
                 borderWidth: 1,
-                borderColor: "#d6e2ec",
+                borderColor: "#d5e1d8",
                 borderRadius: 12,
                 paddingHorizontal: 14,
                 minHeight: 54,
@@ -178,10 +179,10 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
               <Text
                 accessibilityLabel="Country code +91"
                 style={{
-                  color: "#142b41",
-                  fontSize: 16,
+                  color: "#243c30",
+                  fontFamily: typography.fontFamily, fontSize: 16,
                   borderRightWidth: 1,
-                  borderRightColor: "#d6e2ec",
+                  borderRightColor: "#d5e1d8",
                   paddingRight: 12,
                   marginRight: 12,
                 }}
@@ -193,8 +194,8 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
                   flex: 1,
                   minWidth: 0,
                   paddingVertical: 14,
-                  color: "#142b41",
-                  fontSize: 16,
+                  color: "#243c30",
+                  fontFamily: typography.fontFamily, fontSize: 16,
                 }}
                 value={mobileNumber.replace(/(\d{5})(\d+)/, "$1 $2")}
                 onChangeText={(value) => void checkMobile(value)}
@@ -202,7 +203,7 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
                 autoComplete="tel-national"
                 maxLength={11}
                 placeholder={localize("Enter mobile number")}
-                placeholderTextColor="#63758a"
+                placeholderTextColor="#697b70"
                 editable={!a.busy}
                 accessibilityLabel={localize("Mobile number")}
               />

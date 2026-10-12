@@ -48,7 +48,7 @@ export function HomeScreen() {
         {localize("Healthy plants make a happier you.")}
       </Text>
       <Weather summary />
-      <LinearGradient colors={["#007ca8", "#005e80"]} style={s.hero}>
+      <LinearGradient colors={["#218653", "#17673f"]} style={s.hero}>
         <Text style={[s.title, { color: "#fff" }]}>
           {localize("Analyze a leaf")}
         </Text>
@@ -226,7 +226,7 @@ export function LearnScreen() {
     </Page>
   );
 }
-function ProfileMenuCard({
+function ProfileMenuRow({
   title,
   subtitle,
   icon,
@@ -244,9 +244,9 @@ function ProfileMenuCard({
       accessibilityRole="button"
       disabled={a.busy}
       onPress={onPress}
-      style={[s.card, s.row]}
+      style={[s.row, { minHeight: 72, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#e0e8e2" }]}
     >
-      <View style={s.accountAvatar}>
+      <View style={{ width: 32, alignItems: "center" }}>
         <Text style={s.avatarText}>{icon}</Text>
       </View>
       <View style={s.flex}>
@@ -261,22 +261,19 @@ export function ProfileScreen() {
   const localize = useLocale();
   const a = useLeafCare();
   return (
-    <Page title={localize(screens.profile)}>
-      <Card>
-        <View style={s.row}>
-          <UserAvatar />
-          <View style={s.flex}>
-            <Text style={s.heading}>{a.user?.fullName || "Your account"}</Text>
-            <Text style={s.muted}>{a.user?.email}</Text>
-          </View>
-        </View>
-      </Card>
-      <Button
-        title="Subscription and AutoPay"
-        onPress={() => a.setSubscriptionPopup(true)}
-      />
+    <Page title={localize(screens.profile)} flat>
+      <View style={{ alignItems: "center", paddingVertical: 24, gap: 10, borderBottomWidth: 1, borderBottomColor: "#e0e8e2" }}>
+        <UserAvatar large />
+        <Text style={s.heading}>{a.user?.fullName || localize("Your account")}</Text>
+        {!!a.user?.email && <Text style={s.muted}>{a.user.email}</Text>}
+        <Pressable accessibilityRole="button" disabled={a.busy} onPress={() => a.go("account-details")} style={{ minHeight: 44, justifyContent: "center" }}>
+          <Text style={s.small}>{localize("Edit profile")} ›</Text>
+        </Pressable>
+      </View>
+      <View style={{ gap: 0 }}>
+      <ProfileMenuRow title="Subscription and AutoPay" subtitle="Manage your subscription" icon="◈" onPress={() => a.setSubscriptionPopup(true)} />
       {profileSettings.map((item) => (
-        <ProfileMenuCard
+        <ProfileMenuRow
           key={item.route}
           title={localize(item.title)}
           subtitle={item.subtitle}
@@ -290,7 +287,7 @@ export function ProfileScreen() {
           onPress={() => a.go(item.route)}
         />
       ))}
-      <ProfileMenuCard
+      <ProfileMenuRow
         title={localize("Sign out")}
         subtitle="Sign out of your account"
         icon="\u21aa"
@@ -298,6 +295,7 @@ export function ProfileScreen() {
           void a.logout();
         }}
       />
+      </View>
     </Page>
   );
 }

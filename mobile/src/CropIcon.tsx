@@ -93,13 +93,13 @@ function IconImage({ iconKey, size }: { iconKey: string; size: number }) {
         >
           <Path
             d="M12 22V10M12 15C5 15 3 9 4 5C10 5 13 9 12 15M12 11C18 12 22 7 20 3C14 4 11 7 12 11"
-            stroke="#007ca8"
+            stroke="#218653"
             strokeWidth={1.5}
             fill="#d9edf7"
           />
         </Svg>
       ) : loading ? (
-        <ActivityIndicator size="small" color="#007ca8" />
+        <ActivityIndicator size="small" color="#218653" />
       ) : source ? (
         <Image
           source={source}

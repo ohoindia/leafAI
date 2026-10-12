@@ -129,7 +129,7 @@ export function ProcessingScreen() {
   return (
     <Page processing title={localize(screens.processing)}>
       {a.photo && <Image source={{ uri: a.photo }} style={s.image} />}
-      <ActivityIndicator size="large" color="#007ca8" />
+      <ActivityIndicator size="large" color="#218653" />
       <Text accessibilityLiveRegion="polite" style={s.body}>
         {localize("Checking the photo and assessing visible plant health.")}
       </Text>

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { endpoints } from "../../common/api.js";
 import {
-  mandiNote,
   mspNote,
   riceNote,
   mspPrices,
@@ -25,8 +24,8 @@ export function Market({ api }) {
     [error, setError] = useState(""),
     [state, setState] = useState(""),
     [district, setDistrict] = useState(""),
-    [crop, setCrop] = useState("all"),
-    [category, setCategory] = useState("all");
+    [category, setCategory] = useState("Cereals & Millets"),
+    [mspCategory, setMspCategory] = useState("Cereals & Millets");
   const sequence = useRef(0);
   async function load(params = "") {
     const id = ++sequence.current;
@@ -64,31 +63,23 @@ export function Market({ api }) {
       { timeout: 10000 },
     );
   }
-  const records = (data?.records || []).filter(
-    (r) =>
-      (category === "all" || cropDetails(r.commodity).category === category) &&
-      (crop === "all" ||
-        (crop === "rice"
-          ? /rice|paddy/i
-          : crop === "cotton"
-            ? /cotton/i
-            : /chilli|chili|mirchi/i
-        ).test(r.commodity)),
-  );
+  const [tab, setTab] = useState("mandi");
+  const [showLocation, setShowLocation] = useState(false);
+  const mandiGroups = groupCrops(data?.records || [], r => r.commodity);
+  const mspGroups = groupCrops(mspPrices, ([name]) => name);
+  const records = (data?.records || []).filter(r => cropDetails(r.commodity).category === category);
+  const supportPrices = mspPrices.filter(([name]) => cropDetails(name).category === mspCategory);
   return (
     <div className="market-page">
-      <header className="market-page-header">
-        <div>
-          <span className="market-eyebrow">
-            {t("Crop prices & market insights")}
-          </span>
-          <h2>{t("Market")}</h2>
-        </div>
-        <p className="muted">
-          {t("All prices in rupees per quintal (100 kg).")}
-        </p>
-      </header>
-      <section className="card market-location">
+      <h2>{t("Mandi prices")}</h2>
+      <div className="mandi-tabs" role="group" aria-label={t("Price type")}>
+        {[["mandi", "Mandi prices"], ["msp", "MSP"]].map(([key, label]) => <button key={key} aria-pressed={tab === key} onClick={() => setTab(key)}>{t(label)}</button>)}
+      </div>
+      {tab === "mandi" && <>
+      <button className="mandi-location-toggle" aria-expanded={showLocation} onClick={() => setShowLocation(!showLocation)}>
+        <span>{data?.location?.district ? data.location.district + ", " + data.location.state : t("Your market location")}</span><span>{t("Change")} ›</span>
+      </button>
+      {showLocation && <section className="market-location">
         <h3>{t("Your market location")}</h3>
         <form
           onSubmit={(e) => {
@@ -134,8 +125,8 @@ export function Market({ api }) {
             {t("Saved farm")}
           </button>
         </div>
-      </section>
-      <section className="card market-mandi">
+      </section>}
+      <section className="market-mandi">
         <h3 className="mandi-heading">
           <svg viewBox="0 0 32 32" aria-hidden="true" className="mandi-icon">
             <path
@@ -157,109 +148,30 @@ export function Market({ api }) {
               strokeWidth="2"
             />
           </svg>
-          {t("Local mandi prices")}
+          {t("My crops")}
         </h3>
-        <p className="market-description">{t(mandiNote)}</p>
-        {data?.location?.district && (
-          <h4>
-            {data.location.district}, {data.location.state}
-          </h4>
-        )}
-        <fieldset className="mandi-crop-filters">
-          <legend>{t("Crop")}</legend>
-          <div className="mandi-crop-options">
-            {[
-              ["all", "All crops", "Crop plant"],
-              ["rice", "Rice / Paddy", "Paddy"],
-              ["cotton", "Cotton", "Cotton"],
-              ["mirchi", "Mirchi (chilli)", "Chilli"],
-            ].map(([key, label, image]) => (
-              <button
-                type="button"
-                key={key}
-                className="secondary mandi-crop-option"
-                aria-pressed={crop === key}
-                onClick={() => {
-                  setCrop(key);
-                  setCategory("all");
-                }}
-              >
-                <span aria-hidden="true">
-                  <CropSymbol name={image} />
-                </span>
-                <span>{t(label)}</span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className="market-category-filters">
-          <legend>{t("Browse by category")}</legend>
-          <div className="market-category-options">
-            {["all", ...cropCategories].map((name) => (
-              <button
-                type="button"
-                key={name}
-                className="market-category-option"
-                data-category={name}
-                aria-pressed={category === name}
-                onClick={() => {
-                  setCategory(name);
-                  setCrop("all");
-                }}
-              >
-                <span aria-hidden="true">
-                  <CropSymbol name={categoryImages[name]} />
-                </span>
-                <span>{t(name === "all" ? "All categories" : name)}</span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <p className="market-description">{t("All prices in rupees per quintal (100 kg).")}</p>
         {busy && <p role="status">{t("Loading market prices...")}</p>}
         {error && <p role="alert">{t(error)}</p>}
         {data && <p role="status">{t(data.message)}</p>}
         {data?.status === "ok" && !records.length && (
           <p>{t("No reports for this crop in the selected district.")}</p>
         )}
-        <div className="market-list">
-          {groupCrops(records, (r) => r.commodity).map((group) => (
-            <section
-              className="crop-category"
-              data-category={group.category}
-              key={group.category}
-            >
-              <h4 className="crop-category-heading">
-                <span className="category-heading-icon">
-                  <CropIcon name={categoryImages[group.category]} />
-                </span>
-                {t(group.category)}{" "}
-                <span className="market-count">{group.items.length}</span>
-              </h4>
-              <div className="crop-grid">
-                {group.items.map((r, i) => (
-                  <article className="market-row crop-market-row" key={i}>
-                    <CropSymbol name={t(r.commodity)} />
-                    <div className="crop-price-details">
-                      <strong>
-                        {t(r.commodity)} · {t(r.variety)}
-                      </strong>
-                      <p>
-                        {r.market} · {t("Reported")}: {r.date}
-                      </p>
-                      <strong className="market-price">
-                        {t("Modal price")}: {price(r.modal, t)}
-                      </strong>
-                      <p>
-                        {t("Minimum")}: {price(r.min, t)} · {t("Maximum")}:{" "}
-                        {price(r.max, t)}
-                      </p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        <CategoryBrowser categories={cropCategories} selected={category} onSelect={setCategory} groups={mandiGroups}>
+          <h4>{t(category)}</h4>
+          <div className="price-tile-grid">
+            {records.map((r, i) => <article className="price-tile" key={r.commodity + r.market + i}>
+              <CropSymbol name={r.commodity} />
+              <strong>{t(r.commodity)}</strong>
+              <small>{t(r.variety)}</small>
+              <strong className="tile-price">{price(r.modal, t).split(" / ")[0]}</strong>
+              <small>{t("per quintal (100 kg)")}</small>
+              <small>{r.market} · {r.date}</small>
+              <small>{t("Minimum")}: {price(r.min, t).split(" / ")[0]}</small>
+              <small>{t("Maximum")}: {price(r.max, t).split(" / ")[0]}</small>
+            </article>)}
+          </div>
+        </CategoryBrowser>
         {data?.truncated && (
           <p>
             {t("Showing the first 1,000 reports. See the source for more.")}
@@ -269,7 +181,8 @@ export function Market({ api }) {
           AGMARKNET / data.gov.in
         </a>
       </section>
-      <section className="card market-msp">
+      </>}
+      {tab === "msp" && <section className="market-msp">
         <div className="market-section-header">
           <h3>{t("Government Minimum Support Prices (MSP)")}</h3>
           <span className="market-season">{t(mspSeason)}</span>
@@ -282,47 +195,35 @@ export function Market({ api }) {
           <p>{t(mspNote)}</p>
           <p>{t(riceNote)}</p>
         </details>
-        <div className="market-list">
-          {groupCrops(mspPrices, ([name]) => name).map((group) => (
-            <section
-              className="crop-category"
-              data-category={group.category}
-              key={group.category}
-            >
-              <h4 className="crop-category-heading">
-                <span className="category-heading-icon">
-                  <CropIcon name={categoryImages[group.category]} />
-                </span>
-                {t(group.category)}
-              </h4>
-              <div className="crop-grid">
-                {group.items.map(([name, value]) => (
-                  <article
-                    className="market-row crop-market-row msp-price-card"
-                    key={name}
-                  >
-                    <CropSymbol name={name} />
-                    <div className="crop-price-details">
-                      <strong>{t(name)}</strong>
-                      <div className="msp-card-price">
-                        <span className="market-price">
-                          {price(value, t).split(" / ")[0]}
-                        </span>
-                        <span className="market-price-unit">
-                          {t("per quintal (100 kg)")}
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+        <CategoryBrowser categories={mspGroups.map(g => g.category)} selected={mspCategory} onSelect={setMspCategory} groups={mspGroups}>
+          <h4>{t(mspCategory)}</h4>
+          <div className="price-tile-grid">
+            {supportPrices.map(([name, value]) => <article className="price-tile" key={name}>
+              <CropSymbol name={name} />
+              <strong>{t(name)}</strong>
+              <strong className="tile-price">{price(value, t).split(" / ")[0]}</strong>
+              <small>{t("per quintal (100 kg)")}</small>
+            </article>)}
+          </div>
+        </CategoryBrowser>
         <a href={mspSource} target="_blank" rel="noreferrer">
           {t("Official MSP notification · 13 May 2026")}
         </a>
-      </section>
+      </section>}
     </div>
   );
+}
+
+function CategoryBrowser({ categories, groups, selected, onSelect, children }) {
+  const t = useLocale();
+  return <div className="category-browser">
+    <aside className="category-rail" tabIndex={0} aria-label={t("Browse by category")}>
+      {categories.map(name => <button key={name} aria-pressed={selected === name} onClick={() => onSelect(name)}>
+        <CropIcon name={categoryImages[name]} />
+        <span>{t(name)}</span>
+        <small>{groups.find(g => g.category === name)?.items.length || 0}</small>
+      </button>)}
+    </aside>
+    <section key={selected} className="category-results" tabIndex={0} aria-label={t(selected)} aria-live="polite">{children}</section>
+  </div>;
 }

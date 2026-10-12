@@ -1,3 +1,4 @@
+import { typography } from "./theme";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -230,10 +231,10 @@ export function Weather({ summary = false }: { summary?: boolean }) {
                     flexBasis: "45%",
                     padding: 8,
                     borderRadius: 8,
-                    backgroundColor: "#f4f8fa",
+                    backgroundColor: "#f1f6f2",
                   }}
                 >
-                  <Text style={[s.muted, { fontSize: 13, lineHeight: 18 }]}>
+                  <Text style={[s.muted, { fontFamily: typography.fontFamily, fontSize: 13, lineHeight: 18 }]}>
                     {text}
                   </Text>
                 </View>
@@ -250,7 +251,7 @@ export function Weather({ summary = false }: { summary?: boolean }) {
                     gap: 8,
                     padding: 10,
                     borderRadius: 10,
-                    backgroundColor: "#edf8ff",
+                    backgroundColor: "#edf7f0",
                   }}
                 >
                   <View
@@ -264,12 +265,12 @@ export function Weather({ summary = false }: { summary?: boolean }) {
                     <Text
                       style={[
                         s.body,
-                        { fontSize: 14, lineHeight: 20, fontWeight: "600" },
+                        { fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 20, fontWeight: "600" },
                       ]}
                     >
                       {dayLabel(day.time, a.lang)}
                     </Text>
-                    <Text style={[s.muted, { fontSize: 12, lineHeight: 17 }]}>
+                    <Text style={[s.muted, { fontFamily: typography.fontFamily, fontSize: 12, lineHeight: 17 }]}>
                       {localize(condition(day.weather_code))}
                     </Text>
                   </View>
@@ -279,14 +280,14 @@ export function Weather({ summary = false }: { summary?: boolean }) {
                     <Text
                       style={[
                         s.body,
-                        { fontSize: 14, lineHeight: 20, fontWeight: "600" },
+                        { fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 20, fontWeight: "600" },
                       ]}
                     >
                       {localize(formatValue(day.temperature_2m_max, "\u00b0C"))}{" "}
                       /{" "}
                       {localize(formatValue(day.temperature_2m_min, "\u00b0C"))}
                     </Text>
-                    <Text style={[s.muted, { fontSize: 12, lineHeight: 17 }]}>
+                    <Text style={[s.muted, { fontFamily: typography.fontFamily, fontSize: 12, lineHeight: 17 }]}>
                       {localize("Rain chance")}{" "}
                       {localize(
                         formatValue(day.precipitation_probability_max, "%"),
@@ -365,7 +366,7 @@ export function Weather({ summary = false }: { summary?: boolean }) {
         ))}
         {busy && (
           <View style={w.loading} accessibilityLiveRegion="polite">
-            <ActivityIndicator color="#007ca8" />
+            <ActivityIndicator color="#218653" />
             <Text style={s.muted}>{localize("Loading weather...")}</Text>
           </View>
         )}
@@ -386,7 +387,7 @@ export function Weather({ summary = false }: { summary?: boolean }) {
       {data && (
         <>
           <LinearGradient
-            colors={["#00536d", "#087e97"]}
+            colors={["#17673f", "#2b9560"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={w.hero}
@@ -581,7 +582,7 @@ const w = StyleSheet.create({
   },
   error: { backgroundColor: "#fff4f2", borderRadius: 12, padding: 12, gap: 8 },
   hero: { borderRadius: 22, padding: 22, gap: 8 },
-  heroLabel: { color: "#e0f4f8", fontSize: 14, fontWeight: "600" },
+  heroLabel: { color: "#e5f5eb", fontFamily: typography.fontFamily, fontSize: 14, fontWeight: "600" },
   refresh: {
     minHeight: 44,
     paddingHorizontal: 12,
@@ -589,16 +590,16 @@ const w = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "#ffffff18",
   },
-  location: { color: "#fff", fontSize: 22, lineHeight: 30, fontWeight: "700" },
+  location: { color: "#fff", fontFamily: typography.fontFamily, fontSize: 22, lineHeight: 30, fontWeight: "700" },
   temperature: {
     color: "#fff",
-    fontSize: 56,
+    fontFamily: typography.fontFamily, fontSize: 56,
     fontWeight: "700",
     letterSpacing: -2,
     marginTop: 6,
   },
-  condition: { color: "#fff", fontSize: 20, lineHeight: 28, fontWeight: "600" },
-  heroText: { color: "#e0f4f8", fontSize: 14, lineHeight: 22 },
+  condition: { color: "#fff", fontFamily: typography.fontFamily, fontSize: 20, lineHeight: 28, fontWeight: "600" },
+  heroText: { color: "#e5f5eb", fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 22 },
   heroFooter: {
     marginTop: 10,
     paddingTop: 14,
@@ -610,18 +611,18 @@ const w = StyleSheet.create({
     flexGrow: 1,
     flexBasis: "45%",
     minWidth: 0,
-    backgroundColor: "#f3f7fa",
+    backgroundColor: "#f1f6f2",
     padding: 14,
     borderRadius: 14,
     gap: 4,
   },
   metricValue: {
-    color: "#142b41",
-    fontSize: 20,
+    color: "#243c30",
+    fontFamily: typography.fontFamily, fontSize: 20,
     lineHeight: 28,
     fontWeight: "700",
   },
-  expand: { borderTopWidth: 1, borderTopColor: "#e0e9ef" },
+  expand: { borderTopWidth: 1, borderTopColor: "#e0e8e2" },
   expandButton: {
     minHeight: 56,
     flexDirection: "row",
@@ -631,12 +632,12 @@ const w = StyleSheet.create({
   },
   expandContent: { flex: 1, minWidth: 0 },
   expandTitle: {
-    color: "#142b41",
-    fontSize: 16,
+    color: "#243c30",
+    fontFamily: typography.fontFamily, fontSize: 16,
     lineHeight: 24,
     fontWeight: "600",
   },
-  chevron: { color: "#007ca8", fontSize: 24, width: 24, textAlign: "center" },
+  chevron: { color: "#218653", fontFamily: typography.fontFamily, fontSize: 24, width: 24, textAlign: "center" },
   details: { gap: 12, paddingBottom: 14 },
   forecastPreview: {
     flexDirection: "row",
@@ -647,14 +648,14 @@ const w = StyleSheet.create({
     marginTop: 4,
   },
   forecastTemperature: {
-    color: "#142b41",
-    fontSize: 14,
+    color: "#243c30",
+    fontFamily: typography.fontFamily, fontSize: 14,
     lineHeight: 22,
     fontWeight: "600",
   },
-  rain: { width: "100%", color: "#00708b", fontSize: 13, lineHeight: 20 },
+  rain: { width: "100%", color: "#00708b", fontFamily: typography.fontFamily, fontSize: 13, lineHeight: 20 },
   insights: {
-    backgroundColor: "#edf8ff",
+    backgroundColor: "#edf7f0",
     borderRadius: 14,
     padding: 14,
     gap: 10,
@@ -664,7 +665,7 @@ const w = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#007ca8",
+    backgroundColor: "#218653",
     marginTop: 9,
   },
   attribution: { paddingHorizontal: 8, gap: 4 },

@@ -1,3 +1,4 @@
+import { typography } from "./theme";
 import { useLocale } from "./locale";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -43,7 +44,7 @@ export function UserAvatar({ large = false }: { large?: boolean }) {
         { width: size, height: size, borderRadius: size / 2 },
       ]}
     >
-      <Text style={[s.avatarText, large && { fontSize: 30 }]}>
+      <Text style={[s.avatarText, large && { fontFamily: typography.fontFamily, fontSize: 30 }]}>
         {accountInitials(a.user?.fullName)}
       </Text>
     </View>
@@ -130,7 +131,7 @@ export function Button({
         (disabled || pressed) && { opacity: 0.55 },
       ]}
     >
-      <Text style={[s.buttonText, secondary && { color: "#005e80" }]}>
+      <Text style={[s.buttonText, secondary && { color: "#17673f" }]}>
         {localize(title)}
       </Text>
     </Pressable>
@@ -153,7 +154,7 @@ export function Card({
 }
 export function Field(props: React.ComponentProps<typeof TextInput>) {
   return (
-    <TextInput placeholderTextColor="#63758a" {...props} style={s.input} />
+    <TextInput placeholderTextColor="#697b70" {...props} style={s.input} />
   );
 }
 export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
@@ -162,7 +163,7 @@ export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
   return (
     <View style={{ position: "relative" }}>
       <TextInput
-        placeholderTextColor="#63758a"
+        placeholderTextColor="#697b70"
         {...props}
         secureTextEntry={!visible}
         style={[s.input, { paddingRight: 56 }]}
@@ -190,7 +191,7 @@ export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
             width: 23,
             height: 15,
             borderWidth: 1.8,
-            borderColor: "#63758a",
+            borderColor: "#697b70",
             borderRadius: 12,
             alignItems: "center",
             justifyContent: "center",
@@ -201,7 +202,7 @@ export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
               width: 7,
               height: 7,
               borderWidth: 1.5,
-              borderColor: "#63758a",
+              borderColor: "#697b70",
               borderRadius: 4,
             }}
           />
@@ -211,7 +212,7 @@ export function PasswordField(props: React.ComponentProps<typeof TextInput>) {
                 position: "absolute",
                 width: 29,
                 height: 2,
-                backgroundColor: "#63758a",
+                backgroundColor: "#697b70",
                 transform: [{ rotate: "45deg" }],
               }}
             />
@@ -243,7 +244,7 @@ export function Languages() {
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: "#142b4180",
+            backgroundColor: "#243c3080",
             padding: 20,
           }}
         >
@@ -319,7 +320,7 @@ export function Languages() {
                     )}
                   </Text>
                 </View>
-                <Text style={{ color: "#007ca8", fontSize: 20 }}>
+                <Text style={{ color: "#218653", fontFamily: typography.fontFamily, fontSize: 20 }}>
                   {localize(a.lang === id ? "✓" : "○")}
                 </Text>
               </Pressable>
@@ -336,12 +337,14 @@ export function Page({
   auth = false,
   processing = false,
   branding,
+  flat = false,
 }: {
   title: string;
   children: React.ReactNode;
   auth?: boolean;
   processing?: boolean;
   branding?: React.ReactNode;
+  flat?: boolean;
 }) {
   const localize = useLocale();
   const a = useLeafCare();
@@ -393,7 +396,7 @@ export function Page({
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
   return (
-    <SafeAreaView style={[s.safe, auth && { backgroundColor: "#eaf7ff" }]}>
+    <SafeAreaView style={[s.safe, flat && { backgroundColor: "#fff" }, auth && { backgroundColor: "#edf7f0" }]}>
       <KeyboardAvoidingView
         style={s.flex}
         behavior={
@@ -455,7 +458,7 @@ export function Page({
           onLayout={revealFocusedInput}
           onContentSizeChange={revealFocusedInput}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[s.container, auth && s.authContainer]}
+          contentContainerStyle={[s.container, auth && s.authContainer, flat && { gap: 12, paddingHorizontal: 20 }]}
         >
           {branding}
           <Text style={s.title}>{localize(title)}</Text>
@@ -485,7 +488,7 @@ export function Page({
           {a.busy && (
             <ActivityIndicator
               accessibilityLabel={localize("Working")}
-              color="#007ca8"
+              color="#218653"
             />
           )}
         </ScrollView>
@@ -553,7 +556,7 @@ export function Page({
                 <Text
                   style={[
                     s.small,
-                    { color: "#63758a" },
+                    { color: "#697b70" },
                     (activeRoute === `/${route}` ||
                       (route === "profile" &&
                         [
@@ -563,7 +566,7 @@ export function Page({
                           "/account-details",
                           "/security",
                         ].includes(activeRoute))) && {
-                      color: "#007ca8",
+                      color: "#218653",
                       fontWeight: "700",
                     },
                   ]}
@@ -615,9 +618,9 @@ export const s = StyleSheet.create({
   },
   authBrand: { alignItems: "center", gap: 10, marginVertical: 12 },
   brandTitle: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#12334a",
+    fontFamily: typography.fontFamily, fontSize: 30,
+    fontWeight: "600",
+    color: "#243c30",
     textAlign: "center",
   },
   iconButton: {
@@ -628,7 +631,7 @@ export const s = StyleSheet.create({
   },
   menuBackdrop: {
     flex: 1,
-    backgroundColor: "#142b4180",
+    backgroundColor: "#243c3080",
     padding: 20,
     justifyContent: "center",
     alignItems: "center",
@@ -644,9 +647,9 @@ export const s = StyleSheet.create({
   notice: { backgroundColor: "#e8f6ee", padding: 16, borderRadius: 12 },
   thumbnail: { width: 55, height: 60, borderRadius: 10, resizeMode: "cover" },
   photoPlaceholder: { alignItems: "center", justifyContent: "center", gap: 12 },
-  navSelected: { backgroundColor: "#f5fbff", borderRadius: 28 },
-  divider: { textAlign: "center", color: "#63758a" },
-  safe: { flex: 1, backgroundColor: "#f7fafc" },
+  navSelected: { backgroundColor: "#edf7f0", borderRadius: 28 },
+  divider: { textAlign: "center", color: "#697b70" },
+  safe: { flex: 1, backgroundColor: "#f6f9f6" },
   flex: { flex: 1 },
   container: {
     padding: 22,
@@ -661,23 +664,24 @@ export const s = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     padding: 16,
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderColor: "#e0e9ef",
+    borderColor: "#e0e8e2",
   },
-  title: { fontSize: 28, fontWeight: "800", color: "#142b41" },
-  heading: { fontSize: 19, fontWeight: "700", color: "#142b41" },
-  body: { color: "#142b41", fontSize: 16, lineHeight: 24 },
-  muted: { color: "#63758a", fontSize: 14, lineHeight: 22 },
-  small: { color: "#007ca8", fontSize: 12 },
+  title: { fontFamily: typography.fontFamily, fontSize: 26, lineHeight: 34, fontWeight: "600", color: "#243c30" },
+  heading: { fontFamily: typography.fontFamily, fontSize: 18, lineHeight: 26, fontWeight: "600", color: "#243c30" },
+  body: { color: "#243c30", fontFamily: typography.fontFamily, fontSize: 16, lineHeight: 24 },
+  muted: { color: "#697b70", fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 22 },
+  small: { color: "#218653", fontFamily: typography.fontFamily, fontSize: 12 },
   card: {
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e0e9ef",
-    borderRadius: 20,
+    borderColor: "#e0e8e2",
+    borderRadius: 14,
     padding: 20,
     gap: 12,
   },
-  hero: { borderRadius: 22, padding: 24, gap: 16 },
+  hero: { borderRadius: 16, padding: 24, gap: 16 },
   row: {
     flexDirection: "row",
     gap: 10,
@@ -688,32 +692,32 @@ export const s = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 14,
     borderWidth: 1,
-    borderColor: "#d6e2ec",
+    borderColor: "#d5e1d8",
     borderRadius: 12,
-    fontSize: 16,
-    color: "#142b41",
+    fontFamily: typography.fontFamily, fontSize: 16,
+    color: "#243c30",
   },
   button: {
-    backgroundColor: "#007ca8",
+    backgroundColor: "#218653",
     padding: 15,
-    borderRadius: 14,
+    borderRadius: 10,
     alignItems: "center",
     minHeight: 48,
   },
-  buttonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
-  secondary: { backgroundColor: "#edf8ff" },
+  buttonText: { color: "#fff", fontWeight: "700", fontFamily: typography.fontFamily, fontSize: 15 },
+  secondary: { backgroundColor: "#edf7f0" },
   language: {
     minHeight: 48,
     padding: 14,
     borderRadius: 12,
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#d6e2ec",
+    borderColor: "#d5e1d8",
     gap: 5,
   },
   selected: {
-    backgroundColor: "#edf8ff",
-    borderColor: "#007ca8",
+    backgroundColor: "#edf7f0",
+    borderColor: "#218653",
     borderWidth: 2,
   },
   image: {
@@ -721,7 +725,7 @@ export const s = StyleSheet.create({
     height: 280,
     borderRadius: 20,
     resizeMode: "contain",
-    backgroundColor: "#edf8ff",
+    backgroundColor: "#edf7f0",
   },
   error: { color: "#a12c22" },
   navIcon: {
@@ -735,17 +739,17 @@ export const s = StyleSheet.create({
     height: 60,
     marginTop: -14,
     borderRadius: 30,
-    backgroundColor: "#102c70",
-    boxShadow: "0 2px 6px rgba(16, 44, 112, 0.16)",
+    backgroundColor: "#218653",
+    boxShadow: "0 2px 6px rgba(33, 134, 83, 0.16)",
   },
   nav: {
     marginHorizontal: 16,
     marginTop: 12,
     marginBottom: 12,
-    borderRadius: 36,
+    borderRadius: 16,
     paddingHorizontal: 8,
     paddingVertical: 5,
-    boxShadow: "0 2px 20px rgba(18, 35, 58, 0.14)",
+    boxShadow: "0 2px 20px rgba(36, 60, 48, 0.08)",
     flexShrink: 0,
     flexDirection: "row",
     backgroundColor: "#fff",
@@ -754,13 +758,13 @@ export const s = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#eaf7ff",
+    backgroundColor: "#edf7f0",
     borderWidth: 1,
-    borderColor: "#c6e5f4",
+    borderColor: "#cde4d5",
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: { color: "#007ca8", fontSize: 18, fontWeight: "700" },
+  avatarText: { color: "#218653", fontFamily: typography.fontFamily, fontSize: 18, fontWeight: "700" },
   navItem: {
     flex: 1,
     minHeight: 56,
