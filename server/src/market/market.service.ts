@@ -89,7 +89,7 @@ export class MarketService {
         "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070",
       );
       url.search = new URLSearchParams({
-        api_key: key,
+        "api-key": key,
         format: "json",
         limit: "1000",
         "filters[state]": state,

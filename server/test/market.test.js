@@ -36,6 +36,8 @@ test("saved farm loads real reports with district filters and dates; feed failur
   });
   try {
     globalThis.fetch = async (url) => {
+      assert.equal(url.searchParams.get("api-key"), "test");
+      assert.equal(url.searchParams.has("api_key"), false);
       assert.equal(url.searchParams.get("filters[district]"), "Warangal");
       assert.equal(url.searchParams.get("filters[state]"), "Telangana");
       return {
