@@ -8,6 +8,15 @@
     "userInterfaceStyle": "light",
     "plugins": [
       "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/krishi-farmer-logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#edf8ff"
+        }
+      ],
       "./plugins/withFertilizerApp.cjs",
       [
         "expo-image-picker",
