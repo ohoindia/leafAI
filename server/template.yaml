@@ -20,8 +20,14 @@ Parameters:
     Type: String
     Default: ""
     Description: Existing private photo bucket to preserve; empty creates a new bucket
+  MarketScheduleEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Apply market migration and configure DATA_GOV_IN_API_KEY before enabling
 
 Conditions:
+  EnableMarketSchedule: !Equals [!Ref MarketScheduleEnabled, "true"]
   UseVpc: !And
     - !Not [!Equals [!Ref VpcSubnetIds, ""]]
     - !Not [!Equals [!Ref VpcSecurityGroupIds, ""]]
@@ -81,8 +87,22 @@ Resources:
       Runtime: nodejs22.x
       Architectures: [x86_64]
       MemorySize: 1024
-      Timeout: 120
+      # Imports page through the national snapshot; HTTP market reads stay local.
+      Timeout: 900
       ReservedConcurrentExecutions: !Ref ApiReservedConcurrency
+      Events:
+        MarketImport:
+          Type: ScheduleV2
+          Properties:
+            ScheduleExpression: cron(0 3,15 * * ? *)
+            ScheduleExpressionTimezone: Asia/Kolkata
+            FlexibleTimeWindow:
+              Mode: "OFF"
+            State: !If [EnableMarketSchedule, ENABLED, DISABLED]
+            Input: '{"job":"market-import"}'
+            RetryPolicy:
+              MaximumRetryAttempts: 2
+              MaximumEventAgeInSeconds: 3600
       VpcConfig: !If
         - UseVpc
         - SubnetIds: !Split [",", !Ref VpcSubnetIds]

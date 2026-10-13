@@ -26,6 +26,24 @@ const { handler } = await import("../dist/lambda.js");
 const { db } = await import("../dist/db.js");
 const { s3, saveUpload } = await import("../dist/storage.js");
 const { issueTokens, encrypt } = await import("../dist/security.js");
+
+test("scheduled market jobs enter the importer directly and skip an overlapping job", async () => {
+  const previous = process.env.DATA_GOV_IN_API_KEY;
+  process.env.DATA_GOV_IN_API_KEY = "test-only";
+  let released = false;
+  const connection = mock.method(db, "getConnection", async () => ({
+    execute: async (sql) => { assert.match(sql, /GET_LOCK/); return [[{ acquired: 0 }]]; },
+    release: () => { released = true; },
+  }));
+  try {
+    assert.deepEqual(await handler({ job: "market-import" }, {}), { status: "already_running" });
+    assert.equal(released, true);
+  } finally {
+    connection.mock.restore();
+    if (previous === undefined) delete process.env.DATA_GOV_IN_API_KEY;
+    else process.env.DATA_GOV_IN_API_KEY = previous;
+  }
+});
 after(async () => {
   mock.restoreAll();
   s3.destroy();

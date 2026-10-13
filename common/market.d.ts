@@ -44,10 +44,13 @@ export type MarketData = {
   status: string;
   message: string;
   fetchedAt: string;
+  syncedAt?: string | null;
+  dataSource?: "database";
   truncated: boolean;
   records: {
     commodity: string;
     variety: string;
+    grade?: string;
     market: string;
     state?: string;
     district?: string;
@@ -67,6 +70,7 @@ export function groupCommodityPrices<T extends { commodity: string }>(
   records: T[],
 ): { commodity: string; records: T[] }[];
 export function marketDate(value: string | null | undefined): string;
+export function marketSyncTime(value: string | null | undefined): string;
 export function priceChange(
   value: number | null | undefined,
   translate?: (text: string) => string,
@@ -76,6 +80,7 @@ export function mergeMarketRecords<
     market: string;
     commodity: string;
     variety: string;
+    grade?: string;
     date: string;
     distanceKm?: number;
     state?: string;

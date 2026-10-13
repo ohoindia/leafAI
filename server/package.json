@@ -2,6 +2,8 @@
   "name": "leaf-care-ai-server",
   "type": "module",
   "scripts": {
+    "market:migrate": "npm run build && node scripts/migrate-market-prices.mjs",
+    "market:import": "npm run build && node scripts/import-market-prices.mjs",
     "build": "tsc -p tsconfig.json",
     "dev": "tsc-watch -p tsconfig.json --onSuccess \"node --use-system-ca dist/main.js\"",
     "start": "node --use-system-ca dist/main.js",

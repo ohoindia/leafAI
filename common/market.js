@@ -104,6 +104,13 @@ export function marketDate(value) {
         timeZone: "UTC",
       }).format(date);
 }
+export function marketSyncTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleString("en-IN", {
+    day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata",
+  });
+}
 export function priceChange(value, t = (text) => text) {
   if (value == null) return t("No previous report");
   if (value === 0) return t("No change");
@@ -118,6 +125,7 @@ export function mergeMarketRecords(previous, incoming) {
       row.market,
       row.commodity,
       row.variety,
+      row.grade || "",
     ]);
     const old = rows.get(key);
     const iso = (value) =>

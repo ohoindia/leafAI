@@ -11,6 +11,7 @@ import {
   groupMarkets,
   groupCommodityPrices,
   marketDate,
+  marketSyncTime,
   priceChange,
   mergeMarketRecords,
   commodityKey,
@@ -273,6 +274,7 @@ export function Market({ api }) {
               {t("All prices in rupees per quintal (100 kg).")}
             </p>
             {error && <p role="alert">{t(error)}</p>}
+            {data?.syncedAt && <p>{t("Last updated")}: {marketSyncTime(data.syncedAt)} IST</p>}
             {data && (
               <p role="status">
                 {data.status === "ok"
@@ -394,6 +396,7 @@ export function Market({ api }) {
                           {r.state}
                         </small>
                         <small>{t(r.variety)}</small>
+                        {r.grade && <small>{t("Grade")}: {t(r.grade)}</small>}
                       </div>
                       <div className="crop-market-price">
                         <strong>

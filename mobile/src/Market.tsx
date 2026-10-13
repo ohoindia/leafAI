@@ -25,6 +25,7 @@ import {
   groupMarkets,
   groupCommodityPrices,
   marketDate,
+  marketSyncTime,
   priceChange,
   mergeMarketRecords,
   commodityKey,
@@ -301,6 +302,7 @@ export function MarketScreen() {
                   : t(data.message)}
               </Text>
             )}
+            {data?.syncedAt && <Text style={s.muted}>{t("Last updated")}: {marketSyncTime(data.syncedAt)} IST</Text>}
             {data?.radiusKm && (
               <>
                 <Pressable
@@ -445,6 +447,7 @@ export function MarketScreen() {
                           {r.state}
                         </Text>
                         <Text style={m.meta}>{t(r.variety)}</Text>
+                        {r.grade && <Text style={m.meta}>{t("Grade")}: {t(r.grade)}</Text>}
                       </View>
                       <View style={[m.flex, m.cropPriceValues]}>
                         <Text style={m.cropName}>

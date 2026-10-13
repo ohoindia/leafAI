@@ -6,7 +6,8 @@ import {
 
 // Load secrets before importing modules that validate configuration or create clients.
 let application;
-async function initialize() {
+let secrets;
+async function loadSecrets() {
   if (process.env.APP_SECRET_ARN) {
     const client = new SecretsManagerClient({});
     try {
@@ -25,6 +26,7 @@ async function initialize() {
         "JWT_ACCESS_SECRET",
         "JWT_REFRESH_SECRET",
         "UPLOAD_ENCRYPTION_KEY",
+        "DATA_GOV_IN_API_KEY",
       ]) {
         if (secret[key] !== undefined) process.env[key] = String(secret[key]);
       }
@@ -32,6 +34,10 @@ async function initialize() {
       client.destroy();
     }
   }
+}
+async function initialize() {
+  secrets ??= loadSecrets().catch((error) => { secrets = undefined; throw error; });
+  await secrets;
   const { createApplication } = await import("./app.js");
   const app = await createApplication();
   return serverless(app.getHttpAdapter().getInstance(), {
@@ -41,6 +47,18 @@ async function initialize() {
 
 export async function handler(event, context) {
   context.callbackWaitsForEmptyEventLoop = false;
+  // Schedule events have no HTTP request context. A caller of the Function URL
+  // cannot choose this path by placing a job name in their JSON request body.
+  if (!event.requestContext && event.job === "market-import") {
+    secrets ??= loadSecrets().catch((error) => { secrets = undefined; throw error; });
+    await secrets;
+    const { db } = await import("./db.js");
+    const { runMarketImport } = await import("./market/import.js");
+    const milliseconds = Math.max(1000, (context.getRemainingTimeInMillis?.() ?? 120000) - 15000);
+    const result = await runMarketImport(db, { signal: AbortSignal.timeout(milliseconds) });
+    console.log("Market import", result);
+    return result;
+  }
   application ??= initialize().catch((error) => {
     application = undefined;
     throw error;

@@ -6,6 +6,7 @@ import {
   mergeMarketRecords,
   priceChange,
   marketDate,
+  marketSyncTime,
 } from "../../common/market.js";
 
 test("mandi browsing keeps equally named markets in different states separate and orders nearby markets first", () => {
@@ -41,6 +42,15 @@ test("mandi browsing keeps equally named markets in different states separate an
   );
   assert.equal(groups[1].state, "Telangana");
   assert.notEqual(groups[0].key, groups[1].key);
+});
+
+test("stored grades remain separate across pages and sync times use India time", () => {
+  const base = { state: "Telangana", district: "Khammam", market: "Khammam", commodity: "Cotton", variety: "Other", date: "2026-10-13" };
+  const records = mergeMarketRecords([{ ...base, grade: "FAQ", modal: 8000 }], [{ ...base, grade: "A", modal: 8500 }]);
+  assert.equal(records.length, 2);
+  assert.match(marketSyncTime("2026-10-12T21:30:00Z"), /13 Oct 2026/);
+  assert.match(marketSyncTime("2026-10-12T21:30:00Z"), /3:00/);
+  assert.equal(marketSyncTime("invalid"), "");
 });
 test("crop-first results keep all mandi rows and preserve the latest report across pages", () => {
   const base = {
