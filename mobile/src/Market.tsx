@@ -44,6 +44,7 @@ export function MarketScreen() {
     [selectedMandi, setSelectedMandi] = useState(""),
     [search, setSearch] = useState(""),
     [recentCrop, setRecentCrop] = useState(""),
+    [cropOptions, setCropOptions] = useState<string[]>([]),
     [showPriceInfo, setShowPriceInfo] = useState(false),
     [showMandiFilters, setShowMandiFilters] = useState(false),
     [mspCategory, setMspCategory] = useState("Cereals & Millets"),
@@ -70,7 +71,12 @@ export function MarketScreen() {
         endpoints.market + "?" + query,
         a.token,
       );
-      if (id === sequence.current)
+      if (id === sequence.current) {
+        setCropOptions((previous) => [...new Set([
+          ...previous,
+          ...(result.supportedRecentCrops || []),
+          ...result.records.map((record) => record.commodity),
+        ])]);
         setData((previous) => {
           if (!append) return result;
           const records = mergeMarketRecords(
@@ -86,6 +92,7 @@ export function MarketScreen() {
               : previous?.message || result.message,
           };
         });
+      }
     } catch (e) {
       if (id === sequence.current)
         setError(
@@ -107,46 +114,42 @@ export function MarketScreen() {
     query.set("recentOffset", String(data?.recentNextOffset));
     void load("?" + query, true);
   }
-  useEffect(() => {
-    let active = true;
-    const id = sequence.current;
-    void request<MarketData>(endpoints.market + "?radiusKm=200", a.token)
-      .then((result) => {
-        if (active && id === sequence.current) setData(result);
-      })
-      .catch((e) => {
-        if (active && id === sequence.current)
-          setError(
-            e instanceof Error ? e.message : "Unable to load market prices.",
-          );
-      })
-      .finally(() => {
-        if (active && id === sequence.current) setBusy(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [a.token]);
   async function locate() {
+    const id = ++sequence.current;
     setBusy(true);
     setError("");
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
+      if (id !== sequence.current) return;
       if (permission.status !== "granted")
         throw Error("Allow location access or enter your state and district.");
       const p = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
+      if (id !== sequence.current) return;
       await load(
         `?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`,
       );
     } catch (e) {
+      if (id !== sequence.current) return;
+      setShowLocation(true);
       setError(
         e instanceof Error ? e.message : "Unable to locate your district.",
       );
       setBusy(false);
     }
   }
+  useEffect(() => {
+    const requests = sequence;
+    // Starting the device location request also sets its loading indicator.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void locate();
+    return () => {
+      requests.current++;
+    };
+    // Locate when the session changes; crop selection reloads via chooseCrop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [a.token]);
   const mspGroups = groupCrops(mspPrices, ([name]) => name);
   const markets = groupMarkets(data?.records || []);
   const filteredMarkets = markets
@@ -279,11 +282,6 @@ export function MarketScreen() {
             <Text style={s.muted}>
               {t("All prices in rupees per quintal (100 kg).")}
             </Text>
-            {busy && (
-              <Text accessibilityLiveRegion="polite" style={s.muted}>
-                {t("Loading market prices...")}
-              </Text>
-            )}
             {!!error && (
               <Text accessibilityRole="alert" style={s.error}>
                 {t(error)}
@@ -341,32 +339,6 @@ export function MarketScreen() {
                     )}
                   </>
                 )}
-              </>
-            )}
-            {!!data?.supportedRecentCrops?.length && (
-              <>
-                <Text style={s.body}>{t("Choose a crop")}</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={m.mandiSelector}
-                >
-                  {["", ...data!.supportedRecentCrops!].map((crop) => (
-                    <Pressable
-                      key={crop}
-                      accessibilityRole="button"
-                      accessibilityState={{
-                        selected: recentCrop === crop,
-                        disabled: busy,
-                      }}
-                      disabled={busy}
-                      onPress={() => chooseCrop(crop)}
-                      style={[m.cropFilter, recentCrop === crop && m.selected]}
-                    >
-                      <Text style={s.body}>{t(crop || "All crops")}</Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
               </>
             )}
             {data?.recentPricesIncomplete && (
@@ -439,6 +411,14 @@ export function MarketScreen() {
                 )}
               </>
             )}
+            <CategoryBrowser
+              categories={["All crops", ...cropOptions]}
+              selected={recentCrop || "All crops"}
+              onSelect={(crop) => chooseCrop(crop === "All crops" ? "" : crop)}
+              cropImages
+              disabled={busy || !cropOptions.length}
+            >
+            {busy && <Text accessibilityLiveRegion="polite" style={s.muted}>{t("Loading market prices...")}</Text>}
             {data?.status === "ok" && !records.length && (
               <Text style={s.muted}>
                 {t("No reports match these filters.")}
@@ -506,6 +486,7 @@ export function MarketScreen() {
                 onPress={loadMore}
               />
             )}
+            </CategoryBrowser>
             {data?.truncated && (
               <Text style={s.muted}>
                 {t(
@@ -637,23 +618,43 @@ const m = StyleSheet.create({
   },
   rail: {
     width: 76,
+    maxHeight: 420,
+    flexGrow: 0,
     flexShrink: 0,
-    gap: 4,
     backgroundColor: "#f6f9f6",
     borderRadius: 12,
-    padding: 4,
   },
+  railContent: { gap: 4, padding: 4 },
   railButton: {
+    position: "relative",
     alignItems: "center",
     gap: 5,
     paddingVertical: 10,
     paddingHorizontal: 3,
-    borderRadius: 8,
+    borderRadius: 4,
     minHeight: 72,
     borderLeftWidth: 3,
     borderLeftColor: "transparent",
   },
   railSelected: { backgroundColor: "#e2f2e8", borderLeftColor: "#218653" },
+  categoryCount: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    minWidth: 22,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: "#c9ded0",
+    backgroundColor: "#edf5ef",
+    color: "#17673f",
+    fontFamily: typography.fontFamily,
+    fontSize: 10,
+    lineHeight: 14,
+    fontWeight: "600",
+    textAlign: "center",
+  },
   railText: {
     width: "100%",
     flexShrink: 1,
@@ -872,34 +873,39 @@ function CategoryBrowser({
   onSelect,
   counts,
   children,
+  cropImages = false,
+  disabled = false,
 }: {
   categories: string[];
   selected: string;
   onSelect: (name: string) => void;
-  counts: Record<string, number>;
+  counts?: Record<string, number>;
   children: ReactNode;
+  cropImages?: boolean;
+  disabled?: boolean;
 }) {
   const t = useLocale();
   return (
     <View style={m.browser}>
-      <View style={m.rail}>
+      <ScrollView style={m.rail} contentContainerStyle={m.railContent} nestedScrollEnabled>
         {categories.map((name) => (
           <Pressable
             key={name}
             accessibilityRole="button"
             accessibilityLabel={t(name)}
-            accessibilityState={{ selected: name === selected }}
+            accessibilityState={{ selected: name === selected, disabled }}
+            disabled={disabled}
             onPress={() => onSelect(name)}
             style={[m.railButton, name === selected && m.railSelected]}
           >
-            <CropIcon name={categoryImages[name]} size={30} />
+            <CropIcon name={cropImages ? (name === "All crops" ? "Crop plant" : name) : categoryImages[name]} size={30} />
             <Text style={[m.railText, name === selected && m.selectedText]}>
               {t(name)}
             </Text>
-            <Text style={m.meta}>{counts[name] || 0}</Text>
+            {counts && <Text style={m.categoryCount}>{counts[name] || 0}</Text>}
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
       <View style={m.results}>{children}</View>
     </View>
   );

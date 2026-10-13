@@ -1679,9 +1679,9 @@ function App() {
             {!isAuth && screen !== "processing" && (
               <nav aria-label={localize("Main navigation")}>
                 {[
+                  ["home", "home", "Home"],
                   ["market", "market", "Market"],
                   ["weather", "weather", "Weather"],
-                  ["home", "home", "Home"],
                   ["services", "services", "Services"],
                   ["profile", "profile", "Profile"],
                 ].map(([next, icon, text]) => (
@@ -1715,9 +1715,7 @@ function App() {
                     }
                     onClick={() => go(next)}
                   >
-                    <span
-                      className={`nav-icon${next === "home" ? " nav-icon-home" : ""}`}
-                    >
+                    <span className="nav-icon">
                       <Icon name={icon} />
                     </span>
                     <small>{localize(text)}</small>

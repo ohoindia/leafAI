@@ -131,3 +131,30 @@
 .mandi-filters .mandi-search {
   margin: 8px 0;
 }
+.market-page .category-rail button {
+  position: relative;
+  border-radius: 4px;
+}
+.market-page .category-rail button .crop-icon {
+  width: 30px;
+  height: 30px;
+}
+.market-page .category-rail .category-image {
+  height: 40px;
+}
+.market-page .category-rail button .category-count {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 1;
+  min-width: 22px;
+  padding: 1px 5px;
+  border: 1px solid #c9ded0;
+  border-radius: 3px;
+  background: #edf5ef;
+  color: #17673f;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+}

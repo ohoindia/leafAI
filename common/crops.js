@@ -44,7 +44,7 @@ const crops = [
     "seed",
   ],
   [/\b(tur|arhar)\b/i, "Pulses", "tur"],
-  [/urad|black gram/i, "Pulses", "urad"],
+  [/urad|urd|black gram/i, "Pulses", "urad"],
   [
     /\b(tur|arhar|moong|urad|gram|lentil|masur|pulses?|rajma|peas?)\b|green gram|black gram|bengal gram/i,
     "Pulses",
@@ -53,7 +53,7 @@ const crops = [
   [/chilli|chili|mirchi/i, "Vegetables", "chilli"],
   [/tomato/i, "Vegetables", "tomato"],
   [
-    /potato|onion|brinjal|eggplant|cabbage|cauliflower|okra|bhindi|gourd|carrot|bean|cucumber|radish|spinach|garlic/i,
+    /potato|onion|brinjal|eggplant|cabbage|cauliflower|okra|bhindi|gourd|carrot|bean|cucumber|cucumbar|radish|spinach|garlic/i,
     "Vegetables",
     "vegetable",
   ],
@@ -69,10 +69,45 @@ const crops = [
   ],
 ];
 
+const specificImages = [
+  [/banana/i, "banana"],
+  [/bhindi|okra|ladies finger/i, "okra"],
+  [/brinjal|eggplant/i, "brinjal"],
+  [/cabbage/i, "cabbage"],
+  [/cauliflower/i, "cauliflower"],
+  [/cucumber|cucumbar|kheera/i, "cucumber"],
+  [/lemon|lime/i, "lemon"],
+  [/mustard/i, "mustard"],
+  [/onion/i, "onion"],
+  [/potato/i, "potato"],
+  [/wheat/i, "wheat"],
+  [/turmeric/i, "turmeric"],
+  [/bengal gram|chickpea|^gram\b/i, "chickpea"],
+  [/green.*chill/i, "green-chilli"],
+  [/^apple\b/i, "apple"],
+  [/orange/i, "orange"],
+  [/grape/i, "grape"],
+  [/papaya/i, "papaya"],
+  [/guava/i, "guava"],
+  [/pomegranate/i, "pomegranate"],
+  [/watermelon/i, "watermelon"],
+  [/pineapple/i, "pineapple"],
+  [/ginger/i, "ginger"],
+  [/cumin/i, "cumin"],
+  [/coriander/i, "coriander"],
+];
+
 export function cropDetails(name = "") {
   const match = crops.find(([pattern]) => pattern.test(name));
+  const specific = specificImages.find(([pattern]) => pattern.test(name));
+  // The legacy fruit tile depicts a mango; other unpictured crops use a
+  // neutral plant instead of displaying a different crop's photograph.
+  const fallbackImage = match && (
+    match[2] === "vegetable" || match[2] === "grain" || match[2] === "seed" ||
+    (match[2] === "fruit" && !/mango/i.test(name))
+  ) ? "plant" : match?.[2];
   return match
-    ? { category: match[1], image: match[2] }
+    ? { category: match[1], image: specific?.[1] || fallbackImage }
     : { category: "Other crops", image: "plant" };
 }
 

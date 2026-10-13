@@ -21,13 +21,14 @@ import { categoryImages, cropDetails, groupCrops } from "./crops";
 export function Market({ api }) {
   const t = useLocale(),
     [data, setData] = useState(null),
-    [busy, setBusy] = useState(false),
+    [busy, setBusy] = useState(true),
     [error, setError] = useState(""),
     [state, setState] = useState(""),
     [district, setDistrict] = useState(""),
     [selectedMandi, setSelectedMandi] = useState(""),
     [search, setSearch] = useState(""),
     [recentCrop, setRecentCrop] = useState(""),
+    [cropOptions, setCropOptions] = useState([]),
     [mspCategory, setMspCategory] = useState("Cereals & Millets");
   const sequence = useRef(0);
   const lastParams = useRef("");
@@ -46,7 +47,12 @@ export function Market({ api }) {
       else query.delete("recentCrop");
       lastParams.current = query.toString();
       const result = await api(endpoints.market + "?" + query);
-      if (id === sequence.current)
+      if (id === sequence.current) {
+        setCropOptions((previous) => [...new Set([
+          ...previous,
+          ...(result.supportedRecentCrops || []),
+          ...result.records.map((record) => record.commodity),
+        ])]);
         setData((previous) => {
           if (!append) return result;
           const records = mergeMarketRecords(
@@ -62,6 +68,7 @@ export function Market({ api }) {
               : previous?.message || result.message,
           };
         });
+      }
     } catch (e) {
       if (id === sequence.current) setError(e.message);
     } finally {
@@ -81,25 +88,33 @@ export function Market({ api }) {
     load("?" + query, true);
   }
   useEffect(() => {
-    load();
+    locate();
     return () => {
       sequence.current++;
     };
   }, []);
   function locate() {
+    const id = ++sequence.current;
+    setError("");
     if (!navigator.geolocation) {
+      setBusy(false);
+      setShowLocation(true);
       setError("Location is unavailable. Enter your state and district.");
       return;
     }
     setBusy(true);
     navigator.geolocation.getCurrentPosition(
-      (p) =>
-        load(`?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`),
+      (p) => {
+        if (id !== sequence.current) return;
+        load(`?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`);
+      },
       () => {
+        if (id !== sequence.current) return;
         setBusy(false);
+        setShowLocation(true);
         setError("Allow location access or enter your state and district.");
       },
-      { timeout: 10000 },
+      { timeout: 10000, maximumAge: 0 },
     );
   }
   const [tab, setTab] = useState("mandi");
@@ -254,7 +269,6 @@ export function Market({ api }) {
             <p className="market-description">
               {t("All prices in rupees per quintal (100 kg).")}
             </p>
-            {busy && <p role="status">{t("Loading market prices...")}</p>}
             {error && <p role="alert">{t(error)}</p>}
             {data && (
               <p role="status">
@@ -297,23 +311,6 @@ export function Market({ api }) {
                   </p>
                 )}
               </details>
-            )}
-            {!!data?.supportedRecentCrops?.length && (
-              <label className="mandi-search">
-                {t("Choose a crop")}
-                <select
-                  value={recentCrop}
-                  disabled={busy}
-                  onChange={(e) => chooseCrop(e.target.value)}
-                >
-                  <option value="">{t("All crops")}</option>
-                  {data.supportedRecentCrops.map((crop) => (
-                    <option key={crop} value={crop}>
-                      {t(crop)}
-                    </option>
-                  ))}
-                </select>
-              </label>
             )}
             {data?.recentPricesIncomplete && (
               <small>
@@ -362,6 +359,14 @@ export function Market({ api }) {
                 </div>
               </details>
             )}
+            <CategoryBrowser
+              categories={["All crops", ...cropOptions]}
+              selected={recentCrop || "All crops"}
+              onSelect={(crop) => chooseCrop(crop === "All crops" ? "" : crop)}
+              cropImages
+              disabled={busy || !cropOptions.length}
+            >
+            {busy && <p role="status">{t("Loading market prices...")}</p>}
             {data?.status === "ok" && !records.length && (
               <p>{t("No reports match these filters.")}</p>
             )}
@@ -428,6 +433,7 @@ export function Market({ api }) {
                 {t("Load more recent reports")}
               </button>
             )}
+            </CategoryBrowser>
             {data?.truncated && (
               <p>
                 {t(
@@ -493,7 +499,7 @@ export function Market({ api }) {
   );
 }
 
-function CategoryBrowser({ categories, groups, selected, onSelect, children }) {
+function CategoryBrowser({ categories, groups, selected, onSelect, children, cropImages = false, disabled = false }) {
   const t = useLocale();
   return (
     <div className="category-browser">
@@ -506,15 +512,16 @@ function CategoryBrowser({ categories, groups, selected, onSelect, children }) {
           <button
             key={name}
             aria-pressed={selected === name}
+            disabled={disabled}
             onClick={() => onSelect(name)}
           >
             <span className="category-image">
-              <CropIcon name={categoryImages[name]} />
+              <CropIcon name={cropImages ? (name === "All crops" ? "Crop plant" : name) : categoryImages[name]} />
             </span>
             <span>{t(name)}</span>
-            <small>
+            {groups && <small className="category-count">
               {groups.find((g) => g.category === name)?.items.length || 0}
-            </small>
+            </small>}
           </button>
         ))}
       </aside>
