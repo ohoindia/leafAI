@@ -28,9 +28,16 @@ permission to manage those resources and pass the execution role to Scheduler.
 
 This policy adds scheduler deployment permissions to the role's existing deployment
 permissions. It is scoped to account `640168439195`, stack `leafai`, region
-`ap-south-1`, and the default schedule group. Adjust these values if deploying
+`ap-south-1`, and the `ApiMarketImport` schedule in the default schedule group. Adjust these values if deploying
 elsewhere. Existing permissions boundaries or organization policies must also allow
 these actions.
+
+The subsequent deployment log confirmed that role creation succeeded, but
+`scheduler:GetSchedule` was denied on
+`arn:aws:scheduler:ap-south-1:640168439195:schedule/default/ApiMarketImport`.
+The original supplemental policy used `schedule/default/leafai-*`, which did not
+match SAM's schedule name. Use the corrected policy file and replace the existing
+inline policy on `GitHubOhoCustomerApiDeploy`, then rerun the deployment.
 
 Setting `MarketScheduleEnabled=false` disables invocation but still creates the
 schedule and its role with the current template, so it does not avoid this error.

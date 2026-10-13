@@ -39,7 +39,7 @@
         "scheduler:UpdateSchedule",
         "scheduler:DeleteSchedule"
       ],
-      "Resource": "arn:aws:scheduler:ap-south-1:640168439195:schedule/default/leafai-*"
+      "Resource": "arn:aws:scheduler:ap-south-1:640168439195:schedule/default/ApiMarketImport"
     }
   ]
 }
