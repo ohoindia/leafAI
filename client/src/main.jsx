@@ -1,3 +1,4 @@
+import { resolveVoiceCommand } from '../../common/voice-command.js';
 import { normalizeLanguage, translate } from "../../common/locale.js";
 import { useLocale, LocaleContext } from "./locale";
 import React, { useEffect, useRef, useState } from "react";
@@ -654,42 +655,15 @@ function App() {
     window.speechSynthesis.speak(u);
   }
   async function command(transcript) {
-    let intent = "unknown";
-    const tx = transcript.toLowerCase();
-    if (/history|చరిత్ర|इतिहास/.test(tx)) {
-      intent = "history";
+    const { intent, language, full } = resolveVoiceCommand(transcript);
+    if (intent === "history" || intent === "analyze") {
       setVoiceOpen(false);
-      go("history");
-    } else if (/telugu|తెలుగు/.test(tx)) {
-      intent = "language";
-      change("te");
-      speak("te");
-    } else if (/hindi|हिंदी/.test(tx)) {
-      intent = "language";
-      change("hi");
-      speak("hi");
-    } else if (/kannada|ಕನ್ನಡ/.test(tx)) {
-      intent = "language";
-      change("kn");
-      speak("kn");
-    } else if (/tamil|தமிழ்/.test(tx)) {
-      intent = "language";
-      change("ta");
-      speak("ta");
-    } else if (/english/.test(tx)) {
-      intent = "language";
-      change("en");
-      speak("en");
-    } else if (/treat|steps|చికిత్స|उपचार/.test(tx)) {
-      intent = "read_result";
-      speak(lang, true);
-    } else if (/read|result|చదువు|पढ़/.test(tx)) {
-      intent = "read_result";
-      speak();
-    } else if (/analy|విశ్లేష|विश्लेष/.test(tx)) {
-      intent = "analyze";
-      setVoiceOpen(false);
-      go("capture");
+      go(intent === "history" ? "history" : "capture");
+    } else if (intent === "language") {
+      change(language);
+      speak(language);
+    } else if (intent === "read_result") {
+      speak(lang, full);
     }
     if (intent === "unknown") setError(`Command not recognized: ${transcript}`);
     await api(endpoints.voiceCommands, {

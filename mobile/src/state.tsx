@@ -1,3 +1,4 @@
+import { resolveVoiceCommand } from '../../common/voice-command.js';
 import React, {
   createContext,
   useContext,
@@ -456,36 +457,14 @@ function useAppState() {
   }
   async function command(transcript: string) {
     await run(async () => {
-      let intent = "unknown";
-      if (/history|చరిత్ర|इतिहास/i.test(transcript)) {
-        intent = "history";
-        go("history");
-      } else if (
-        /telugu|తెలుగు|hindi|हिंदी|kannada|ಕನ್ನಡ|tamil|தமிழ்|english/i.test(
-          transcript,
-        )
-      ) {
-        intent = "language";
-        const language = /telugu|తెలుగు/i.test(transcript)
-          ? "te"
-          : /hindi|हिंदी/i.test(transcript)
-            ? "hi"
-            : /kannada|ಕನ್ನಡ/i.test(transcript)
-              ? "kn"
-              : /tamil|தமிழ்/i.test(transcript)
-                ? "ta"
-                : "en";
+      const { intent, language, full } = resolveVoiceCommand(transcript);
+      if (intent === "history" || intent === "analyze") {
+        go(intent === "history" ? "history" : "capture");
+      } else if (intent === "language" && language) {
         change(language);
         if (result?.translations?.[language]) await speak(false, language);
-      } else if (/treat|steps|చికిత్స|उपचार/i.test(transcript)) {
-        intent = "read_result";
-        await speak(true);
-      } else if (/read|result|చదువు|पढ़/i.test(transcript)) {
-        intent = "read_result";
-        await speak();
-      } else if (/analy|విశ్లేష|विश्लेष/i.test(transcript)) {
-        intent = "analyze";
-        go("capture");
+      } else if (intent === "read_result") {
+        await speak(full);
       }
       await request(endpoints.voiceCommands, token, {
         method: "POST",
