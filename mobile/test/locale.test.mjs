@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readdirSync, readFileSync } from "node:fs";
 import { localeLabels, translate } from "../../common/locale.js";
 import { languages, screens, photoChecks } from "../../common/content.js";
 import { farmSections } from "../../common/farm.js";
@@ -9,6 +10,23 @@ import {
 } from "../../common/farm-presentation.js";
 import { userDetailSections } from "../../common/profile.js";
 import { weatherMetrics } from "../../common/weather.js";
+
+test("client and mobile literal UI label calls share complete translations", () => {
+  for (const root of ["../../client/src/", "../src/"]) {
+    const directory = new URL(root, import.meta.url);
+    for (const file of readdirSync(directory, { recursive: true })) {
+      if (!/\.(jsx|tsx)$/.test(file)) continue;
+      const source = readFileSync(new URL(file.replaceAll("\\", "/"), directory), "utf8");
+      // Match static calls, including multiline calls with a trailing comma.
+      for (const match of source.matchAll(/\b(?:localize|t)\(\s*(["'])([^"'\n]*)\1\s*,?\s*\)/g)) {
+        const label = match[2];
+        for (const language of Object.keys(languages).filter((code) => code !== "en")) {
+          assert.notEqual(translate(language, label), label, `${file}: ${language}: ${label}`);
+        }
+      }
+    }
+  }
+});
 
 test("every shared label has translations in every supported Indian language", () => {
   for (const [key, translations] of Object.entries(localeLabels)) {
