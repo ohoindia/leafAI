@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { farmSections, type FarmDetails } from "../../../common/farm.js";
 import { useLeafCare } from "../state";
-import { Button, Card, Field, Page, s } from "../ui";
+import { Button, Card, Field, Page, SelectField, s } from "../ui";
 import {
   farmPresentation,
   farmPlaceholders,
@@ -184,7 +184,7 @@ export function FarmDetailsForm({
                 style={{ minHeight: 48, gap: 6, paddingVertical: 10 }}
               >
                 <Text style={s.heading}>
-                  {localize(open ? "?" : "+")}{" "}
+                  {localize(open ? "−" : "+")}{" "}
                   {localize(
                     isHistory ? "Previous crop history" : section.title,
                   )}
@@ -324,44 +324,16 @@ export function FarmDetailsForm({
                   )}
                   {editing === section.title && (
                     <>
-                      {section.fields
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 }}>{section.fields
                         .filter(
                           (field) =>
                             meta.basic.includes(field.key) || isExpanded,
                         )
                         .map((field) => (
-                          <View key={field.key} style={{ gap: 8 }}>
+                          <View key={field.key} style={{ gap: 8, width: field.type === "notes" ? "100%" : "50%", paddingHorizontal: 6, paddingBottom: 16 }}>
                             <Text style={s.body}>{localize(field.label)}</Text>
                             {field.options ? (
-                              <>
-                                <Text style={s.muted}>
-                                  {draft[field.key] || "Not specified"}
-                                </Text>
-                                <View
-                                  style={{
-                                    flexDirection: "row",
-                                    flexWrap: "wrap",
-                                    gap: 6,
-                                  }}
-                                >
-                                  {["", ...field.options].map((option) => (
-                                    <Button
-                                      key={option}
-                                      secondary={draft[field.key] !== option}
-                                      title={localize(
-                                        option || "Not specified",
-                                      )}
-                                      disabled={a.busy}
-                                      onPress={() =>
-                                        setDraft((v) => ({
-                                          ...v,
-                                          [field.key]: option,
-                                        }))
-                                      }
-                                    />
-                                  ))}
-                                </View>
-                              </>
+                              <SelectField label={field.label} value={draft[field.key] || ""} options={["", ...field.options].map(option => [option, option || "Not specified"] as const)} disabled={a.busy} onChange={value => setDraft(v => ({ ...v, [field.key]: value }))} />
                             ) : (
                               <Field
                                 accessibilityLabel={localize(field.label)}
@@ -394,7 +366,7 @@ export function FarmDetailsForm({
                               />
                             )}
                           </View>
-                        ))}
+                        ))}</View>
                       {section.fields.some(
                         (field) => !meta.basic.includes(field.key),
                       ) && (

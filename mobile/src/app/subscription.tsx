@@ -1,1 +1,1 @@
-export { Subscription as default } from "../Subscription";
+export { SubscriptionScreen as default } from "../Subscription";

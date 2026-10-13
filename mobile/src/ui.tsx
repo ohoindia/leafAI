@@ -63,8 +63,8 @@ export function LeafLogo({ large = false }: { large?: boolean }) {
       resizeMode="contain"
       accessibilityLabel={localize("Krishi Karshak farmer and plough logo")}
       style={{
-        width: large ? 112 : 44,
-        height: large ? 112 : 44,
+        width: large ? 130 : 44,
+        height: large ? 130 : 44,
         flexShrink: 0,
       }}
     />
@@ -98,7 +98,7 @@ export function AnalysisPhoto({
           : { uri, headers: { Authorization: `Bearer ${a.token}` } }
       }
       accessibilityLabel={localize("Analyzed leaf")}
-      style={[s.image, thumbnail && s.thumbnail]}
+      style={[s.image, { height: 220, borderRadius: 15, resizeMode: "cover" }, thumbnail && s.thumbnail]}
       onError={() => setFailedSource(uri)}
     />
   );
@@ -108,19 +108,55 @@ export function AuthBrand({ register = false }: { register?: boolean }) {
   return (
     <View style={s.authBrand}>
       <LeafLogo large />
+      <Text style={[s.muted, { textAlign: "center", fontSize: 15 }]}>{localize(register ? "Grow Today" : "Healthy Crops")}{"\n"}{localize(register ? "Greener Tomorrow" : "Thriving Farms")}</Text>
     </View>
   );
+}
+export function BrandFooter({ text }: { text: string }) {
+  const localize = useLocale();
+  return <View style={{ alignSelf: "center", width: 190, alignItems: "center", marginTop: 12, gap: 5 }}>
+    <Image source={require("../assets/krishi-farmer-logo.png")} resizeMode="contain" style={{ width: 27, height: 44 }} />
+    <Text style={[s.muted, { fontSize: 12, lineHeight: 16, textAlign: "center" }]}>{localize(text)}</Text>
+  </View>;
+}
+export function SelectField({ label, value, options, onChange, disabled = false }: { label: string; value: string; options: readonly (readonly [string, string])[]; onChange: (value: string) => void; disabled?: boolean }) {
+  const localize = useLocale();
+  const [open, setOpen] = useState(false);
+  return <>
+    <Pressable accessibilityRole="button" accessibilityLabel={localize(label)} accessibilityState={{ expanded: open, disabled }} disabled={disabled} onPress={() => setOpen(true)} style={[s.input, s.row, { justifyContent: "space-between" }]}>
+      <Text style={[s.body, { flex: 1 }]}>{localize(options.find(([id]) => id === value)?.[1] || label)}</Text><Text style={s.muted}>⌄</Text>
+    </Pressable>
+    <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <View style={s.menuBackdrop}>
+        <Pressable accessibilityRole="button" accessibilityLabel={localize("Cancel")} onPress={() => setOpen(false)} style={StyleSheet.absoluteFill} />
+        <View accessibilityViewIsModal style={[s.menuCard, { maxHeight: "80%" }]}>
+          <Text style={s.heading}>{localize(label)}</Text>
+          <ScrollView>{options.map(([id, title]) => <Pressable key={id} accessibilityRole="radio" accessibilityState={{ checked: value === id }} onPress={() => { onChange(id); setOpen(false); }} style={[s.language, { marginBottom: 8 }, value === id && s.selected]}><Text style={s.body}>{localize(title)}</Text></Pressable>)}</ScrollView>
+          <Button secondary title="Cancel" onPress={() => setOpen(false)} />
+        </View>
+      </View>
+    </Modal>
+  </>;
+}
+export function ResultLanguages() {
+  const localize = useLocale();
+  const a = useLeafCare();
+  return <View style={[s.row, { gap: 7 }]}>{(Object.keys(languages) as Language[]).map(id => <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: a.lang === id }} onPress={() => a.change(id)} style={[s.button, { padding: 9, minHeight: 40 }, a.lang !== id && s.outline]}><Text style={[s.buttonText, { fontSize: 13 }, a.lang !== id && { color: "#218653" }]}>{localize(languages[id])}</Text></Pressable>)}</View>;
 }
 export function Button({
   title,
   onPress,
   secondary = false,
   disabled = false,
+  variant,
+  icon,
 }: {
   title: string;
   onPress: () => void;
   secondary?: boolean;
   disabled?: boolean;
+  variant?: "outline" | "light" | "glass";
+  icon?: React.ReactNode;
 }) {
   const localize = useLocale();
   return (
@@ -132,10 +168,14 @@ export function Button({
       style={({ pressed }) => [
         s.button,
         secondary && s.secondary,
+        variant === "outline" && s.outline,
+        variant === "light" && s.light,
+        variant === "glass" && s.glass,
         (disabled || pressed) && { opacity: 0.55 },
       ]}
     >
-      <Text style={[s.buttonText, secondary && { color: "#17673f" }]}>
+      {icon}
+      <Text style={[s.buttonText, secondary && { color: "#17673f" }, (variant === "outline" || variant === "light") && { color: "#218653" }]}>
         {localize(title)}
       </Text>
     </Pressable>
@@ -144,13 +184,15 @@ export function Button({
 export function Card({
   title,
   children,
+  soft = false,
 }: {
   title?: string;
   children?: React.ReactNode;
+  soft?: boolean;
 }) {
   const localize = useLocale();
   return (
-    <View style={s.card}>
+    <View style={[s.card, soft && s.soft]}>
       {title && <Text style={s.heading}>{localize(title)}</Text>}
       {children}
     </View>
@@ -350,7 +392,7 @@ export function Page({
   flat = false,
   backToServices = false,
 }: {
-  title: string;
+  title?: string;
   children: React.ReactNode;
   auth?: boolean;
   processing?: boolean;
@@ -441,10 +483,10 @@ export function Page({
               <Text style={s.heading}>←</Text>
             </Pressable>
             <View style={s.flex}>
-              <View style={s.row}>
+              <View style={[s.row, { flexWrap: "nowrap" }]}>
                 <LeafLogo />
+                <Text style={[s.heading, { fontSize: 19, flexShrink: 1 }]}>{localize(brand.name)}</Text>
               </View>
-              <Text style={s.small}>{localize(brand.tagline)}</Text>
             </View>
             {!auth && (
               <Pressable
@@ -487,7 +529,7 @@ export function Page({
           ]}
         >
           {branding}
-          <Text style={s.title}>{localize(title)}</Text>
+          {!!title && <Text style={pathname === "/home" || auth ? s.title : s.pageTitle}>{localize(title)}</Text>}
           {!!a.notice && (
             <View style={s.notice}>
               <Text
@@ -522,9 +564,9 @@ export function Page({
           <View style={s.nav}>
             {(
               [
+                ["home", "Home"],
                 ["market", "Market"],
                 ["weather", "Weather"],
-                ["home", "Home"],
                 ["services", "Services"],
                 ["profile", "Profile"],
               ] as const
@@ -562,10 +604,9 @@ export function Page({
                     s.navSelected,
                 ]}
               >
-                <View style={[s.navIcon, route === "home" && s.navHomeIcon]}>
+                <View style={[s.navIcon, (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))) && s.navIconSelected]}>
                   <NavigationIcon
                     route={route}
-                    inverted={route === "home"}
                     selected={
                       activeRoute === `/${route}` ||
                       (route === "profile" &&
@@ -581,8 +622,7 @@ export function Page({
                 </View>
                 <Text
                   style={[
-                    s.small,
-                    { color: "#697b70" },
+                    s.navLabel,
                     (activeRoute === `/${route}` ||
                       (route === "profile" &&
                         [
@@ -592,7 +632,7 @@ export function Page({
                           "/account-details",
                           "/security",
                         ].includes(activeRoute))) && {
-                      color: "#218653",
+                      color: "#17673f",
                       fontWeight: "700",
                     },
                   ]}
@@ -637,12 +677,13 @@ export function Page({
 export const s = StyleSheet.create({
   authContainer: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     maxWidth: 430,
     paddingVertical: 28,
-    gap: 20,
+    gap: 26,
   },
-  authBrand: { alignItems: "center", gap: 10, marginVertical: 12 },
+  authBrand: { alignItems: "center", gap: 10, marginTop: 4 },
+  authCard: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#e0e8e2", borderRadius: 24, paddingVertical: 26, paddingHorizontal: 22, gap: 16, boxShadow: "0 14px 40px rgba(20,35,68,0.07)" },
   brandTitle: {
     fontFamily: typography.fontFamily,
     fontSize: 30,
@@ -674,15 +715,18 @@ export const s = StyleSheet.create({
   notice: { backgroundColor: "#e8f6ee", padding: 16, borderRadius: 12 },
   thumbnail: { width: 55, height: 60, borderRadius: 10, resizeMode: "cover" },
   photoPlaceholder: { alignItems: "center", justifyContent: "center", gap: 12 },
-  navSelected: { backgroundColor: "#edf7f0", borderRadius: 28 },
+  navSelected: { borderRadius: 28 },
+  navIconSelected: { backgroundColor: "#edf7f0" },
+  navLabel: { color: "#20252c", fontFamily: typography.fontFamily, fontSize: 11, lineHeight: 16 },
   divider: { textAlign: "center", color: "#697b70" },
-  safe: { flex: 1, backgroundColor: "#f6f9f6" },
+  safe: { flex: 1, backgroundColor: "#f6f9f6", width: "100%", maxWidth: 430, alignSelf: "center" },
   flex: { flex: 1 },
   container: {
-    padding: 22,
-    gap: 18,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    gap: 24,
     paddingBottom: 36,
-    maxWidth: 650,
+    maxWidth: 430,
     width: "100%",
     alignSelf: "center",
   },
@@ -702,6 +746,7 @@ export const s = StyleSheet.create({
     fontWeight: "600",
     color: "#243c30",
   },
+  pageTitle: { fontFamily: typography.fontFamily, fontSize: 22, lineHeight: 30, fontWeight: "600", color: "#243c30", letterSpacing: -0.25 },
   heading: {
     fontFamily: typography.fontFamily,
     fontSize: 18,
@@ -730,7 +775,11 @@ export const s = StyleSheet.create({
     padding: 20,
     gap: 12,
   },
-  hero: { borderRadius: 16, padding: 24, gap: 16 },
+  hero: { borderRadius: 16, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20, gap: 12, alignItems: "stretch" },
+  soft: { backgroundColor: "#edf4e7", borderColor: "#edf4e7" },
+  outline: { backgroundColor: "#fff", borderWidth: 1, borderColor: "#cde4d5" },
+  light: { backgroundColor: "#fff" },
+  glass: { backgroundColor: "#ffffff09", borderWidth: 1, borderColor: "#fff" },
   row: {
     flexDirection: "row",
     gap: 10,
@@ -742,21 +791,25 @@ export const s = StyleSheet.create({
     padding: 14,
     borderWidth: 1,
     borderColor: "#d5e1d8",
-    borderRadius: 12,
+    borderRadius: 10,
     fontFamily: typography.fontFamily,
     fontSize: 16,
     color: "#243c30",
+    minHeight: 50,
   },
   button: {
     backgroundColor: "#218653",
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 10,
     minHeight: 48,
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "700",
+    fontWeight: "600",
     fontFamily: typography.fontFamily,
     fontSize: 15,
   },
@@ -788,14 +841,7 @@ export const s = StyleSheet.create({
     height: 30,
     alignItems: "center",
     justifyContent: "center",
-  },
-  navHomeIcon: {
-    width: 60,
-    height: 60,
-    marginTop: -14,
-    borderRadius: 30,
-    backgroundColor: "#218653",
-    boxShadow: "0 2px 6px rgba(33, 134, 83, 0.16)",
+    borderRadius: 16,
   },
   nav: {
     marginHorizontal: 16,
@@ -810,6 +856,9 @@ export const s = StyleSheet.create({
     flexShrink: 0,
     flexDirection: "row",
     backgroundColor: "#e6f2ff",
+    maxWidth: 398,
+    width: "auto",
+    alignSelf: "stretch",
   },
   accountAvatar: {
     width: 48,
@@ -830,8 +879,8 @@ export const s = StyleSheet.create({
   navItem: {
     flex: 1,
     minHeight: 56,
-    paddingVertical: 4,
-    gap: 4,
+    paddingVertical: 0,
+    gap: 5,
     alignItems: "center",
     justifyContent: "center",
   },

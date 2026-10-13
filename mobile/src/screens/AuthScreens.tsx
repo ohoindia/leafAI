@@ -7,8 +7,8 @@ import { request } from "../api";
 import { useLeafCare } from "../state";
 import {
   AuthBrand,
+  BrandFooter,
   Button,
-  Card,
   Field,
   PasswordField,
   Languages,
@@ -146,15 +146,13 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
     <Page
       auth
       branding={<AuthBrand register={register} />}
-      title={localize(title)}
     >
-      <Card>
+      <View style={s.authCard}>
+        <Text style={s.small}>{localize("Account access")}</Text>
+        <Text style={s.pageTitle}>{localize(stage === "otp" || stage === "pin" ? title : "Welcome to Krishi Karshak")}</Text>
+        {["otp", "pin"].includes(stage) && <Text style={s.muted}>{localize(stage === "otp" ? "Enter the six-digit code sent to your mobile number." : "Choose a four-digit PIN to secure your account.")}</Text>}
         {["mobile", "request", "login-pin"].includes(stage) && (
           <>
-            <Text style={s.small}>{localize("Account access")}</Text>
-            <Text style={s.heading}>
-              {localize("Welcome to Krishi Karshak")}
-            </Text>
             <Text style={s.muted}>
               {localize(
                 "Enter your mobile number to sign in or create an account.",
@@ -324,8 +322,10 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
             onPress={() => void checkMobile(mobileNumber)}
           />
         )}
-      </Card>
-      <Languages />
+        <Languages />
+        <Text style={[s.muted, { textAlign: "center", fontSize: 12 }]}>{localize("Your plants. Your care. All in one place.")}</Text>
+      </View>
+      <BrandFooter text="Your plants. Your care. All in one place." />
     </Page>
   );
 }

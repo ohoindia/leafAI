@@ -9,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { NavigationIcon } from "./NavigationIcon";
 import * as Location from "expo-location";
 import { endpoints } from "../../common/api.js";
 import {
@@ -337,22 +336,23 @@ export function Weather({ summary = false }: { summary?: boolean }) {
           </>
         )}
         <Button
-          secondary
+          variant="outline"
           title={localize("View all weather")}
           onPress={() => a.go("weather")}
         />
       </Card>
     );
   return (
-    <View style={w.screen}>
-      <Card>
+    <View style={[s.card, w.screen]}>
+      <View style={{ gap: 16 }}>
         <View style={w.sectionHeader}>
           <View style={w.expandContent}>
-            <Text style={s.heading}>{localize("Local weather")}</Text>
-            <Text style={s.muted}>{localize("Plan your next five days")}</Text>
+            <Text style={s.small}>{localize("Plan your next five days")}</Text>
+            <Text style={s.pageTitle}>{localize("Local weather")}</Text>
           </View>
-          <NavigationIcon route="weather" selected />
+          <Text style={{ fontSize: 38, color: "#e6a52b" }}>☀</Text>
         </View>
+        <Text style={[s.body, { fontSize: 14, fontWeight: "600" }]}>{localize("Find your town or village")}</Text>
         <View style={w.searchRow}>
           <View style={w.searchField}>
             <Field
@@ -374,7 +374,7 @@ export function Weather({ summary = false }: { summary?: boolean }) {
         <View style={w.actions}>
           <View style={w.action}>
             <Button
-              secondary
+              variant="outline"
               title={localize("Use my location")}
               disabled={busy}
               onPress={() => void locate()}
@@ -382,7 +382,7 @@ export function Weather({ summary = false }: { summary?: boolean }) {
           </View>
           <View style={w.action}>
             <Button
-              secondary
+              variant="outline"
               title={localize("Saved farm")}
               disabled={busy}
               onPress={() => void load(null)}
@@ -420,34 +420,20 @@ export function Weather({ summary = false }: { summary?: boolean }) {
             />
           </View>
         )}
-      </Card>
+      </View>
       {data && (
         <>
           <LinearGradient
-            colors={["#17673f", "#2b9560"]}
+            colors={["#edf7f0", "#f6faf7"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={w.hero}
           >
-            <View style={w.sectionHeader}>
-              <Text style={w.heroLabel}>{localize("Local weather")}</Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled: busy }}
-                disabled={busy}
-                onPress={() => void load()}
-                style={({ pressed }) => [
-                  w.refresh,
-                  (pressed || busy) && { opacity: 0.55 },
-                ]}
-              >
-                <Text style={w.heroLabel}>{localize("Refresh")}</Text>
-              </Pressable>
-            </View>
             <Text style={w.location}>
               {data.location.label ||
                 `${data.location.latitude.toFixed(3)}, ${data.location.longitude.toFixed(3)}`}
             </Text>
+            <Text style={w.heroText}>{localize(data.location.source)} · {data.location.latitude.toFixed(3)}, {data.location.longitude.toFixed(3)}</Text>
             <Text style={w.temperature}>
               {localize(formatValue(data.current.temperature_2m, "\u00b0C"))}
             </Text>
@@ -460,18 +446,6 @@ export function Weather({ summary = false }: { summary?: boolean }) {
                 formatValue(data.current.apparent_temperature, "\u00b0C"),
               )}
             </Text>
-            {data.days[0] && (
-              <Text style={w.heroText}>
-                {localize("High temperature")}{" "}
-                {localize(
-                  formatValue(data.days[0].temperature_2m_max, "\u00b0C"),
-                )}{" "}
-                {"\u00b7"} {localize("Low temperature")}{" "}
-                {localize(
-                  formatValue(data.days[0].temperature_2m_min, "\u00b0C"),
-                )}
-              </Text>
-            )}
             <View style={w.heroFooter}>
               <Text style={w.heroText}>
                 {localize("Conditions at")}{" "}
@@ -479,10 +453,7 @@ export function Weather({ summary = false }: { summary?: boolean }) {
               </Text>
             </View>
           </LinearGradient>
-          <Card>
-            <Text style={s.heading}>
-              {localize("All current weather details")}
-            </Text>
+          <View style={{ gap: 12 }}>
             <Metrics
               record={Object.fromEntries(
                 Object.entries(data.current).filter(([key]) =>
@@ -506,9 +477,10 @@ export function Weather({ summary = false }: { summary?: boolean }) {
               </Text>
               <Metrics record={extra} units={data.units.hourly} />
             </Expand>
-          </Card>
-          <Card title={localize("Five-day outlook")}>
+          </View>
+          <View style={{ gap: 16 }}>
             <View style={w.insights}>
+              <Text style={s.heading}>{localize("Five-day outlook")}</Text>
               {forecastSummary(data.days, a.lang).map((text) => (
                 <View key={text} style={w.insight}>
                   <View style={w.dot} />
@@ -569,7 +541,7 @@ export function Weather({ summary = false }: { summary?: boolean }) {
                 </Expand>
               </Expand>
             ))}
-          </Card>
+          </View>
           <View style={w.attribution}>
             <Text style={s.muted}>{localize(data.modelNote)}</Text>
             <Text style={s.muted}>
@@ -618,9 +590,9 @@ const w = StyleSheet.create({
     paddingVertical: 8,
   },
   error: { backgroundColor: "#fff4f2", borderRadius: 12, padding: 12, gap: 8 },
-  hero: { borderRadius: 22, padding: 22, gap: 8 },
+  hero: { borderRadius: 18, padding: 20, gap: 7 },
   heroLabel: {
-    color: "#e5f5eb",
+    color: "#697b70",
     fontFamily: typography.fontFamily,
     fontSize: 14,
     fontWeight: "600",
@@ -633,29 +605,29 @@ const w = StyleSheet.create({
     backgroundColor: "#ffffff18",
   },
   location: {
-    color: "#fff",
+    color: "#243c30",
     fontFamily: typography.fontFamily,
-    fontSize: 22,
+    fontSize: 16,
     lineHeight: 30,
     fontWeight: "700",
   },
   temperature: {
-    color: "#fff",
+    color: "#243c30",
     fontFamily: typography.fontFamily,
-    fontSize: 56,
+    fontSize: 42,
     fontWeight: "700",
     letterSpacing: -2,
     marginTop: 6,
   },
   condition: {
-    color: "#fff",
+    color: "#243c30",
     fontFamily: typography.fontFamily,
-    fontSize: 20,
+    fontSize: 18,
     lineHeight: 28,
     fontWeight: "600",
   },
   heroText: {
-    color: "#e5f5eb",
+    color: "#697b70",
     fontFamily: typography.fontFamily,
     fontSize: 14,
     lineHeight: 22,
@@ -671,17 +643,17 @@ const w = StyleSheet.create({
     flexGrow: 1,
     flexBasis: "45%",
     minWidth: 0,
-    backgroundColor: "#f1f6f2",
-    padding: 14,
-    borderRadius: 14,
+    backgroundColor: "#f6f9f6",
+    padding: 10,
+    borderRadius: 10,
     gap: 4,
   },
   metricValue: {
     color: "#243c30",
     fontFamily: typography.fontFamily,
-    fontSize: 20,
-    lineHeight: 28,
-    fontWeight: "700",
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: "600",
   },
   expand: { borderTopWidth: 1, borderTopColor: "#e0e8e2" },
   expandButton: {
@@ -731,7 +703,9 @@ const w = StyleSheet.create({
   },
   insights: {
     backgroundColor: "#edf7f0",
-    borderRadius: 14,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#218653",
     padding: 14,
     gap: 10,
   },

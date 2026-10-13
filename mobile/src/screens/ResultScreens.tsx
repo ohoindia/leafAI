@@ -1,10 +1,10 @@
 import { useLocale } from "../locale";
 import { useState } from "react";
-import { Text } from "react-native";
+import { Text, View, Pressable } from "react-native";
 import { Redirect } from "expo-router";
 import { analysisStatus, languages, screens } from "../../../common/content.js";
 import { useLeafCare } from "../state";
-import { AnalysisPhoto, Button, Card, Languages, Page, s } from "../ui";
+import { AnalysisPhoto, Button, Card, ResultLanguages, LeafLogo, Page, s } from "../ui";
 function ResultPhoto() {
   const a = useLeafCare();
   return <AnalysisPhoto id={a.result!.id} fallback={a.photo} />;
@@ -43,9 +43,10 @@ export function ResultScreen() {
   if (!a.result) return <Redirect href="/history" />;
   const out = a.result.translations?.[a.lang];
   return (
-    <Page title={localize(screens.result)}>
+    <Page>
       <ResultPhoto />
-      <Card title={localize(analysisStatus(a.result))}>
+      <View style={{ backgroundColor: "#edf7f0", padding: 16, borderRadius: 12, gap: 5 }}>
+        <Text style={[s.body, { fontWeight: "600" }]}>{localize(analysisStatus(a.result))}</Text>
         <Text style={s.muted}>
           {localize(
             a.result.status === "REVIEW_REQUIRED"
@@ -53,33 +54,29 @@ export function ResultScreen() {
               : "AI screening based on visible evidence.",
           )}
         </Text>
-      </Card>
+      </View>
       {out ? (
         <>
-          <Card title={localize(a.result.condition)}>
-            <Text style={s.body}>
-              {localize("Confidence:")}
-              {Math.round(a.result.confidence * 100)}%
-            </Text>
-            <Text style={s.body}>
-              {localize("Severity:")}
-              {a.result.severity}
-            </Text>
-          </Card>
-          <Card title={localize("Summary")}>
+          <View style={[s.row, { flexWrap: "nowrap", alignItems: "flex-start" }]}>
+            <View style={s.flex}><Text style={s.muted}>{localize("Likely condition")}</Text><Text style={s.pageTitle}>{a.result.condition}</Text></View>
+            <View><Text style={s.muted}>{localize("Confidence")}</Text><Text style={s.pageTitle}>{Math.round(a.result.confidence * 100)}%</Text></View>
+          </View>
+          <View style={[s.row, { justifyContent: "space-between" }]}><Text style={s.body}>{localize("Severity")}</Text><Text style={[s.body, { fontWeight: "600" }]}>{a.result.severity}</Text></View>
+          <Card title={localize("Summary")} soft>
             <Text style={s.body}>{out.summary}</Text>
           </Card>
-          <Languages />
-          <Button
-            secondary
+          <Text style={s.small}>{localize("Select language for results")}</Text>
+          <ResultLanguages />
+          <View style={[s.row, { flexWrap: "nowrap" }]}><View style={s.flex}><Button
+            variant="outline"
             title={localize("Listen")}
             onPress={() => a.go("voice")}
-          />
-          <Button
+          /></View>
+          <View style={{ flex: 2 }}><Button
             title={localize("View full analysis →")}
             onPress={() => a.go("full")}
-          />
-          <Text style={s.muted}>{out.disclaimer}</Text>
+          /></View></View>
+          <Text style={s.muted}>ⓘ {out.disclaimer}</Text>
         </>
       ) : (
         <Card
@@ -89,6 +86,7 @@ export function ResultScreen() {
               : "Result is not ready",
           )}
         >
+          <Text style={s.body}>{localize("Take a new photo and try again.")}</Text>
           <Button
             title={localize("Try again")}
             onPress={() => a.go("capture")}
@@ -114,21 +112,9 @@ export function FullScreen() {
     ["Prevention", out?.prevention || x.prevention],
   ];
   return (
-    <Page title={localize(x.plant || screens.full)}>
-      <Text style={s.body}>
-        {x.condition} · {localize(analysisStatus(x))}
-      </Text>
-      <Languages />
-      <Button
-        title={localize("Full analysis")}
-        secondary={resources}
-        onPress={() => setResources(false)}
-      />
-      <Button
-        title={localize("Related resources")}
-        secondary={!resources}
-        onPress={() => setResources(true)}
-      />
+    <Page>
+      <View style={[s.row, { flexWrap: "nowrap" }]}><LeafLogo /><View style={s.flex}><Text style={s.pageTitle}>{x.plant || localize(screens.full)}</Text><Text style={s.muted}>{x.condition}</Text></View><Text style={s.small}>{localize(analysisStatus(x))}</Text></View>
+      <View style={[s.row, { flexWrap: "nowrap", borderBottomWidth: 1, borderBottomColor: "#e0e8e2", gap: 0 }]}>{[false, true].map(value => <Pressable key={String(value)} accessibilityRole="button" accessibilityState={{ selected: resources === value }} onPress={() => setResources(value)} style={{ flex: 1, paddingVertical: 14, borderBottomWidth: 2, borderBottomColor: resources === value ? "#218653" : "transparent" }}><Text style={[s.body, { textAlign: "center", color: resources === value ? "#218653" : "#697b70" }]}>{localize(value ? "Related resources" : "Full analysis")}</Text></Pressable>)}</View>
       {resources ? (
         <>
           <Card title={localize("Get local guidance")}>
@@ -155,7 +141,7 @@ export function FullScreen() {
             <Card key={title} title={localize(title)}>
               {items?.map((text, i) => (
                 <Text key={i} style={s.body}>
-                  {i + 1}. {localize(text)}
+                  • {localize(text)}
                 </Text>
               ))}
             </Card>

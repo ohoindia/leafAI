@@ -678,7 +678,7 @@ const m = StyleSheet.create({
   browser: {
     flexDirection: "column",
     width: "100%",
-    gap: 8,
+    gap: 14,
     alignItems: "stretch",
   },
   rail: {
@@ -690,7 +690,7 @@ const m = StyleSheet.create({
   },
   railContent: { gap: 10, padding: 4, paddingBottom: 12, alignItems: "flex-start" },
   railButton: {
-    width: 88,
+    width: 104,
     position: "relative",
     alignItems: "center",
     gap: 4,
@@ -701,8 +701,8 @@ const m = StyleSheet.create({
     borderColor: "#dce7df",
     backgroundColor: "#fff",
   },
-  railSelected: { width: 156, backgroundColor: "#edf7f0", borderColor: "#218653" },
-  railSelectedText: { fontSize: 13, lineHeight: 18, fontWeight: "700", color: "#218653" },
+  railSelected: { width: 104, backgroundColor: "#edf7f0", borderColor: "#218653" },
+  railSelectedText: { fontSize: 12, lineHeight: 17, fontWeight: "700", color: "#218653" },
   categoryCount: {
     marginTop: 0,
     minWidth: 22,
@@ -975,7 +975,7 @@ function CategoryBrowser({
           >
             <CropIcon name={cropImages ? (name === "All crops" ? "Crop plant" : name) : categoryImages[name]} size={44} />
             <Text
-              numberOfLines={name === selected ? undefined : 1}
+              numberOfLines={1}
               ellipsizeMode="tail"
               style={[m.railText, name === selected && m.railSelectedText]}
             >

@@ -1,5 +1,5 @@
 import { useLocale } from "../locale";
-import { ActivityIndicator, Image, Switch, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
 import { Redirect } from "expo-router";
 import {
   consentDetail,
@@ -15,8 +15,8 @@ export function CaptureScreen() {
   const a = useLeafCare();
   return (
     <Page title={localize(screens.capture)}>
-      <Card>
-        <View style={{ alignItems: "center" }}>
+      <View style={{ height: 330, borderRadius: 18, backgroundColor: "#c2d4b1", alignItems: "center", justifyContent: "center", gap: 16 }}>
+        <View style={{ alignItems: "center", borderWidth: 2, borderColor: "#fff", borderRadius: 18, padding: 20 }}>
           <LeafLogo large />
         </View>
         <Text style={s.body}>
@@ -25,8 +25,8 @@ export function CaptureScreen() {
         <Text style={s.muted}>
           {localize("Your device camera opens when you tap below.")}
         </Text>
-      </Card>
-      <Card title={localize("A clearer photo helps")}>
+      </View>
+      <Card title={localize("A clearer photo helps")} soft>
         <Text style={s.body}>{localize(photoTip)}</Text>
       </Card>
       <Button
@@ -37,7 +37,7 @@ export function CaptureScreen() {
         }}
       />
       <Button
-        secondary
+        variant="outline"
         title={localize("Choose from gallery")}
         disabled={a.busy}
         onPress={() => {
@@ -56,21 +56,22 @@ export function ReviewScreen() {
       <Image
         source={{ uri: a.photo }}
         accessibilityLabel={localize("Selected leaf for review")}
-        style={s.image}
+        style={[s.image, { height: 330, borderRadius: 15, resizeMode: "cover" }]}
       />
-      <Card title={localize("Check your photo")}>
+      <Card title={localize("Check your photo")} soft>
+        <Text style={s.body}>{localize("Confirm these before continuing:")}</Text>
         {photoChecks.map((text) => (
           <Text key={text} style={s.body}>
             ✓ {localize(text)}
           </Text>
         ))}
       </Card>
-      <Button
-        secondary
+      <View style={[s.row, { flexWrap: "nowrap" }]}><View style={s.flex}><Button
+        variant="outline"
         title={localize("Retake")}
         onPress={() => a.go("capture")}
-      />
-      <Button title={localize("Use photo")} onPress={() => a.go("details")} />
+      /></View>
+      <View style={s.flex}><Button title={localize("Use photo")} onPress={() => a.go("details")} /></View></View>
     </Page>
   );
 }
@@ -80,38 +81,41 @@ export function DetailsScreen() {
   if (!a.photo) return <Redirect href="/capture" />;
   return (
     <Page title={localize(screens.details)}>
-      <Card title={localize("Ready to analyze")}>
-        <Image source={{ uri: a.photo }} style={s.image} />
+      <View style={[s.card, s.soft, s.row, { padding: 12, flexWrap: "nowrap", gap: 16 }]}>
+        <Image source={{ uri: a.photo }} accessibilityLabel={localize("Leaf ready to analyze")} style={{ width: 90, height: 110, borderRadius: 12 }} />
+        <View style={s.flex}><Text style={s.heading}>{localize("Ready to analyze")}</Text>
         <Text style={s.muted}>
           {localize("Add a few details (optional) for more helpful results.")}
         </Text>
-      </Card>
+        </View>
+      </View>
+      <Text style={s.body}>{localize("Plant name")} <Text style={s.muted}>{localize("(optional)")}</Text></Text>
       <Field
         accessibilityLabel={localize("Plant name (optional)")}
-        placeholder={localize("Plant name, e.g. Tomato (optional)")}
+        placeholder={localize("e.g. Tomato")}
         value={a.plantName}
         onChangeText={a.setPlantName}
         maxLength={150}
       />
+      <Text style={s.body}>{localize("Location")} <Text style={s.muted}>{localize("(optional)")}</Text></Text>
       <Field
         accessibilityLabel={localize("Location (optional)")}
-        placeholder={localize("Location, e.g. Balcony (optional)")}
+        placeholder={localize("e.g. Garden, Balcony, Indoors")}
         value={a.location}
         onChangeText={a.setLocation}
         maxLength={255}
       />
-      <Card>
-        <View style={s.row}>
-          <Switch
+      <View style={[s.row, { alignItems: "flex-start", flexWrap: "nowrap" }]}>
+          <Pressable
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: a.consent, disabled: a.busy }}
             accessibilityLabel={localize(consentText)}
-            value={a.consent}
-            onValueChange={a.setConsent}
+            onPress={() => a.setConsent(!a.consent)}
             disabled={a.busy}
-          />
-          <Text style={[s.body, s.flex]}>{localize(consentText)}</Text>
-        </View>
-        <Text style={s.muted}>{localize(consentDetail)}</Text>
-      </Card>
+            style={{ minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "flex-start", paddingTop: 2 }}
+          ><View style={{ width: 23, height: 23, borderWidth: 1, borderColor: "#218653", borderRadius: 3, backgroundColor: a.consent ? "#218653" : "#fff", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff" }}>{a.consent ? "✓" : ""}</Text></View></Pressable>
+          <View style={[s.flex, { gap: 8 }]}><Text style={s.body}>{localize(consentText)}</Text><Text style={s.muted}>{localize(consentDetail)}</Text></View>
+      </View>
       <Button
         disabled={!a.consent || a.busy}
         title={localize("Analyze leaf")}
@@ -127,8 +131,9 @@ export function ProcessingScreen() {
   const a = useLeafCare();
   if (!a.busy) return <Redirect href={a.result ? "/result" : "/details"} />;
   return (
-    <Page processing title={localize(screens.processing)}>
-      {a.photo && <Image source={{ uri: a.photo }} style={s.image} />}
+    <Page processing>
+      {a.photo && <View style={{ alignSelf: "center", width: 230, height: 230, overflow: "hidden", borderRadius: 20 }}><Image source={{ uri: a.photo }} accessibilityLabel={localize("Leaf being analyzed")} style={{ width: "100%", height: "100%" }} /><View style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 3, backgroundColor: "#218653" }} /></View>}
+      <Text style={[s.pageTitle, { textAlign: "center" }]}>{localize(screens.processing)}</Text>
       <ActivityIndicator size="large" color="#218653" />
       <Text accessibilityLiveRegion="polite" style={s.body}>
         {localize("Checking the photo and assessing visible plant health.")}

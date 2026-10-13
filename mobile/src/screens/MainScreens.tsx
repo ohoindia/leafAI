@@ -1,9 +1,11 @@
 import { Weather } from "../Weather";
 import { useLocale } from "../locale";
 import { useState } from "react";
+import { router } from "expo-router";
 import { subscriptionMessage } from "../../../common/subscription.js";
 import { Image, Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { NavigationIcon } from "../NavigationIcon";
 import {
   profileSettings,
   accountGreeting,
@@ -23,6 +25,7 @@ import {
   Languages,
   Page,
   LeafLogo,
+  SelectField,
   s,
 } from "../ui";
 import {
@@ -34,36 +37,37 @@ export function HomeScreen() {
   const localize = useLocale();
   const a = useLeafCare();
   return (
-    <Page title={localize(accountGreeting(a.user?.fullName))}>
+    <Page>
       {a.billingStatus.enabled && a.billingStatus.access !== true && (
         <Card title="Subscription required">
           <Text style={s.body}>{subscriptionMessage}</Text>
           <Button
             title="View subscription plans"
-            onPress={() => a.setSubscriptionPopup(true)}
+            onPress={() => router.push("/subscription")}
           />
         </Card>
       )}
-      <Text style={s.body}>
-        {localize("Healthy plants make a happier you.")}
-      </Text>
+      <View style={{ paddingTop: 6, gap: 8 }}><Text style={{ position: "absolute", right: 3, top: 0, fontSize: 55, color: "#ecbb35" }}>☀</Text><Text style={[s.title, { paddingRight: 60 }]}>{localize(accountGreeting(a.user?.fullName))}</Text><Text style={[s.body, { maxWidth: 230, color: "#536b5c" }]}>{localize("Healthy plants make")}{"\n"}{localize("a happier you.")}</Text></View>
       <Weather summary />
-      <LinearGradient colors={["#218653", "#17673f"]} style={s.hero}>
-        <Text style={[s.title, { color: "#fff" }]}>
+      <LinearGradient colors={["#218653", "#17673f"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.hero}>
+        <View style={{ alignSelf: "center", width: 62, height: 62, borderRadius: 31, borderWidth: 1, borderColor: "#ffffff50", backgroundColor: "#ffffff18", alignItems: "center", justifyContent: "center" }}><NavigationIcon route="camera" selected inverted /></View>
+        <Text style={[s.pageTitle, { color: "#fff", textAlign: "center", fontSize: 24 }]}>
           {localize("Analyze a leaf")}
         </Text>
-        <Text style={[s.body, { color: "#fff" }]}>
+        <Text style={[s.muted, { color: "#fff", textAlign: "center", lineHeight: 20 }]}>
           {localize(
             "Take a photo or choose from your gallery to detect plant issues, get insights and care recommendations.",
           )}
         </Text>
         <Button
-          secondary
+          variant="light"
+          icon={<NavigationIcon route="camera" selected />}
           title={localize("Take photo")}
           onPress={() => a.go("capture")}
         />
         <Button
-          secondary
+          variant="glass"
+          icon={<NavigationIcon route="gallery" selected inverted />}
           title={localize("Choose from gallery")}
           disabled={a.busy}
           onPress={() => {
@@ -90,27 +94,22 @@ export function HomeScreen() {
           accessibilityRole="button"
           disabled={a.busy}
           onPress={() => a.go(route)}
-          style={s.card}
+          style={[s.card, { flexDirection: "row", alignItems: "center", gap: 14 }]}
         >
-          <View style={[s.row, { justifyContent: "space-between" }]}>
-            <Text style={s.heading}>{localize(title)}</Text>
-            <Text style={s.heading}>›</Text>
+          <View style={{ backgroundColor: route === "learn" ? "#fff1bc" : "#d5ebcf", borderRadius: 16, padding: 12 }}>{route === "learn" ? <Text style={{ color: "#b78a13", fontSize: 24 }}>☀</Text> : <NavigationIcon route="history" selected />}</View>
+          <View style={s.flex}>
+            <Text style={[s.body, { fontWeight: "600" }]}>{localize(title)}</Text>
+            <Text style={[s.muted, { fontSize: 12, lineHeight: 17 }]}>{localize(description)}</Text>
           </View>
-          <Text style={s.muted}>{localize(description)}</Text>
+          <Text style={s.heading}>›</Text>
         </Pressable>
       ))}
-      <Button
-        secondary
-        title={localize("Voice assistant")}
-        onPress={() => a.go("voice")}
-      />
     </Page>
   );
 }
 export function WeatherScreen() {
-  const localize = useLocale();
   return (
-    <Page title={localize("Weather")}>
+    <Page>
       <Weather />
     </Page>
   );
@@ -132,28 +131,13 @@ export function HistoryScreen() {
         value={query}
         onChangeText={setQuery}
       />
-      {[
+      <SelectField label="Filter analyses" value={filter} onChange={setFilter} options={[
         ["all", "All analyses"],
         ["attention", "Needs attention"],
         ["review", "Review required"],
-      ].map(([id, label]) => (
-        <Button
-          key={id}
-          secondary={filter !== id}
-          title={localize(label)}
-          onPress={() => setFilter(id)}
-        />
-      ))}
-      <Button
-        secondary
-        title={localize("Refresh history")}
-        disabled={a.busy}
-        onPress={() => {
-          void a.run(() => a.loadHistory());
-        }}
-      />
+      ]} />
       {shown.map((item) => (
-        <Card key={item.id}>
+        <Pressable key={item.id} accessibilityRole="button" disabled={a.busy} onPress={() => void a.openHistory(item)} style={s.card}>
           <View style={s.row}>
             <AnalysisPhoto id={item.id} thumbnail />
             <View style={s.flex}>
@@ -166,12 +150,11 @@ export function HistoryScreen() {
                 {item.disease_name || analysisStatus(item)}
               </Text>
             </View>
+            <Text style={[s.small, { backgroundColor: "#edf7f0", borderRadius: 10, padding: 6 }]}>{localize(analysisStatus(item))}</Text>
+            <Text style={s.heading}>›</Text>
           </View>
           <Text style={s.muted}>
             {new Date(item.created_at).toLocaleDateString()} ·{" "}
-            {localize(analysisStatus(item))}
-          </Text>
-          <Text style={s.muted}>
             {localize(
               item.confidence == null
                 ? "Confidence pending"
@@ -179,14 +162,7 @@ export function HistoryScreen() {
             )}
             {localize(item.severity ? ` · ${item.severity}` : "")}
           </Text>
-          <Button
-            title={localize("View result")}
-            disabled={a.busy}
-            onPress={() => {
-              void a.openHistory(item);
-            }}
-          />
-        </Card>
+        </Pressable>
       ))}
       {!shown.length && (
         <Card
@@ -219,7 +195,7 @@ export function LearnScreen() {
     <Page title={localize(screens.learn)}>
       <Text style={s.muted}>{localize("Small habits. Healthier plants.")}</Text>
       {careTips.map(([title, text]) => (
-        <Card key={title} title={localize(title)}>
+        <Card key={title} title={localize(title)} soft>
           <Text style={s.body}>{localize(text)}</Text>
         </Card>
       ))}
@@ -233,7 +209,7 @@ function ProfileMenuRow({
   onPress,
 }: {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   icon: string;
   onPress: () => void;
 }) {
@@ -255,11 +231,11 @@ function ProfileMenuRow({
       ]}
     >
       <View style={{ width: 32, alignItems: "center" }}>
-        <Text style={s.avatarText}>{icon}</Text>
+        {["language", "security", "farm", "profile"].includes(icon) ? <NavigationIcon route={icon as "language" | "security" | "farm" | "profile"} selected /> : <Text style={s.avatarText}>{icon}</Text>}
       </View>
       <View style={s.flex}>
-        <Text style={s.heading}>{localize(title)}</Text>
-        <Text style={s.muted}>{localize(subtitle)}</Text>
+        <Text style={[s.body, { fontWeight: "500" }]}>{localize(title)}</Text>
+        {!!subtitle && <Text style={[s.muted, { fontSize: 12 }]}>{localize(subtitle)}</Text>}
       </View>
       <Text style={s.heading}>{"\u203a"}</Text>
     </Pressable>
@@ -284,34 +260,19 @@ export function ProfileScreen() {
           {a.user?.fullName || localize("Your account")}
         </Text>
         {!!a.user?.email && <Text style={s.muted}>{a.user.email}</Text>}
-        <Pressable
-          accessibilityRole="button"
-          disabled={a.busy}
-          onPress={() => a.go("account-details")}
-          style={{ minHeight: 44, justifyContent: "center" }}
-        >
-          <Text style={s.small}>{localize("Edit profile")} ›</Text>
-        </Pressable>
       </View>
       <View style={{ gap: 0 }}>
         <ProfileMenuRow
           title="Subscription and AutoPay"
-          subtitle="Manage your subscription"
           icon="◈"
-          onPress={() => a.setSubscriptionPopup(true)}
+          onPress={() => router.push("/subscription")}
         />
         {profileSettings.map((item) => (
           <ProfileMenuRow
             key={item.route}
             title={localize(item.title)}
             subtitle={item.subtitle}
-            icon={
-              item.icon === "language"
-                ? "\u25ce"
-                : item.icon === "security"
-                  ? "\u26bf"
-                  : "\u25cb"
-            }
+            icon={item.icon}
             onPress={() => a.go(item.route)}
           />
         ))}
@@ -406,8 +367,8 @@ export function AccountDetailsScreen() {
       </Card>
       {userDetailSections.map((section) => (
         <Card key={section.title} title={localize(section.title)}>
-          {section.fields.map((field) => (
-            <View key={field.key} style={{ gap: 8 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -6 }}>{section.fields.map((field) => (
+            <View key={field.key} style={{ gap: 8, width: field.key.startsWith("addressLine") ? "100%" : "50%", paddingHorizontal: 6, paddingBottom: 12 }}>
               <Text style={s.body}>{localize(field.label)}</Text>
               {editing ? (
                 <Field
@@ -437,14 +398,14 @@ export function AccountDetailsScreen() {
                 </Text>
               )}
             </View>
-          ))}
+          ))}</View>
         </Card>
       ))}
-      <Text style={s.muted}>
+      {editing && <Text style={s.muted}>
         {localize(
           "Your personal address is saved separately from your farm address. Contact and address fields are optional.",
         )}
-      </Text>
+      </Text>}
       {editing ? (
         <>
           <Button
@@ -489,7 +450,7 @@ export function SecurityScreen() {
   const a = useLeafCare();
   return (
     <Page title={localize("PIN & security")}>
-      <Card>
+      <Card title="PIN & security">
         <Text style={s.body}>
           {localize("Verify your mobile number with OTP to set a new PIN.")}
         </Text>
@@ -506,7 +467,7 @@ export function LanguageSettingsScreen() {
   const localize = useLocale();
   return (
     <Page title={localize(screens.language)}>
-      <Card title={localize("Change language")}>
+      <Card>
         <Text style={s.muted}>
           {localize("Choose your preferred language")}
         </Text>

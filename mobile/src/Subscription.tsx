@@ -1,6 +1,6 @@
-import { typography } from "./theme";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, Button } from "react-native";
+import { ScrollView, Text, View } from "react-native";
+import { Button, Page, s } from "./ui";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { useLeafCare } from "./state";
@@ -18,7 +18,7 @@ export function Subscription({
   onStatus?: (value: Status) => void;
   compact?: boolean;
 }) {
-  const { token, logout, setBillingStatus, setSubscriptionPopup } =
+  const { token, setBillingStatus, setSubscriptionPopup } =
     useLeafCare();
   const [status, setStatus] = useState<Status>(),
     [error, setError] = useState(""),
@@ -78,42 +78,36 @@ export function Subscription({
   return (
     <ScrollView
       contentContainerStyle={{
-        padding: 28,
-        paddingTop: compact ? 16 : 70,
+        padding: compact ? 28 : 0,
         gap: 18,
       }}
     >
       <Text
-        style={{
-          fontFamily: typography.fontFamily,
-          fontSize: 26,
-          fontWeight: "bold",
-        }}
+        style={s.pageTitle}
       >
-        Subscription and AutoPay
+        Subscription
       </Text>
-      <Text>
-        ₹1 for your first month, then ₹99/month or ₹999/year. All app features
-        are included. The introductory offer is available once per account.
+      <Text style={s.body}>
+        ₹1 for your first month. Then choose ₹99 per month or ₹999 per year. All
+        app features are included.
       </Text>
-      <Text>
-        Continuing authorizes recurring Razorpay AutoPay. Cancel future payments
-        here at any time. Paid access lasts until expiry. After payment, return
-        to the app and refresh status.
+      <Text style={s.body}>
+        By continuing, you authorize recurring AutoPay through Razorpay. Your
+        selected plan renews automatically after the introductory month. Cancel
+        future payments here at any time; paid access lasts until expiry. The ₹1
+        offer is available once per account.
       </Text>
       {status?.subscription && (
-        <Text>
-          Status: {status.subscription.status}. Access until{" "}
-          {new Date(
+        <Text style={s.body}>
+          Status: {status.subscription.status}. {status.subscription.accessUntil > 0 && `Access until ${new Date(
             status.subscription.accessUntil * 1000,
-          ).toLocaleDateString()}
-          .
+          ).toLocaleDateString()}.`}
         </Text>
       )}
       {status && !status.configured && (
-        <Text>Payments will be available once Razorpay setup is complete.</Text>
+        <Text style={s.body}>Payments will be available once Razorpay setup is complete.</Text>
       )}
-      {!!error && <Text accessibilityRole="alert">{error}</Text>}
+      {!!error && <Text style={s.error} accessibilityRole="alert">{error}</Text>}
       <Button
         title="Choose ₹99/month"
         disabled={busy || !status?.configured}
@@ -129,7 +123,7 @@ export function Subscription({
         disabled={busy}
         onPress={() => void refresh()}
       />
-      <Button
+      {compact && <View style={s.row}><Button
         title="Home"
         onPress={() => {
           setSubscriptionPopup(false);
@@ -142,7 +136,7 @@ export function Subscription({
           setSubscriptionPopup(false);
           router.push("/weather");
         }}
-      />
+      /></View>}
       {status?.subscription && (
         <Button
           title="Cancel AutoPay"
@@ -150,7 +144,9 @@ export function Subscription({
           onPress={() => void action()}
         />
       )}
-      <Button title="Sign out" onPress={() => void logout()} />
     </ScrollView>
   );
+}
+export function SubscriptionScreen() {
+  return <Page><Subscription /></Page>;
 }

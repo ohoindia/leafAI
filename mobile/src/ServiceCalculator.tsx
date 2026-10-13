@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import { Card, Button, Page, s } from './ui';
+import { Card, Button, Page, SelectField, s } from './ui';
 import { useLocale } from './locale';
 import { calculate, calculatorCopy, calculatorSections, initialCalculatorValues, updateCalculatorValues, formatQuantity, type CalculatorKind, type CalculatorResult } from '../../common/calculators.js';
 
@@ -24,7 +24,7 @@ export function ServiceCalculator({ kind }: { kind: CalculatorKind }) {
       <Text style={[s.heading, { color: '#17673f' }]}>{String(index + 1).padStart(2, '0')} · {t(section.title)}</Text>
       {section.fields.map(([key, label, , options]) => <View key={key} style={{ gap: 10, marginTop: 8 }}>
         <Text style={[s.body, { fontWeight: '600' }]}>{t(label)}</Text>
-        {options ? <View accessibilityRole="radiogroup" accessibilityLabel={t(label)} style={{ gap: 8, flexDirection: options.length <= 3 ? 'row' : 'column', ...(options.length <= 3 ? { backgroundColor: '#f0f4f1', padding: 5, borderRadius: 14 } : {}) }}>
+        {options && options.length > 3 ? <SelectField label={label} value={values[key]} options={options.map(option => [option, option] as const)} onChange={value => update(key, value)} /> : options ? <View accessibilityRole="radiogroup" accessibilityLabel={t(label)} style={{ gap: 8, flexDirection: options.length <= 3 ? 'row' : 'column', ...(options.length <= 3 ? { backgroundColor: '#f0f4f1', padding: 5, borderRadius: 14 } : {}) }}>
           {options.map(option => <Pressable key={option} accessibilityRole="radio" accessibilityLabel={`${t(label)}: ${t(option)}`} accessibilityState={{ checked: values[key] === option }} onPress={() => update(key, option)} style={({ pressed }) => ({ paddingVertical: 14, paddingHorizontal: options.length <= 3 ? 8 : 14, minHeight: 48, borderRadius: 10, borderWidth: 1, borderColor: values[key] === option ? '#218653' : options.length <= 3 ? 'transparent' : '#d5e1d8', backgroundColor: values[key] === option ? '#218653' : options.length <= 3 ? 'transparent' : '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, ...(options.length <= 3 ? { flex: 1 } : {}), opacity: pressed ? 0.75 : 1 })}>
             {options.length > 3 && <Text accessible={false} style={{ color: values[key] === option ? '#fff' : '#218653', fontSize: 18 }}>{values[key] === option ? '●' : '○'}</Text>}
             <Text style={{ color: values[key] === option ? '#fff' : '#243c30', fontWeight: values[key] === option ? '600' : '400', flex: 1, textAlign: options.length <= 3 ? 'center' : 'left' }}>{t(option)}</Text>
@@ -54,8 +54,7 @@ export function ServiceCalculator({ kind }: { kind: CalculatorKind }) {
 }
 
 export function ServiceCalculatorScreen({ kind }: { kind: CalculatorKind }) {
-  const t = useLocale();
-  return <Page title={t(calculatorCopy[kind].title)} backToServices>
+  return <Page backToServices>
     <ServiceCalculator kind={kind} />
   </Page>;
 }
