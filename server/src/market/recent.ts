@@ -129,10 +129,11 @@ export function weeklyRecords(
   });
 }
 export async function recentNearbyReports(
-  origin: Point,
+  origin: Point | undefined,
   radiusKm: number,
   offset = 0,
   crop?: string,
+  location?: { state: string; district: string },
 ) {
   const meta = registry();
   const states = new Map(meta.states.map((s) => [s.state_id, s.state_name]));
@@ -153,15 +154,17 @@ export async function recentNearbyReports(
         district = districts.get(m.district_id) || "";
       if (
         !marketCrops.has(m.id) ||
-        !possibleNearbyState(state, origin, radiusKm)
+        (origin ? !possibleNearbyState(state, origin, radiusKm) :
+          state.toLowerCase() !== location?.state.toLowerCase() ||
+          district.toLowerCase() !== location?.district.toLowerCase())
       )
         return [];
       const point = townPoint(state, district, m.mkt_name);
-      if (!point) {
+      if (origin && !point) {
         unresolvedMarkets++;
         return [];
       }
-      const distance = distanceKm(origin, point);
+      const distance = origin ? distanceKm(origin, point!) : 0;
       return distance <= radiusKm
         ? [
             {

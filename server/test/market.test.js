@@ -38,8 +38,39 @@ test("district and nearby prices use the database even when government APIs are 
     }
   } finally { globalThis.fetch = previous; }
 });
-test("empty storage and database failures do not invent market prices", async () => {
-  assert.equal((await new MarketService(database({ empty: true })).prices(req({}))).status, "empty");
-  assert.equal((await new MarketService(database({ unavailable: true })).prices(req({}))).status, "unavailable");
-  assert.equal((await new MarketService(database()).prices(req({ radiusKm: "200", latitude: "0", longitude: "0" }))).status, "location_required");
+test("empty storage falls back to live reports and reports genuine empty results", async () => {
+  const previous = globalThis.fetch;
+  const today = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
+  globalThis.fetch = async () => ({ ok: true, json: async () => ({
+    success: true, columns: [{ key: today }],
+    data: [{ variety: "Other", unitOfPrice: "Rs./Quintal", [today]: 8100 }],
+  }) });
+  try {
+    const query = { state: "Telangana", district: "Khammam", recentCrop: "Cotton" };
+    for (const db of [database({ empty: true }), database({ unavailable: true })]) {
+      const result = await new MarketService(db).prices(req(query));
+      assert.equal(result.status, "ok");
+      assert.equal(result.dataSource, "live_api");
+      assert.equal(result.records[0].modal, 8100);
+      assert.equal(result.records[0].date, today);
+      assert.equal(result.records[0].min, null);
+    }
+    globalThis.fetch = async () => ({ ok: true, json: async () => ({ success: true, columns: [], data: [] }) });
+    const empty = await new MarketService(database({ empty: true })).prices(req({ ...query, recentCrop: "Nonexistent crop" }));
+    assert.equal(empty.status, "empty");
+    assert.match(empty.message, /No data available/);
+    assert.deepEqual(empty.records, []);
+    assert.equal((await new MarketService(database()).prices(req({ radiusKm: "200", latitude: "0", longitude: "0" }))).status, "location_required");
+  } finally { globalThis.fetch = previous; }
+});
+
+test("failed live requests remain unavailable rather than claiming there is no data", async () => {
+  const previous = globalThis.fetch;
+  globalThis.fetch = async () => { throw Error("Offline"); };
+  try {
+    const result = await new MarketService(database({ empty: true })).prices(req({ radiusKm: "200", latitude: "17.2473", longitude: "80.1514", recentCrop: "Tomato" }));
+    assert.equal(result.status, "unavailable");
+    assert.equal(result.recentPricesIncomplete, true);
+    assert.deepEqual(result.records, []);
+  } finally { globalThis.fetch = previous; }
 });

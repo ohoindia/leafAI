@@ -286,12 +286,7 @@ export function MarketScreen() {
             <Text style={s.muted}>
               {t("All prices in rupees per quintal (100 kg).")}
             </Text>
-            {!!error && (
-              <Text accessibilityRole="alert" style={s.error}>
-                {t(error)}
-              </Text>
-            )}
-            {data && (
+            {data?.status === "ok" && (
               <Text style={s.muted}>
                 {data.status === "ok"
                   ? records.length +
@@ -424,10 +419,12 @@ export function MarketScreen() {
               disabled={busy || !cropOptions.length}
             >
             {busy && <Text accessibilityLiveRegion="polite" style={s.muted}>{t("Loading market prices...")}</Text>}
-            {data?.status === "ok" && !records.length && (
-              <Text style={s.muted}>
-                {t("No reports match these filters.")}
-              </Text>
+            {!busy && (error || (data && !records.length)) && (
+              <View style={m.emptyState}>
+                <Text accessibilityLiveRegion="polite" style={[s.muted, m.emptyMessage]}>
+                  {t(error || (data?.status === "ok" ? "No reports match these filters." : data!.message))}
+                </Text>
+              </View>
             )}
             <View>
               {commodityGroups.map((g) => (
@@ -578,6 +575,17 @@ export function MarketScreen() {
 }
 
 const m = StyleSheet.create({
+  emptyState: {
+    minHeight: 180,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "#d9e6dd",
+    borderRadius: 8,
+    backgroundColor: "#f7faf8",
+  },
+  emptyMessage: { textAlign: "center" },
   cropHeading: {
     flexDirection: "row",
     alignItems: "center",

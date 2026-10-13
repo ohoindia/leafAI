@@ -7,6 +7,7 @@ import {
   townPoint,
   type Point,
 } from "./nearby.js";
+import { recentNearbyReports } from "./recent.js";
 import { storedReports } from "./stored.js";
 const querySchema = z.object({
   state: z.string().trim().min(2).max(100).optional(),
@@ -14,7 +15,7 @@ const querySchema = z.object({
   latitude: z.coerce.number().min(-90).max(90).optional(),
   longitude: z.coerce.number().min(-180).max(180).optional(),
   radiusKm: z.coerce.number().int().min(200).max(200).optional(),
-  recentOffset: z.coerce.number().int().min(0).max(100000).optional(),
+  recentOffset: z.coerce.number().int().min(0).max(200001).optional(),
   recentCrop: z.string().trim().min(2).max(100).optional(),
 });
 export function reportedPrice(value: unknown) {
@@ -56,14 +57,45 @@ export class MarketService {
         message:
           "Save a farm location or enter your state and district to load local mandi prices.",
       };
+    if ((q.recentOffset ?? 0) >= 100001) return this.livePrices(base, q);
     try {
       const stored = await storedReports(this.db, { state, district, crop: q.recentCrop, offset: q.recentOffset });
+      if (!stored.records.length) return this.livePrices(base, q);
       return {
         ...base, ...stored, dataSource: "database",
         status: stored.records.length ? "ok" : "empty",
         message: stored.records.length
           ? "Latest available government market reports. Check each reporting date; these may not be today's prices."
           : "No market reports found for this district. Check the spelling or try a nearby district.",
+      };
+    } catch {
+      return this.livePrices(base, q);
+    }
+  }
+
+  private async livePrices(base: any, q: z.infer<typeof querySchema>) {
+    try {
+      const origin = base.location.latitude !== undefined
+        ? { latitude: base.location.latitude, longitude: base.location.longitude }
+        : undefined;
+      const live = await recentNearbyReports(origin, q.radiusKm ?? 200, (q.recentOffset ?? 0) >= 100001 ? q.recentOffset! - 100001 : 0, q.recentCrop, base.location);
+      const records = live.records.map((r) => ({
+        ...r, date: r.arrival_date, min: r.min_price, max: r.max_price, modal: r.modal_price,
+      }));
+      return {
+        ...base, records, dataSource: "live_api",
+        // Reserve a separate cursor range so live pagination never skips stored markets.
+        recentNextOffset: live.nextOffset === null ? null : live.nextOffset + 100001, supportedRecentCrops: live.supportedCrops,
+        unresolvedMarkets: live.unresolvedMarkets,
+        recentPricesIncomplete: live.failedRequests > 0,
+        status: records.length ? "ok" : live.failedRequests ? "unavailable" : "empty",
+        message: records.length
+          ? "Latest available live government market reports. Check each reporting date."
+          : live.failedRequests
+            ? "Government mandi data is temporarily unavailable. Please try again."
+            : live.nextOffset !== null
+              ? "No data available in this batch. Load more recent reports to check other markets."
+              : "No data available for the selected crop and location.",
       };
     } catch {
       return { ...base, status: "unavailable", message: "Government mandi data is temporarily unavailable. Please try again." };
@@ -140,8 +172,10 @@ export class MarketService {
         message:
           "Your device coordinates are outside the supported Indian market area. Enter your state and district.",
       };
+    if ((q.recentOffset ?? 0) >= 100001) return this.livePrices(base, q);
     try {
       const stored = await storedReports(this.db, { origin, radiusKm: q.radiusKm, crop: q.recentCrop, offset: q.recentOffset });
+      if (!stored.records.length) return this.livePrices(base, q);
       return {
         ...base, ...stored, dataSource: "database", recentPricesIncomplete: false,
         status: stored.records.length ? "ok" : "empty",
@@ -152,7 +186,7 @@ export class MarketService {
             : "No available government reports within 200 km. Markets may not have reported prices yet.",
       };
     } catch {
-      return { ...base, status: "unavailable", message: "Government mandi data is temporarily unavailable. Please try again." };
+      return this.livePrices(base, q);
     }
   }
 }

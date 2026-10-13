@@ -273,9 +273,8 @@ export function Market({ api }) {
             <p className="market-description">
               {t("All prices in rupees per quintal (100 kg).")}
             </p>
-            {error && <p role="alert">{t(error)}</p>}
             {data?.syncedAt && <p>{t("Last updated")}: {marketSyncTime(data.syncedAt)} IST</p>}
-            {data && (
+            {data?.status === "ok" && (
               <p role="status">
                 {data.status === "ok"
                   ? records.length +
@@ -372,8 +371,10 @@ export function Market({ api }) {
               disabled={busy || !cropOptions.length}
             >
             {busy && <p role="status">{t("Loading market prices...")}</p>}
-            {data?.status === "ok" && !records.length && (
-              <p>{t("No reports match these filters.")}</p>
+            {!busy && (error || (data && !records.length)) && (
+              <div className="market-empty-state" role={error || data?.status === "unavailable" ? "alert" : "status"}>
+                <p>{t(error || (data?.status === "ok" ? "No reports match these filters." : data.message))}</p>
+              </div>
             )}
             <div className="crop-market-results" aria-live="polite">
               {commodityGroups.map((g) => (
