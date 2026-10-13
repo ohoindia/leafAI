@@ -13,6 +13,7 @@ test("import dates and both scheduler slots use India time across UTC midnight",
 });
 test("validates dates, labels and missing prices before any write", () => {
   assert.equal(normalizeReport(row).min, null);
+  assert.equal(normalizeReport({ ...row, min_price: "  " }).min, null);
   assert.equal(normalizeReport(row).modal, 8000);
   assert.throws(() => reportDate("31/02/2026"));
   assert.throws(() => normalizeReport({ ...row, state: "" }));

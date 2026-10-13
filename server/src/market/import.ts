@@ -23,7 +23,7 @@ function name(value: unknown, max: number, optional = false) {
   return result;
 }
 function price(value: unknown) {
-  if (value == null || value === "" || /^(NA|NR|N\/A)$/i.test(String(value).trim())) return null;
+  if (value == null || String(value).trim() === "" || /^(NA|NR|N\/A)$/i.test(String(value).trim())) return null;
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0 || n >= 1e12) throw Error("Invalid market price");
   return Math.round(n * 100) / 100;
