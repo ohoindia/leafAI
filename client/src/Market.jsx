@@ -17,6 +17,7 @@ import {
 } from "../../common/market.js";
 import { useLocale } from "./locale";
 import "./Market.css";
+import { marketLocations, marketStates, matchMarketLocation } from "../../common/market-locations.js";
 import { CropIcon, CropSymbol } from "./CropIcon";
 import { categoryImages, cropDetails, groupCrops } from "./crops";
 export function Market({ api }) {
@@ -46,12 +47,19 @@ export function Market({ api }) {
     }
     try {
       const query = new URLSearchParams(params.replace(/^\?/, ""));
-      query.set("radiusKm", "200");
+      if (query.has("state") && query.has("district")) query.delete("radiusKm");
+      else query.set("radiusKm", "200");
       if (crop) query.set("recentCrop", crop);
       else query.delete("recentCrop");
       lastParams.current = query.toString();
       const result = await api(endpoints.market + "?" + query);
       if (id === sequence.current) {
+        if (!append) {
+          const location = result.location;
+          const selected = matchMarketLocation(location?.state || location?.nearbyTown?.state, location?.district || location?.nearbyTown?.district);
+          setState(selected.state);
+          setDistrict(selected.district);
+        }
         if (!preserveData && !append) setOverview(result);
         setLoadedCrop(crop);
         setCropOptions((previous) => [
@@ -168,7 +176,7 @@ export function Market({ api }) {
       </div>
       {tab === "mandi" && (
         <>
-          <p>{t("Mandis within 200 km · all states")}</p>
+          <p>{t(overview?.location?.district && !overview?.radiusKm ? "Local mandi prices" : "Mandis within 200 km · all states")}</p>
           <button
             className="secondary nearby-location-button"
             disabled={busy}
@@ -188,6 +196,7 @@ export function Market({ api }) {
                   ? t("Near") +
                     " " +
                     overview.location.nearbyTown.town +
+                    (overview.location.nearbyTown.district ? ", " + overview.location.nearbyTown.district : "") +
                     ", " +
                     overview.location.nearbyTown.state
                   : t("Your market location")}
@@ -211,27 +220,28 @@ export function Market({ api }) {
               >
                 <label>
                   {t("State")}
-                  <input
+                  <select
                     required
-                    minLength={2}
-                    maxLength={100}
                     value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    placeholder="Telangana"
-                  />
+                    onChange={(e) => { sequence.current++; setBusy(false); setState(e.target.value); setDistrict(""); }}
+                  >
+                    <option value="">{t("State")}</option>
+                    {marketStates.map(name => <option key={name} value={name}>{name}</option>)}
+                  </select>
                 </label>
                 <label>
                   {t("District")}
-                  <input
+                  <select
                     required
-                    minLength={2}
-                    maxLength={100}
+                    disabled={!state}
                     value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    placeholder="Warangal"
-                  />
+                    onChange={(e) => { sequence.current++; setBusy(false); setDistrict(e.target.value); }}
+                  >
+                    <option value="">{t("District")}</option>
+                    {(marketLocations[state] || []).map(name => <option key={name} value={name}>{name}</option>)}
+                  </select>
                 </label>
-                <button disabled={busy}>{t("Load prices")}</button>
+                <button disabled={busy || !state || !district}>{t("Load prices")}</button>
               </form>
               <div className="market-actions">
                 <button className="secondary" disabled={busy} onClick={locate}>

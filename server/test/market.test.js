@@ -3,6 +3,21 @@ import { test } from "node:test";
 Object.assign(process.env, { NODE_ENV: "test", DB_HOST: "localhost", DB_NAME: "test", DB_USER: "test", DB_PASSWORD: "test", OPENAI_API_KEY: "test", JWT_ACCESS_SECRET: "a".repeat(32), JWT_REFRESH_SECRET: "b".repeat(32), UPLOAD_ENCRYPTION_KEY: "c".repeat(64) });
 const { MarketService, reportedPrice } = await import("../dist/market/market.service.js");
 const req = (query) => ({ query, user: { sub: "7" } });
+test("Ranga Reddy district search does not require a same-named town", async () => {
+  const db = database();
+  const queries = [];
+  const result = await new MarketService({ execute: async (sql, values) => {
+    queries.push({ sql, values });
+    return db.execute(sql, values);
+  } }).prices(req({ state: "Telangana", district: "Ranga Reddy" }));
+  assert.equal(result.status, "ok");
+  assert.equal(result.dataSource, "database");
+  assert.equal(result.radiusKm, undefined);
+  const filter = queries.find(q => q.sql.includes("FROM market_mandis"));
+  assert.ok(filter.values.includes("rangareddy"));
+  assert.ok(filter.values.includes("rangareddi"));
+  assert.ok(!filter.sql.includes("m.latitude BETWEEN"));
+});
 function database({ unavailable = false, empty = false } = {}) {
   return { execute: async (sql, values) => {
     if (sql.includes("FarmDetails")) return [[{ state: "Telangana", district: "Khammam", latitude: "17.2473", longitude: "80.1514" }]];

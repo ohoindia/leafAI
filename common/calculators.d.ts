@@ -1,0 +1,12 @@
+export type CalculatorKind = 'fertilizer' | 'pesticide';
+export type CalculatorValues = Record<string, string>;
+export type CalculatorResult = { rows: [string, number, string][]; note: string };
+export const areaUnits: Record<string, number>;
+export const calculatorFields: Record<CalculatorKind, [string, string, string, string[]?][]>;
+export const calculatorCopy: Record<CalculatorKind, { title: string; description: string; guidance: string }>;
+export function initialCalculatorValues(kind: CalculatorKind): CalculatorValues;
+export function visibleCalculatorFields(kind: CalculatorKind, values: CalculatorValues): [string, string, string, string[]?][];
+export function updateCalculatorValues(kind: CalculatorKind, values: CalculatorValues, key: string, value: string): CalculatorValues;
+export function calculatorSections(kind: CalculatorKind, values: CalculatorValues): { title: string; fields: [string, string, string, string[]?][] }[];
+export function calculate(kind: CalculatorKind, values: CalculatorValues): CalculatorResult;
+export function formatQuantity(value: number): string;

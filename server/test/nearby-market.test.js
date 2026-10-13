@@ -5,7 +5,13 @@ import {
   townPoint,
   nearbyReports,
   nationalReports,
+  nearestTown,
 } from "../dist/market/nearby.js";
+test("device coordinates provide a district for the default location selectors", () => {
+  const location = nearestTown({ latitude: 17.2473, longitude: 80.1514 });
+  assert.equal(location.state, "Telangana");
+  assert.equal(location.district, "Khammam");
+});
 
 test("distance uses a 200 km radius rather than state boundaries", () => {
   const origin = { latitude: 17.2473, longitude: 80.1514 }; // Khammam, Telangana

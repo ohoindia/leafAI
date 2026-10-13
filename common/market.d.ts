@@ -33,7 +33,7 @@ export type MarketData = {
     district: string;
     latitude?: number;
     longitude?: number;
-    nearbyTown?: { town: string; state: string };
+    nearbyTown?: { town: string; state: string; district?: string };
   };
   radiusKm?: number;
   originApproximate?: boolean;

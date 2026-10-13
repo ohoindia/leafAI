@@ -9,32 +9,38 @@ const normalize = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]/g, "");
-const stateName = (value: string) => {
+const stateAliases: Record<string, string> = {
+  keralam: "kerala", orissa: "odisha", uttaranchal: "uttarakhand", pondicherry: "puducherry",
+  chattisgarh: "chhattisgarh", nctofdelhi: "delhi", andamanandnicobarislands: "andamanandnicobar",
+  dadraandnagarhaveli: "dadraandnagarhavelianddamananddiu", damananddiu: "dadraandnagarhavelianddamananddiu",
+};
+export const stateName = (value: string) => {
   const name = normalize(value);
-  return (
-    (
-      {
-        keralam: "kerala",
-        orissa: "odisha",
-        uttaranchal: "uttarakhand",
-        pondicherry: "puducherry",
-      } as Record<string, string>
-    )[name] || name
-  );
+  return stateAliases[name] || name;
 };
-const districtName = (value: string) => {
+const districtAliases: Record<string, string> = {
+  rangareddi: "rangareddy",
+  hanumakonda: "hanamkonda",
+  jagitial: "jagtial",
+  jangoan: "jangaon",
+  jayashankarbhupalapally: "bhupalapally",
+  kumurambheemasifabad: "asifabad",
+  rajannasircilla: "rajannasiricilla",
+  mahaboobnagar: "mahbubnagar",
+  mahabubnagar: "mahbubnagar",
+  vizianagaram: "vijayanagaram",
+};
+export const districtName = (value: string) => {
   const name = normalize(value.replace(/ district$/i, ""));
-  return (
-    (
-      {
-        rangareddi: "rangareddy",
-        mahaboobnagar: "mahbubnagar",
-        mahabubnagar: "mahbubnagar",
-        vizianagaram: "vijayanagaram",
-      } as Record<string, string>
-    )[name] || name
-  );
+  return districtAliases[name] || name;
 };
+export function locationKeys(state: string, district: string) {
+  const stateKey = stateName(state), districtKey = districtName(district);
+  return {
+    states: [stateKey, ...Object.keys(stateAliases).filter(name => stateAliases[name] === stateKey)],
+    districts: [...new Set([districtKey, normalize(district), ...Object.keys(districtAliases).filter(name => districtAliases[name] === districtKey)])],
+  };
+}
 const indexes = new Map<string, Map<string, Place[]>>();
 let bounds:
   | Record<
@@ -162,7 +168,7 @@ export function nearestTown(origin: Point) {
       "utf8",
     ),
   );
-  let best: { town: string; state: string; distance: number } | undefined;
+  let best: { town: string; state: string; district: string; distance: number } | undefined;
   for (const state of Object.keys(bounds!)) {
     if (!possibleNearbyState(state, origin, 50)) continue;
     const seen = new Set<Place>();
@@ -175,7 +181,7 @@ export function nearestTown(origin: Point) {
           longitude: p[4],
         });
         if (distance <= 50 && (!best || distance < best.distance))
-          best = { town: p[2][0], state: p[0], distance };
+          best = { town: p[2][0], state: p[0], district: p[1], distance };
       }
   }
   return best;

@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 import { commodityKey } from "./commodity.js";
 import {
   distanceKm,
+  stateName,
+  districtName,
   possibleNearbyState,
   townPoint,
   type Point,
@@ -155,8 +157,8 @@ export async function recentNearbyReports(
       if (
         !marketCrops.has(m.id) ||
         (origin ? !possibleNearbyState(state, origin, radiusKm) :
-          state.toLowerCase() !== location?.state.toLowerCase() ||
-          district.toLowerCase() !== location?.district.toLowerCase())
+          stateName(state) !== stateName(location?.state || "") ||
+          districtName(district) !== districtName(location?.district || ""))
       )
         return [];
       const point = townPoint(state, district, m.mkt_name);

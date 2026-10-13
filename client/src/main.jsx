@@ -10,6 +10,7 @@ import {
   subscriptionMessage,
 } from "../../common/subscription.js";
 import { Services } from "./Services";
+import { ServiceCalculator } from "./ServiceCalculator";
 import { Market } from "./Market";
 import { Weather } from "./Weather";
 import { FarmOverview } from "./FarmOverview";
@@ -1428,7 +1429,8 @@ function App() {
               {screen === "subscription" && (
                 <Subscription api={api} onAccess={setSubscriptionAccess} />
               )}
-              {screen === "services" && <Services />}
+              {screen === "services" && <Services onCalculator={kind => go(`${kind}-calculator`)} />}
+              {["fertilizer-calculator", "pesticide-calculator"].includes(screen) && <ServiceCalculator key={screen} kind={screen === "fertilizer-calculator" ? "fertilizer" : "pesticide"} onBack={() => go("services")} />}
               {screen === "history" && (
                 <>
                   <h2>{localize(screens.history)}</h2>
@@ -1689,6 +1691,7 @@ function App() {
                     key={next}
                     className={
                       screen === next ||
+                      (next === "services" && ["fertilizer-calculator", "pesticide-calculator"].includes(screen)) ||
                       (next === "profile" &&
                         [
                           "farm",
@@ -1702,6 +1705,7 @@ function App() {
                     }
                     aria-current={
                       screen === next ||
+                      (next === "services" && ["fertilizer-calculator", "pesticide-calculator"].includes(screen)) ||
                       (next === "profile" &&
                         [
                           "farm",

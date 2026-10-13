@@ -348,6 +348,7 @@ export function Page({
   processing = false,
   branding,
   flat = false,
+  backToServices = false,
 }: {
   title: string;
   children: React.ReactNode;
@@ -355,6 +356,7 @@ export function Page({
   processing?: boolean;
   branding?: React.ReactNode;
   flat?: boolean;
+  backToServices?: boolean;
 }) {
   const localize = useLocale();
   const a = useLeafCare();
@@ -402,7 +404,9 @@ export function Page({
       ? "/history"
       : ["/language", "/account-details", "/security"].includes(pathname)
         ? "/profile"
-        : pathname;
+        : ["/fertilizer-calculator", "/pesticide-calculator"].includes(pathname)
+          ? "/services"
+          : pathname;
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
   return (
@@ -423,11 +427,13 @@ export function Page({
           <View style={s.header}>
             <Pressable
               disabled={processing}
-              accessibilityLabel={localize("Go back")}
+              accessibilityLabel={localize(backToServices ? "Back to Services" : "Go back")}
               accessibilityRole="button"
               style={s.iconButton}
               onPress={() =>
-                router.canGoBack()
+                backToServices
+                  ? router.dismissTo("/services")
+                  : router.canGoBack()
                   ? router.back()
                   : a.go(auth ? "login" : "home")
               }

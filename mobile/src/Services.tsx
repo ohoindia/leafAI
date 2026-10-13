@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Image, Linking, Platform, Text, View } from "react-native";
+import { Image, Linking, Platform, Pressable, Text, View } from "react-native";
+import { router } from "expo-router";
 import * as IntentLauncher from "expo-intent-launcher";
 import { useLocale } from "./locale";
 import { Page, Card, Button, s } from "./ui";
@@ -13,6 +14,7 @@ import {
 
 import Svg, { Path } from "react-native-svg";
 import { serviceIconPaths } from "../../common/service-icons.js";
+import { calculatorCopy } from "../../common/calculators.js";
 
 function ServiceHeading({
   icon,
@@ -83,6 +85,19 @@ export function ServicesScreen() {
   return (
     <Page title={t("Services")}>
       <Text style={s.body}>{t("Useful agriculture services for farmers")}</Text>
+      <View style={{ flexDirection: "row", alignItems: "stretch", gap: 12 }}>
+        {(["fertilizer", "pesticide"] as const).map(kind => <Pressable
+          key={kind}
+          accessibilityRole="button"
+          accessibilityLabel={t(calculatorCopy[kind].title)}
+          onPress={() => router.push(kind === "fertilizer" ? "/fertilizer-calculator" : "/pesticide-calculator")}
+          style={({ pressed }) => ({ flex: 1, minWidth: 0, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#d5e1d8", backgroundColor: pressed ? "#edf7f0" : "#fff", gap: 12 })}
+        >
+          <Text accessible={false} style={{ fontSize: 28 }}>{kind === "fertilizer" ? "🌱" : "🧴"}</Text>
+          <Text style={[s.heading, { fontSize: 17, lineHeight: 25, flexShrink: 1 }]}>{t(calculatorCopy[kind].title)}</Text>
+          <Text style={s.muted}>{t("Open calculator")} →</Text>
+        </Pressable>)}
+      </View>
       <Card>
         <ServiceHeading
           icon="fertilizer"

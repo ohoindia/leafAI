@@ -3,6 +3,7 @@ import { marketLabels } from "./market-locales.js";
 import { serviceLabels } from "./services-locales.js";
 import { additionalLabels } from "./additional-locales.js";
 import { uiLabels } from "./ui-locales.js";
+import { calculatorLabels } from "./calculator-locales.js";
 
 export function normalizeLanguage(value) {
   const code =
@@ -769,6 +770,7 @@ for (const [key, [kn, ta]] of Object.entries(additionalLabels)) {
 }
 
 Object.assign(localeLabels, uiLabels);
+Object.assign(localeLabels, calculatorLabels);
 
 export function translate(language, text) {
   if (typeof text !== "string") return text;
@@ -776,6 +778,9 @@ export function translate(language, text) {
   const key = text.replace(/\s+/g, " ").trim();
   if (code === "en") return text;
   const index = { te: 0, hi: 1, kn: 2, ta: 3 }[code];
+  const validation = key.match(/^(.+): (enter a valid (?:positive|non-negative) number\.|enter a whole number\.)$/);
+  if (validation && localeLabels[validation[1]] && localeLabels[validation[2]])
+    return `${localeLabels[validation[1]][index]}: ${localeLabels[validation[2]][index]}`;
   const greeting = key.match(
     /^(Good morning|Good afternoon|Good evening)(.*)$/,
   );

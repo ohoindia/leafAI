@@ -399,7 +399,7 @@ export function AccountDetailsScreen() {
             accessibilityLabel={localize("Full name")}
           />
         ) : (
-          <Text style={s.muted}>{a.user?.fullName || "Not specified"}</Text>
+          <Text style={s.muted}>{a.user?.fullName || localize("Not specified")}</Text>
         )}
         <Text style={s.body}>{localize("Email address")}</Text>
         <Text style={s.muted}>{a.user?.email}</Text>
@@ -433,7 +433,7 @@ export function AccountDetailsScreen() {
                 />
               ) : (
                 <Text style={s.muted}>
-                  {a.user?.userDetails?.[field.key] || "Not specified"}
+                  {a.user?.userDetails?.[field.key] || localize("Not specified")}
                 </Text>
               )}
             </View>

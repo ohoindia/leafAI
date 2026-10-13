@@ -8,12 +8,14 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  Modal,
 } from "react-native";
 import { CropIcon } from "./CropIcon";
 import { NavigationIcon } from "./NavigationIcon";
 import { categoryImages, cropDetails, groupCrops } from "../../common/crops.js";
 import * as Location from "expo-location";
 import { endpoints } from "../../common/api.js";
+import { marketLocations, marketStates, matchMarketLocation } from "../../common/market-locations.js";
 import {
   mspNote,
   riceNote,
@@ -65,7 +67,8 @@ export function MarketScreen() {
     }
     try {
       const query = new URLSearchParams(params.replace(/^\?/, ""));
-      query.set("radiusKm", "200");
+      if (query.has("state") && query.has("district")) query.delete("radiusKm");
+      else query.set("radiusKm", "200");
       if (crop) query.set("recentCrop", crop);
       else query.delete("recentCrop");
       lastParams.current = query.toString();
@@ -74,6 +77,12 @@ export function MarketScreen() {
         a.token,
       );
       if (id === sequence.current) {
+        if (!append) {
+          const location = result.location;
+          const selected = matchMarketLocation(location.state || location.nearbyTown?.state, location.district || location.nearbyTown?.district);
+          setState(selected.state);
+          setDistrict(selected.district);
+        }
         setCropOptions((previous) => [
           ...previous,
           ...(result.supportedRecentCrops || []),
@@ -197,7 +206,7 @@ export function MarketScreen() {
       </View>
       {tab === "mandi" && (
         <>
-          <Text style={s.body}>{t("Mandis within 200 km · all states")}</Text>
+          <Text style={s.body}>{t(data?.location.district && !data?.radiusKm ? "Local mandi prices" : "Mandis within 200 km · all states")}</Text>
           <Button
             secondary
             title={t("Use my location")}
@@ -217,6 +226,7 @@ export function MarketScreen() {
                   ? t("Near") +
                     " " +
                     data.location.nearbyTown.town +
+                    (data.location.nearbyTown.district ? ", " + data.location.nearbyTown.district : "") +
                     ", " +
                     data.location.nearbyTown.state
                   : t("Your market location")}
@@ -227,21 +237,19 @@ export function MarketScreen() {
             <View style={m.locationPanel}>
               <View style={m.locationFields}>
                 <View style={m.flex}>
-                  <Field
-                    accessibilityLabel={t("State")}
-                    placeholder={t("State")}
+                  <LocationSelect
+                    label={t("State")}
                     value={state}
-                    onChangeText={setState}
-                    maxLength={100}
+                    options={marketStates}
+                    onSelect={(name) => { sequence.current++; setBusy(false); setState(name); setDistrict(""); }}
                   />
                 </View>
                 <View style={m.flex}>
-                  <Field
-                    accessibilityLabel={t("District")}
-                    placeholder={t("District")}
+                  <LocationSelect
+                    label={t("District")}
                     value={district}
-                    onChangeText={setDistrict}
-                    maxLength={100}
+                    options={marketLocations[state] || []}
+                    onSelect={(name) => { sequence.current++; setBusy(false); setDistrict(name); }}
                   />
                 </View>
               </View>
@@ -572,6 +580,23 @@ export function MarketScreen() {
       )}
     </Page>
   );
+}
+function LocationSelect({ label, value, options, onSelect }: { label: string; value: string; options: string[]; onSelect: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const t = useLocale();
+  return <>
+    <Text style={s.body}>{label}</Text>
+    <Button secondary title={value || label} disabled={!options.length} onPress={() => { setSearch(""); setOpen(true); }} />
+    <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
+      <Page title={label}>
+        <Field accessibilityLabel={label} placeholder={label} value={search} onChangeText={setSearch} />
+        <Button secondary title={t("Close")} onPress={() => setOpen(false)} />
+        {options.filter(name => name.toLowerCase().includes(search.trim().toLowerCase())).map(name =>
+          <Button key={name} secondary title={name} onPress={() => { onSelect(name); setOpen(false); }} />)}
+      </Page>
+    </Modal>
+  </>;
 }
 
 const m = StyleSheet.create({

@@ -8,6 +8,7 @@ import {
 } from "../../common/services.js";
 
 import { serviceIconPaths } from "../../common/service-icons.js";
+import { calculatorCopy } from "../../common/calculators.js";
 
 function ServiceHeading({ icon, children }) {
   return (
@@ -33,7 +34,7 @@ function ServiceHeading({ icon, children }) {
   );
 }
 
-export function Services() {
+export function Services({ onCalculator }) {
   const t = useLocale();
   const appUrl = /Android/i.test(navigator.userAgent)
     ? `intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${fertilizerPackage};S.browser_fallback_url=${encodeURIComponent(fertilizerStore)};end`
@@ -42,6 +43,13 @@ export function Services() {
     <>
       <h2>{t("Services")}</h2>
       <p className="muted">{t("Useful agriculture services for farmers")}</p>
+      <div className="service-calculator-row">
+        {["fertilizer", "pesticide"].map(kind => <button key={kind} type="button" className="service-calculator-tile" onClick={() => onCalculator(kind)}>
+          <span aria-hidden="true" className="calculator-tile-icon">{kind === "fertilizer" ? "🌱" : "🧴"}</span>
+          <strong>{t(calculatorCopy[kind].title)}</strong>
+          <span>{t("Open calculator")} →</span>
+        </button>)}
+      </div>
       <section className="card">
         <ServiceHeading icon="fertilizer">
           {t("Framework for Fertilizer Sale")}

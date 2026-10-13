@@ -3,6 +3,16 @@
   gap: 6px;
   font-size: 14px;
 }
+.market-location select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #dce7df;
+  border-radius: 8px;
+  background: #fff;
+  color: #243c30;
+  font: inherit;
+}
 .market-page button.nearby-location-button {
   background: #fff;
   color: #218653;

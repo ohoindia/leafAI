@@ -1,5 +1,5 @@
 import { commodityKey } from "./commodity.js";
-import { distanceKm, type Point } from "./nearby.js";
+import { distanceKm, locationKeys, type Point } from "./nearby.js";
 import { indiaDate, importWindow } from "./import.js";
 
 export async function storedReports(db: { execute: (sql: string, values?: any[]) => Promise<any> }, options: { state?: string; district?: string; origin?: Point; radiusKm?: number; crop?: string; offset?: number }) {
@@ -10,7 +10,9 @@ export async function storedReports(db: { execute: (sql: string, values?: any[])
     clauses.push("m.latitude BETWEEN ? AND ? AND m.longitude BETWEEN ? AND ?");
     parameters.push(options.origin.latitude - deltaLat, options.origin.latitude + deltaLat, options.origin.longitude - deltaLon, options.origin.longitude + deltaLon);
   } else {
-    clauses.push("s.name=? AND d.name=?"); parameters.push(options.state, options.district);
+    const keys = locationKeys(options.state!, options.district!);
+    clauses.push(`REGEXP_REPLACE(LOWER(s.name),'[^a-z0-9]','') IN (${keys.states.map(() => "?").join(",")}) AND REGEXP_REPLACE(LOWER(TRIM(REGEXP_REPLACE(d.name,' district$',''))),'[^a-z0-9]','') IN (${keys.districts.map(() => "?").join(",")})`);
+    parameters.push(...keys.states, ...keys.districts);
   }
   // Filter crop availability before pagination, so an uncommon crop is not
   // hidden behind many pages of markets that never reported it.
