@@ -172,3 +172,23 @@
   text-align: center;
 }
 .market-empty-state p { margin: 0; max-width: 420px; }
+
+/* Selection must not resize the crop strip or move the price results. */
+.market-page .category-rail button,
+.market-page .category-rail button[aria-pressed="true"] {
+  flex: 0 0 104px;
+  width: 104px;
+  min-width: 104px;
+  max-width: 104px;
+  padding-inline: 6px;
+}
+.market-page .category-rail .category-label,
+.market-page .category-rail button[aria-pressed="true"] .category-label {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-size: 12px;
+  line-height: 17px;
+}
+.market-page .category-results {
+  overflow-anchor: none;
+}

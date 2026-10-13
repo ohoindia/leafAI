@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { endpoints } from "../../common/api.js";
 import {
   mspNote,
@@ -11,7 +11,6 @@ import {
   groupMarkets,
   groupCommodityPrices,
   marketDate,
-  marketSyncTime,
   priceChange,
   mergeMarketRecords,
   commodityKey,
@@ -23,6 +22,7 @@ import { categoryImages, cropDetails, groupCrops } from "./crops";
 export function Market({ api }) {
   const t = useLocale(),
     [data, setData] = useState(null),
+    [overview, setOverview] = useState(null),
     [busy, setBusy] = useState(true),
     [error, setError] = useState(""),
     [state, setState] = useState(""),
@@ -30,16 +30,18 @@ export function Market({ api }) {
     [selectedMandi, setSelectedMandi] = useState(""),
     [search, setSearch] = useState(""),
     [recentCrop, setRecentCrop] = useState(""),
+    [loadedCrop, setLoadedCrop] = useState(""),
     [cropOptions, setCropOptions] = useState([]),
     [mspCategory, setMspCategory] = useState("Cereals & Millets");
   const sequence = useRef(0);
   const lastParams = useRef("");
-  async function load(params = "", append = false, crop = recentCrop) {
+  async function load(params = "", append = false, crop = recentCrop, preserveData = false) {
     const id = ++sequence.current;
     setBusy(true);
     setError("");
-    if (!append) {
+    if (!append && !preserveData) {
       setData(null);
+      setOverview(null);
       setSelectedMandi("");
     }
     try {
@@ -50,6 +52,8 @@ export function Market({ api }) {
       lastParams.current = query.toString();
       const result = await api(endpoints.market + "?" + query);
       if (id === sequence.current) {
+        if (!preserveData && !append) setOverview(result);
+        setLoadedCrop(crop);
         setCropOptions((previous) => [
           ...previous,
           ...(result.supportedRecentCrops || []),
@@ -80,11 +84,12 @@ export function Market({ api }) {
     }
   }
   function chooseCrop(crop) {
+    if (crop === recentCrop) return;
     setRecentCrop(crop);
     setSearch("");
     const query = new URLSearchParams(lastParams.current);
     query.delete("recentOffset");
-    load("?" + query, false, crop);
+    load("?" + query, false, crop, true);
   }
   function loadMore() {
     const query = new URLSearchParams(lastParams.current);
@@ -124,15 +129,15 @@ export function Market({ api }) {
   const [tab, setTab] = useState("mandi");
   const [showLocation, setShowLocation] = useState(false);
   const mspGroups = groupCrops(mspPrices, ([name]) => name);
-  const markets = groupMarkets(data?.records || []);
-  const filteredMarkets = markets
+  const markets = groupMarkets(overview?.records || []);
+  const filteredMarkets = groupMarkets(data?.records || [])
     .filter((g) => !selectedMandi || g.key === selectedMandi)
     .map((g) => ({
       ...g,
       records: g.records.filter(
         (r) =>
-          (!recentCrop ||
-            commodityKey(r.commodity) === commodityKey(recentCrop)) &&
+          (!loadedCrop ||
+            commodityKey(r.commodity) === commodityKey(loadedCrop)) &&
           [r.commodity, r.variety, r.market].some((value) =>
             String(value).toLowerCase().includes(search.trim().toLowerCase()),
           ),
@@ -177,14 +182,14 @@ export function Market({ api }) {
             onClick={() => setShowLocation(!showLocation)}
           >
             <span>
-              {data?.location?.district
-                ? data.location.district + ", " + data.location.state
-                : data?.location?.nearbyTown
+              {overview?.location?.district
+                ? overview.location.district + ", " + overview.location.state
+                : overview?.location?.nearbyTown
                   ? t("Near") +
                     " " +
-                    data.location.nearbyTown.town +
+                    overview.location.nearbyTown.town +
                     ", " +
-                    data.location.nearbyTown.state
+                    overview.location.nearbyTown.state
                   : t("Your market location")}
             </span>
             <span>{t("Change")} ›</span>
@@ -273,19 +278,7 @@ export function Market({ api }) {
             <p className="market-description">
               {t("All prices in rupees per quintal (100 kg).")}
             </p>
-            {data?.syncedAt && <p>{t("Last updated")}: {marketSyncTime(data.syncedAt)} IST</p>}
-            {data?.status === "ok" && (
-              <p role="status">
-                {data.status === "ok"
-                  ? records.length +
-                    " " +
-                    t("reported prices") +
-                    " · " +
-                    t("Check price dates")
-                  : t(data.message)}
-              </p>
-            )}
-            {data?.radiusKm && (
+            {overview?.radiusKm && (
               <details className="mandi-explanation">
                 <summary>{t("About these prices")}</summary>
                 <p>
@@ -293,21 +286,21 @@ export function Market({ api }) {
                     "Approximate straight-line distances to market towns, not driving distances.",
                   )}
                 </p>
-                {data?.originApproximate && (
+                {overview?.originApproximate && (
                   <p>
                     {t(
                       "Using your district town as the centre. Use my location for a more accurate search.",
                     )}
                   </p>
                 )}
-                {!!data?.unresolvedMarkets && (
+                {!!overview?.unresolvedMarkets && (
                   <p>
                     {t(
                       "Some reported markets could not be located and are excluded.",
                     )}
                   </p>
                 )}
-                {!!data?.supportedRecentCrops?.length && (
+                {!!overview?.supportedRecentCrops?.length && (
                   <p>
                     {t(
                       "Recent reports cover common crops. Check the date shown for each price.",
@@ -316,7 +309,7 @@ export function Market({ api }) {
                 )}
               </details>
             )}
-            {data?.recentPricesIncomplete && (
+            {overview?.recentPricesIncomplete && (
               <small>
                 {t("Some recent prices could not be loaded. Please retry.")}
               </small>
@@ -369,8 +362,11 @@ export function Market({ api }) {
               onSelect={(crop) => chooseCrop(crop === "All crops" ? "" : crop)}
               cropImages
               disabled={busy || !cropOptions.length}
+              busy={busy}
             >
-            {busy && <p role="status">{t("Loading market prices...")}</p>}
+            <p role="status" className="market-loading-status">
+              {busy ? t("Loading market prices...") : "\u00a0"}
+            </p>
             {!busy && (error || (data && !records.length)) && (
               <div className="market-empty-state" role={error || data?.status === "unavailable" ? "alert" : "status"}>
                 <p>{t(error || (data?.status === "ok" ? "No reports match these filters." : data.message))}</p>
@@ -506,8 +502,24 @@ export function Market({ api }) {
   );
 }
 
-function CategoryBrowser({ categories, groups, selected, onSelect, children, cropImages = false, disabled = false }) {
+function CategoryBrowser({ categories, groups, selected, onSelect, children, cropImages = false, disabled = false, busy = false }) {
   const t = useLocale();
+  const resultsRef = useRef(null);
+  const scrollPosition = useRef(null);
+  function selectCategory(name) {
+    if (name === selected) return;
+    // Keep enough page height for the current viewport even for shorter results.
+    const results = resultsRef.current;
+    const minimumHeight = Math.max(0, window.innerHeight - results.getBoundingClientRect().top);
+    results.style.minHeight = `${minimumHeight}px`;
+    scrollPosition.current = { left: window.scrollX, top: window.scrollY };
+    onSelect(name);
+  }
+  useLayoutEffect(() => {
+    if (!scrollPosition.current) return;
+    window.scrollTo({ ...scrollPosition.current, behavior: "instant" });
+    if (!busy) scrollPosition.current = null;
+  }, [selected, busy, children]);
   return (
     <div className="category-browser">
       <aside
@@ -522,7 +534,8 @@ function CategoryBrowser({ categories, groups, selected, onSelect, children, cro
             title={t(name)}
             aria-pressed={selected === name}
             disabled={disabled}
-            onClick={() => onSelect(name)}
+            type="button"
+            onClick={() => selectCategory(name)}
           >
             <span className="category-image">
               <CropIcon name={cropImages ? (name === "All crops" ? "Crop plant" : name) : categoryImages[name]} />
@@ -535,11 +548,12 @@ function CategoryBrowser({ categories, groups, selected, onSelect, children, cro
         ))}
       </aside>
       <section
-        key={selected}
+        ref={resultsRef}
         className="category-results"
         tabIndex={0}
         aria-label={t(selected)}
         aria-live="polite"
+        aria-busy={busy}
       >
         {children}
       </section>
