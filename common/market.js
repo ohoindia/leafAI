@@ -1,5 +1,23 @@
 export const marketSource =
   "https://www.data.gov.in/resource/current-daily-price-various-commodities-various-markets-mandi";
+export function commodityKey(name = "") {
+  const base = name.toLowerCase().replace(/\([^)]*\)/g, " ")
+    .replace(/[^a-z0-9]+/g, " ").trim();
+  const aliases = {
+    bajira: "bajra", "pearl millet": "bajra", cumbu: "bajra",
+    sorghum: "jowar", "finger millet": "ragi",
+    corn: "maize", "soyabean": "soybean", "soya bean": "soybean",
+    "green gram": "moong", "black gram": "urad", "urd": "urad",
+    "bengal gram": "gram", chickpea: "gram", chickpeas: "gram",
+    sesame: "sesamum", "sesame seed": "sesamum", "sesamum seed": "sesamum",
+    "paddy common": "paddy", "paddy grade a": "paddy",
+    "arhar": "tur", "tur arhar": "tur",
+    "bhindi": "okra", "ladies finger": "okra",
+    "cucumbar": "cucumber", kheera: "cucumber", eggplant: "brinjal",
+    "sunflower seed": "sunflower", "niger seed": "nigerseed",
+  };
+  return aliases[base] || base;
+}
 export const mspSource =
   "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2260618&lang=2&reg=3";
 export const mspSeason = "Kharif 2026-27";

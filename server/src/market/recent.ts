@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { commodityKey } from "./commodity.js";
 import {
   distanceKm,
   possibleNearbyState,
@@ -138,7 +139,7 @@ export async function recentNearbyReports(
   const districts = new Map(meta.districts.map((d) => [d.id, d.district_name]));
   const marketCrops = new Map<number, Commodity[]>();
   for (const c of meta.commodities.filter(
-    (c) => !crop || c.name.toLowerCase() === crop.toLowerCase(),
+    (c) => !crop || commodityKey(c.name) === commodityKey(crop),
   ))
     for (const id of c.marketIds) {
       const crops = marketCrops.get(id) || [];

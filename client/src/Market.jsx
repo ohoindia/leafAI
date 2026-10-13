@@ -13,6 +13,7 @@ import {
   marketDate,
   priceChange,
   mergeMarketRecords,
+  commodityKey,
 } from "../../common/market.js";
 import { useLocale } from "./locale";
 import "./Market.css";
@@ -48,11 +49,13 @@ export function Market({ api }) {
       lastParams.current = query.toString();
       const result = await api(endpoints.market + "?" + query);
       if (id === sequence.current) {
-        setCropOptions((previous) => [...new Set([
+        setCropOptions((previous) => [
           ...previous,
           ...(result.supportedRecentCrops || []),
           ...result.records.map((record) => record.commodity),
-        ])]);
+        ].filter((name, index, names) =>
+          names.findIndex((candidate) => commodityKey(candidate) === commodityKey(name)) === index,
+        ));
         setData((previous) => {
           if (!append) return result;
           const records = mergeMarketRecords(
@@ -128,7 +131,7 @@ export function Market({ api }) {
       records: g.records.filter(
         (r) =>
           (!recentCrop ||
-            r.commodity.toLowerCase() === recentCrop.toLowerCase()) &&
+            commodityKey(r.commodity) === commodityKey(recentCrop)) &&
           [r.commodity, r.variety, r.market].some((value) =>
             String(value).toLowerCase().includes(search.trim().toLowerCase()),
           ),
@@ -511,6 +514,8 @@ function CategoryBrowser({ categories, groups, selected, onSelect, children, cro
         {categories.map((name) => (
           <button
             key={name}
+            aria-label={t(name)}
+            title={t(name)}
             aria-pressed={selected === name}
             disabled={disabled}
             onClick={() => onSelect(name)}
@@ -518,7 +523,7 @@ function CategoryBrowser({ categories, groups, selected, onSelect, children, cro
             <span className="category-image">
               <CropIcon name={cropImages ? (name === "All crops" ? "Crop plant" : name) : categoryImages[name]} />
             </span>
-            <span>{t(name)}</span>
+            <span className="category-label">{t(name)}</span>
             {groups && <small className="category-count">
               {groups.find((g) => g.category === name)?.items.length || 0}
             </small>}

@@ -26,6 +26,7 @@ export function groupMarkets<
   distanceKm?: number;
   records: T[];
 }[];
+export function commodityKey(name?: string): string;
 export type MarketData = {
   location: {
     state: string;

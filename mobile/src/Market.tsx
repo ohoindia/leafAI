@@ -27,6 +27,7 @@ import {
   marketDate,
   priceChange,
   mergeMarketRecords,
+  commodityKey,
   type MarketData,
 } from "../../common/market.js";
 import { useLeafCare } from "./state";
@@ -72,11 +73,13 @@ export function MarketScreen() {
         a.token,
       );
       if (id === sequence.current) {
-        setCropOptions((previous) => [...new Set([
+        setCropOptions((previous) => [
           ...previous,
           ...(result.supportedRecentCrops || []),
           ...result.records.map((record) => record.commodity),
-        ])]);
+        ].filter((name, index, names) =>
+          names.findIndex((candidate) => commodityKey(candidate) === commodityKey(name)) === index,
+        ));
         setData((previous) => {
           if (!append) return result;
           const records = mergeMarketRecords(
@@ -159,7 +162,7 @@ export function MarketScreen() {
       records: g.records.filter(
         (r) =>
           (!recentCrop ||
-            r.commodity.toLowerCase() === recentCrop.toLowerCase()) &&
+            commodityKey(r.commodity) === commodityKey(recentCrop)) &&
           [r.commodity, r.variety, r.market].some((value) =>
             String(value).toLowerCase().includes(search.trim().toLowerCase()),
           ),
@@ -611,47 +614,44 @@ const m = StyleSheet.create({
   },
   flex: { flex: 1 },
   browser: {
-    flexDirection: "row",
+    flexDirection: "column",
     width: "100%",
     gap: 8,
-    alignItems: "flex-start",
+    alignItems: "stretch",
   },
   rail: {
-    width: 76,
-    maxHeight: 420,
+    width: "100%",
     flexGrow: 0,
     flexShrink: 0,
-    backgroundColor: "#f6f9f6",
+    backgroundColor: "transparent",
     borderRadius: 12,
   },
-  railContent: { gap: 4, padding: 4 },
+  railContent: { gap: 10, padding: 4, paddingBottom: 12, alignItems: "flex-start" },
   railButton: {
+    width: 88,
     position: "relative",
     alignItems: "center",
-    gap: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 3,
-    borderRadius: 4,
-    minHeight: 72,
-    borderLeftWidth: 3,
-    borderLeftColor: "transparent",
-  },
-  railSelected: { backgroundColor: "#e2f2e8", borderLeftColor: "#218653" },
-  categoryCount: {
-    position: "absolute",
-    top: 5,
-    right: 5,
-    minWidth: 22,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 3,
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#c9ded0",
+    borderColor: "#dce7df",
+    backgroundColor: "#fff",
+  },
+  railSelected: { width: 156, backgroundColor: "#edf7f0", borderColor: "#218653" },
+  railSelectedText: { fontSize: 13, lineHeight: 18, fontWeight: "700", color: "#218653" },
+  categoryCount: {
+    marginTop: 0,
+    minWidth: 22,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
     backgroundColor: "#edf5ef",
     color: "#17673f",
     fontFamily: typography.fontFamily,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: 11,
+    lineHeight: 16,
     fontWeight: "600",
     textAlign: "center",
   },
@@ -659,12 +659,13 @@ const m = StyleSheet.create({
     width: "100%",
     flexShrink: 1,
     fontFamily: typography.fontFamily,
-    fontSize: 11,
-    lineHeight: 16,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
     color: "#40584a",
     textAlign: "center",
   },
-  results: { flex: 1, flexShrink: 1, minWidth: 0, gap: 10 },
+  results: { width: "100%", minWidth: 0, gap: 10 },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -887,7 +888,7 @@ function CategoryBrowser({
   const t = useLocale();
   return (
     <View style={m.browser}>
-      <ScrollView style={m.rail} contentContainerStyle={m.railContent} nestedScrollEnabled>
+      <ScrollView horizontal style={m.rail} contentContainerStyle={m.railContent} nestedScrollEnabled>
         {categories.map((name) => (
           <Pressable
             key={name}
@@ -898,8 +899,12 @@ function CategoryBrowser({
             onPress={() => onSelect(name)}
             style={[m.railButton, name === selected && m.railSelected]}
           >
-            <CropIcon name={cropImages ? (name === "All crops" ? "Crop plant" : name) : categoryImages[name]} size={30} />
-            <Text style={[m.railText, name === selected && m.selectedText]}>
+            <CropIcon name={cropImages ? (name === "All crops" ? "Crop plant" : name) : categoryImages[name]} size={44} />
+            <Text
+              numberOfLines={name === selected ? undefined : 1}
+              ellipsizeMode="tail"
+              style={[m.railText, name === selected && m.railSelectedText]}
+            >
               {t(name)}
             </Text>
             {counts && <Text style={m.categoryCount}>{counts[name] || 0}</Text>}

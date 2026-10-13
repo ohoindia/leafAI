@@ -10,6 +10,7 @@ import {
   type Point,
 } from "./nearby.js";
 import { latestReports, recentNearbyReports } from "./recent.js";
+import { commodityKey } from "./commodity.js";
 const querySchema = z.object({
   state: z.string().trim().min(2).max(100).optional(),
   district: z.string().trim().min(2).max(100).optional(),
@@ -242,7 +243,10 @@ export class MarketService {
               nextOffset: null,
               supportedCrops: [],
             };
-      const records = latestReports([...nearby.records, ...recent.records]).map(
+      const cropReports = [...nearby.records, ...recent.records].filter(
+        (record) => !q.recentCrop || commodityKey(record.commodity) === commodityKey(q.recentCrop),
+      );
+      const records = latestReports(cropReports).map(
         (r) => ({
           commodity: r.commodity,
           variety: r.variety,
