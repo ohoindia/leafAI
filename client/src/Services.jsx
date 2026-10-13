@@ -5,6 +5,9 @@ import {
   officerContacts,
   fertilizerDescription,
   officerDescription,
+  farmerRegistry,
+  farmerRegistryDescription,
+  farmerRegistrySteps,
 } from "../../common/services.js";
 
 import { serviceIconPaths } from "../../common/service-icons.js";
@@ -50,30 +53,28 @@ export function Services({ onCalculator }) {
           <span>{t("Open calculator")} →</span>
         </button>)}
       </div>
-      <section className="card">
-        <ServiceHeading icon="fertilizer">
-          {t("Framework for Fertilizer Sale")}
-        </ServiceHeading>
-        <p>{t(fertilizerDescription)}</p>
-        <a className="primary service-link" href={appUrl}>
-          {t("Open app / Install")}
+      <div className="service-calculator-row service-portal-row">
+        <a className="service-calculator-tile service-portal-tile" href={appUrl} title={t(fertilizerDescription)}>
+          <ServiceHeading icon="fertilizer">{t("Framework for Fertilizer Sale")}</ServiceHeading>
+          <span className="service-card-action">{t("Open app / Install")} <span aria-hidden="true">→</span></span>
         </a>
-        <p className="muted">
-          {t("Available on Android through Google Play.")}
-        </p>
-      </section>
-      <section className="card">
-        <ServiceHeading icon="officers">{t("Officers Contact")}</ServiceHeading>
-        <p>{t(officerDescription)}</p>
-        <a
-          className="primary service-link"
-          href={officerContacts}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {t("Open officer contacts")}
+        <a className="service-calculator-tile service-portal-tile" href={officerContacts} target="_blank" rel="noopener noreferrer" title={t(officerDescription)}>
+          <ServiceHeading icon="officers">{t("Officers Contact")}</ServiceHeading>
+          <span className="service-card-action">{t("Open officer contacts")} <span aria-hidden="true">↗</span></span>
         </a>
-      </section>
+      </div>
+      <a className="card service-card-link farmer-registry-service" href={farmerRegistry} target="_blank" rel="noopener noreferrer" aria-label={t("Get my Farmer ID")}>
+        <ServiceHeading icon="farmerId">{t("Telangana Farmer ID")}</ServiceHeading>
+        <p className="muted">{t("Agriculture Department, Telangana")}</p>
+        <p>{t(farmerRegistryDescription)}</p>
+        <ol className="farmer-registry-steps">
+          {farmerRegistrySteps.map(step => <li key={step}>{t(step)}</li>)}
+        </ol>
+        <span className="service-card-action">
+          {t("Get my Farmer ID")} <span aria-hidden="true">↗</span>
+        </span>
+        <p className="muted">{t("Keep your Aadhaar-linked phone ready. Aadhaar and OTP are entered only on the official portal.")}</p>
+      </a>
     </>
   );
 }

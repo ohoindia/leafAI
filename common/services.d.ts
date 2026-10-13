@@ -1,4 +1,7 @@
 export const fertilizerPackage: string;
+export const farmerRegistry: string;
+export const farmerRegistryDescription: string;
+export const farmerRegistrySteps: string[];
 export const fertilizerStore: string;
 export const officerContacts: string;
 export const fertilizerDescription: string;

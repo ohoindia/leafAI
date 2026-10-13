@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
 } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
 import { CropIcon } from "./CropIcon";
 import { NavigationIcon } from "./NavigationIcon";
 import { categoryImages, cropDetails, groupCrops } from "../../common/crops.js";
@@ -43,6 +44,8 @@ export function MarketScreen() {
   const [data, setData] = useState<MarketData>(),
     [busy, setBusy] = useState(true),
     [error, setError] = useState(""),
+    [locating, setLocating] = useState(false),
+    [locationSearch, setLocationSearch] = useState(""),
     [state, setState] = useState(""),
     [district, setDistrict] = useState(""),
     [selectedMandi, setSelectedMandi] = useState(""),
@@ -80,6 +83,7 @@ export function MarketScreen() {
         if (!append) {
           const location = result.location;
           const selected = matchMarketLocation(location.state || location.nearbyTown?.state, location.district || location.nearbyTown?.district);
+          setShowLocation(false);
           setState(selected.state);
           setDistrict(selected.district);
         }
@@ -130,6 +134,7 @@ export function MarketScreen() {
   async function locate() {
     const id = ++sequence.current;
     setBusy(true);
+    setLocating(true);
     setError("");
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
@@ -140,11 +145,13 @@ export function MarketScreen() {
         accuracy: Location.Accuracy.Balanced,
       });
       if (id !== sequence.current) return;
+      setLocating(false);
       await load(
         `?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`,
       );
     } catch (e) {
       if (id !== sequence.current) return;
+      setLocating(false);
       setShowLocation(true);
       setError(
         e instanceof Error ? e.message : "Unable to locate your district.",
@@ -163,6 +170,7 @@ export function MarketScreen() {
     // Locate when the session changes; crop selection reloads via chooseCrop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [a.token]);
+  const locationMatches = Object.entries(marketLocations).flatMap(([region, districts]) => districts.map(name => ({ region, name }))).filter(({ region, name }) => `${name} ${region}`.toLowerCase().includes(locationSearch.trim().toLowerCase()));
   const mspGroups = groupCrops(mspPrices, ([name]) => name);
   const markets = groupMarkets(data?.records || []);
   const filteredMarkets = markets
@@ -206,20 +214,14 @@ export function MarketScreen() {
       </View>
       {tab === "mandi" && (
         <>
-          <Text style={s.body}>{t(data?.location.district && !data?.radiusKm ? "Local mandi prices" : "Mandis within 200 km · all states")}</Text>
-          <Button
-            secondary
-            title={t("Use my location")}
-            disabled={busy}
-            onPress={() => void locate()}
-          />
+          <View style={m.locationRow}>
           <Pressable
             accessibilityRole="button"
             accessibilityState={{ expanded: showLocation }}
-            onPress={() => setShowLocation(!showLocation)}
+            onPress={() => { setShowLocation(!showLocation); setLocationSearch(""); }}
             style={m.locationBar}
           >
-            <Text style={[s.body, m.flex]}>
+            <Text numberOfLines={1} ellipsizeMode="tail" style={[s.body, m.flex]}>
               {data?.location.district
                 ? data.location.district + ", " + data.location.state
                 : data?.location.nearbyTown
@@ -229,19 +231,41 @@ export function MarketScreen() {
                     (data.location.nearbyTown.district ? ", " + data.location.nearbyTown.district : "") +
                     ", " +
                     data.location.nearbyTown.state
-                  : t("Your market location")}
+                  : t(locating ? "Finding your location..." : "Choose location")}
             </Text>
-            <Text style={m.selectedText}>{t("Change")} ›</Text>
+            <Text style={m.selectedText}>{t(showLocation ? "Close" : "Change")} ›</Text>
           </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={t("Use my location")} accessibilityState={{ disabled: busy, busy: locating }}
+            disabled={busy} onPress={() => void locate()} style={[m.currentLocation, busy && { opacity: 0.55 }]}>
+            <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="#17673f" strokeWidth={1.8} accessible={false}>
+              <Circle cx={12} cy={12} r={7} /><Circle cx={12} cy={12} r={2} /><Path d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+            </Svg>
+            <Text style={m.locationAction}>{t(locating ? "Locating..." : "Location")}</Text>
+          </Pressable>
+          </View>
           {showLocation && (
             <View style={m.locationPanel}>
+              <Text style={s.heading}>{t("Explore another location")}</Text>
+              <Text style={s.muted}>{t("Search for a district or choose your state and district.")}</Text>
+              {!!error && <Text accessibilityRole="alert" style={s.body}>{t(error)}</Text>}
+              <Field accessibilityLabel={t("Search districts or states")} placeholder={t("Type a district or state name")} value={locationSearch} onChangeText={setLocationSearch} />
+              {!!locationSearch.trim() && <ScrollView style={{ maxHeight: 240 }} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                {locationMatches.slice(0, 30).map(({ region, name }) => <Pressable key={`${region}-${name}`} accessibilityRole="button"
+                  accessibilityState={{ selected: state === region && district === name, disabled: busy }} disabled={busy}
+                  style={m.locationMatch} onPress={() => { setState(region); setDistrict(name); setLocationSearch(""); }}>
+                  <Text style={s.body}>{name}</Text><Text style={s.muted}>{region}</Text>
+                </Pressable>)}
+                {!locationMatches.length && <Text style={s.muted}>{t("No districts found. Try another name.")}</Text>}
+                {locationMatches.length > 30 && <Text style={s.muted}>{t("Keep typing to narrow your search.")}</Text>}
+              </ScrollView>}
               <View style={m.locationFields}>
                 <View style={m.flex}>
                   <LocationSelect
                     label={t("State")}
                     value={state}
                     options={marketStates}
-                    onSelect={(name) => { sequence.current++; setBusy(false); setState(name); setDistrict(""); }}
+                    disabled={busy}
+                    onSelect={(name) => { setState(name); setDistrict(""); }}
                   />
                 </View>
                 <View style={m.flex}>
@@ -249,12 +273,14 @@ export function MarketScreen() {
                     label={t("District")}
                     value={district}
                     options={marketLocations[state] || []}
-                    onSelect={(name) => { sequence.current++; setBusy(false); setDistrict(name); }}
+                    disabled={busy || !state}
+                    onSelect={setDistrict}
                   />
                 </View>
               </View>
+              <Text style={m.selectionPreview}>{district ? `${district}, ${state}` : t("Select a district to see local mandi prices")}</Text>
               <Button
-                title={t("Load prices")}
+                title={t(busy ? "Loading market prices..." : "Show mandi prices")}
                 disabled={
                   busy || state.trim().length < 2 || district.trim().length < 2
                 }
@@ -271,7 +297,7 @@ export function MarketScreen() {
               <View style={m.filterRow}>
                 <Button
                   secondary
-                  title={t("Use my location")}
+                  title={t(locating ? "Finding your location..." : "Use my location")}
                   disabled={busy}
                   onPress={() => void locate()}
                 />
@@ -288,12 +314,9 @@ export function MarketScreen() {
             <View style={m.sectionHeading}>
               <NavigationIcon route="market" selected />
               <Text style={[s.heading, m.flex]}>
-                {t("Nearby mandi reports")}
+                {t("Nearby mandi reports")} <Text style={s.muted}>({t("All prices in rupees per quintal (100 kg).").replace(/\.$/, "")})</Text>
               </Text>
             </View>
-            <Text style={s.muted}>
-              {t("All prices in rupees per quintal (100 kg).")}
-            </Text>
             {data?.status === "ok" && (
               <Text style={s.muted}>
                 {data.status === "ok"
@@ -362,7 +385,7 @@ export function MarketScreen() {
                   onPress={() => setShowMandiFilters(!showMandiFilters)}
                 >
                   <Text style={m.selectedText}>
-                    {t("Filter mandis")} {showMandiFilters ? "−" : "+"}
+                    {t("Search crops or mandis")} {showMandiFilters ? "−" : "+"}
                   </Text>
                 </Pressable>
                 {showMandiFilters && (
@@ -373,9 +396,12 @@ export function MarketScreen() {
                       value={search}
                       onChangeText={setSearch}
                     />
+                  </>
+                )}
                     <ScrollView
                       horizontal
-                      showsHorizontalScrollIndicator={false}
+                      showsHorizontalScrollIndicator
+                      accessibilityLabel={t("Choose a mandi")}
                       contentContainerStyle={m.mandiSelector}
                     >
                       <Pressable
@@ -415,8 +441,6 @@ export function MarketScreen() {
                         </Pressable>
                       ))}
                     </ScrollView>
-                  </>
-                )}
               </>
             )}
             <CategoryBrowser
@@ -581,19 +605,21 @@ export function MarketScreen() {
     </Page>
   );
 }
-function LocationSelect({ label, value, options, onSelect }: { label: string; value: string; options: string[]; onSelect: (value: string) => void }) {
+function LocationSelect({ label, value, options, onSelect, disabled = false }: { label: string; value: string; options: string[]; onSelect: (value: string) => void; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const t = useLocale();
+  const matches = options.filter(name => name.toLowerCase().includes(search.trim().toLowerCase()));
   return <>
     <Text style={s.body}>{label}</Text>
-    <Button secondary title={value || label} disabled={!options.length} onPress={() => { setSearch(""); setOpen(true); }} />
+    <Button secondary title={value || label} disabled={disabled || !options.length} onPress={() => { setSearch(""); setOpen(true); }} />
     <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
       <Page title={label}>
         <Field accessibilityLabel={label} placeholder={label} value={search} onChangeText={setSearch} />
         <Button secondary title={t("Close")} onPress={() => setOpen(false)} />
-        {options.filter(name => name.toLowerCase().includes(search.trim().toLowerCase())).map(name =>
+        {matches.map(name =>
           <Button key={name} secondary title={name} onPress={() => { onSelect(name); setOpen(false); }} />)}
+        {!matches.length && <Text style={s.muted}>{t("No districts found. Try another name.")}</Text>}
       </Page>
     </Modal>
   </>;
@@ -746,13 +772,25 @@ const m = StyleSheet.create({
     borderBottomColor: "transparent",
   },
   activeTab: { borderBottomColor: "#218653" },
+  locationRow: { flexDirection: "row", gap: 8, alignItems: "stretch" },
+  currentLocation: { flexDirection: "row", gap: 5, alignItems: "center", justifyContent: "center", minHeight: 44, paddingHorizontal: 10, borderWidth: 1, borderColor: "#dce7df", borderRadius: 10, backgroundColor: "#f3f9f5" },
+  locationAction: { fontFamily: typography.fontFamily, fontSize: 13, color: "#17673f", fontWeight: "600" },
+  locationMatch: { padding: 12, gap: 4, borderBottomWidth: 1, borderBottomColor: "#dce7df", minHeight: 48 },
+  selectionPreview: { padding: 12, borderRadius: 10, backgroundColor: "#edf8ef", color: "#17673f", fontFamily: typography.fontFamily },
   locationBar: {
+    flex: 1,
+    minWidth: 0,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#dce7df",
+    borderRadius: 10,
+    backgroundColor: "#f3f9f5",
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     minHeight: 48,
   },
-  locationPanel: { gap: 12, paddingVertical: 12 },
+  locationPanel: { gap: 12, padding: 16, borderWidth: 1, borderColor: "#dce7df", borderRadius: 16, backgroundColor: "#fff" },
   listSection: { gap: 12 },
   hero: { padding: 20, borderRadius: 16, gap: 8 },
   heroLabel: {

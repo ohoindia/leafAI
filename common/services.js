@@ -1,4 +1,11 @@
 export const fertilizerPackage = "com.agristack.fsas";
+export const farmerRegistry = "https://tlfr.agristack.gov.in/farmer-registry-tl/#/checkEnrolmentStatus";
+export const farmerRegistryDescription = "Already registered in Telangana Farmer Registry? Retrieve your Farmer ID using your Aadhaar-linked mobile number.";
+export const farmerRegistrySteps = [
+  "Open the Telangana Farmer Registry portal.",
+  "Enter your Aadhaar number on the official portal.",
+  "Enter the OTP sent to your Aadhaar-linked mobile number to view your Farmer ID.",
+];
 export const fertilizerStore = `https://play.google.com/store/apps/details?id=${fertilizerPackage}`;
 export const officerContacts =
   "https://www.tiryaniagriportal.in/officer-toolkit/officer-contacts";

@@ -2922,3 +2922,22 @@ nav button.active {
 .calculator-result { background: #edf7f0; border-radius: 16px; padding: 16px; color: #173d2b; }
 .calculator-result dl { display: grid; gap: 12px; }
 .calculator-result dd { margin: 4px 0 0; font-weight: 700; font-size: 1.2rem; }
+.farmer-registry-service { border: 1px solid #c9dfd0; background: linear-gradient(135deg, #f3faf5, #fff); }
+.farmer-registry-steps { display: grid; gap: 10px; margin: 0; padding-left: 24px; color: #40584a; font-size: 14px; line-height: 1.6; }
+.farmer-registry-steps li { padding-left: 4px; }
+.farmer-registry-steps li::marker { color: #218653; font-weight: 700; }
+
+.service-card-link { display: grid; gap: 12px; min-width: 0; color: #173d2b; text-decoration: none; cursor: pointer; transition: background-color .15s, border-color .15s; }
+.service-card-link:hover { background: #edf7f0; border-color: #a9cdb6; }
+.service-card-link:active { background: #e1f0e6; }
+.service-card-link:focus-visible { outline: 3px solid #218653; outline-offset: 3px; }
+.service-card-action { display: flex; align-items: center; gap: 8px; color: #17673f; font-weight: 600; font-size: 14px; }
+
+.service-portal-tile { text-decoration: none; }
+.service-portal-tile .service-heading { flex-direction: column; align-items: flex-start; gap: 12px; }
+.service-portal-tile .service-heading h3 { margin: 0; font-size: 1.05rem; line-height: 1.5; overflow-wrap: anywhere; }
+.service-portal-tile .service-icon { width: 36px; height: 36px; border-radius: 10px; }
+.service-portal-tile .service-icon img { width: 36px; height: 36px; }
+.service-portal-tile .service-icon svg { width: 28px; height: 28px; }
+.service-portal-tile .service-card-action { margin-top: auto; flex-wrap: wrap; font-size: 13px; }
+.service-portal-tile:focus-visible { outline: 3px solid #218653; outline-offset: 3px; }

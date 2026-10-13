@@ -3,13 +3,14 @@ import { Image, Linking, Platform, Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import * as IntentLauncher from "expo-intent-launcher";
 import { useLocale } from "./locale";
-import { Page, Card, Button, s } from "./ui";
+import { Page, s } from "./ui";
 import {
   fertilizerPackage,
   fertilizerStore,
   officerContacts,
-  fertilizerDescription,
-  officerDescription,
+  farmerRegistry,
+  farmerRegistryDescription,
+  farmerRegistrySteps,
 } from "../../common/services.js";
 
 import Svg, { Path } from "react-native-svg";
@@ -19,17 +20,19 @@ import { calculatorCopy } from "../../common/calculators.js";
 function ServiceHeading({
   icon,
   title,
+  compact = false,
 }: {
   icon: "fertilizer" | keyof typeof serviceIconPaths;
   title: string;
+  compact?: boolean;
 }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+    <View style={{ flexDirection: compact ? "column" : "row", alignItems: compact ? "flex-start" : "center", gap: 12 }}>
       <View
         accessible={false}
         style={{
-          width: 52,
-          height: 52,
+          width: compact ? 36 : 52,
+          height: compact ? 36 : 52,
           borderRadius: 16,
           backgroundColor: icon === "fertilizer" ? "#e8f6ee" : "#edf7f0",
           alignItems: "center",
@@ -39,7 +42,7 @@ function ServiceHeading({
         {icon === "fertilizer" ? (
           <Image
             source={require("../assets/fertilizer-sale-icon.png")}
-            style={{ width: 52, height: 52, borderRadius: 16 }}
+            style={{ width: compact ? 36 : 52, height: compact ? 36 : 52, borderRadius: 10 }}
           />
         ) : (
           <Svg
@@ -56,7 +59,7 @@ function ServiceHeading({
           </Svg>
         )}
       </View>
-      <Text style={[s.heading, { flex: 1 }]}>{title}</Text>
+      <Text style={[s.heading, { flexShrink: 1 }, compact && { fontSize: 17, lineHeight: 25 }]}>{title}</Text>
     </View>
   );
 }
@@ -98,28 +101,30 @@ export function ServicesScreen() {
           <Text style={s.muted}>{t("Open calculator")} →</Text>
         </Pressable>)}
       </View>
-      <Card>
-        <ServiceHeading
-          icon="fertilizer"
-          title={t("Framework for Fertilizer Sale")}
-        />
-        <Text style={s.body}>{t(fertilizerDescription)}</Text>
-        <Button
-          title={t("Open app / Install")}
-          onPress={() => void fertilizer()}
-        />
-        <Text style={s.muted}>
-          {t("Available on Android through Google Play.")}
-        </Text>
-      </Card>
-      <Card>
-        <ServiceHeading icon="officers" title={t("Officers Contact")} />
-        <Text style={s.body}>{t(officerDescription)}</Text>
-        <Button
-          title={t("Open officer contacts")}
-          onPress={() => void open(officerContacts)}
-        />
-      </Card>
+      <View style={{ flexDirection: "row", alignItems: "stretch", gap: 12 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t("Framework for Fertilizer Sale")} onPress={() => void fertilizer()}
+          style={({ pressed }) => ({ flex: 1, minWidth: 0, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#d5e1d8", backgroundColor: pressed ? "#edf7f0" : "#fff", gap: 12 })}>
+          <ServiceHeading compact icon="fertilizer" title={t("Framework for Fertilizer Sale")} />
+          <Text style={[s.muted, { marginTop: "auto" }]}>{t("Open app / Install")} →</Text>
+        </Pressable>
+        <Pressable accessibilityRole="link" accessibilityLabel={t("Officers Contact")} onPress={() => void open(officerContacts)}
+          style={({ pressed }) => ({ flex: 1, minWidth: 0, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#d5e1d8", backgroundColor: pressed ? "#edf7f0" : "#fff", gap: 12 })}>
+          <ServiceHeading compact icon="officers" title={t("Officers Contact")} />
+          <Text style={[s.muted, { marginTop: "auto" }]}>{t("Open officer contacts")} ↗</Text>
+        </Pressable>
+      </View>
+      <Pressable accessibilityRole="link" accessibilityLabel={t("Get my Farmer ID")} onPress={() => void open(farmerRegistry)}
+        style={({ pressed }) => ({ padding: 20, borderRadius: 14, borderWidth: 1, borderColor: "#c9dfd0", backgroundColor: pressed ? "#e1f0e6" : "#f3faf5", gap: 12 })}>
+        <ServiceHeading icon="farmerId" title={t("Telangana Farmer ID")} />
+        <Text style={s.muted}>{t("Agriculture Department, Telangana")}</Text>
+        <Text style={s.body}>{t(farmerRegistryDescription)}</Text>
+        {farmerRegistrySteps.map((step, index) => <View key={step} style={{ flexDirection: "row", gap: 10 }}>
+          <Text style={[s.body, { color: "#218653", fontWeight: "700" }]}>{index + 1}.</Text>
+          <Text style={[s.body, { flex: 1 }]}>{t(step)}</Text>
+        </View>)}
+        <Text style={[s.body, { color: "#17673f", fontWeight: "600" }]}>{t("Get my Farmer ID")} ↗</Text>
+        <Text style={s.muted}>{t("Keep your Aadhaar-linked phone ready. Aadhaar and OTP are entered only on the official portal.")}</Text>
+      </Pressable>
       {!!message && (
         <Text accessibilityRole="alert" style={s.body}>
           {t(message)}
