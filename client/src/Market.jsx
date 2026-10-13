@@ -57,6 +57,7 @@ export function Market({ api }) {
         if (!append) {
           const location = result.location;
           const selected = matchMarketLocation(location?.state || location?.nearbyTown?.state, location?.district || location?.nearbyTown?.district);
+          setShowLocation(false);
           setState(selected.state);
           setDistrict(selected.district);
         }
@@ -120,13 +121,16 @@ export function Market({ api }) {
       return;
     }
     setBusy(true);
+    setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (p) => {
         if (id !== sequence.current) return;
+        setLocating(false);
         load(`?latitude=${p.coords.latitude}&longitude=${p.coords.longitude}`);
       },
       () => {
         if (id !== sequence.current) return;
+        setLocating(false);
         setBusy(false);
         setShowLocation(true);
         setError("Allow location access or enter your state and district.");
@@ -136,6 +140,9 @@ export function Market({ api }) {
   }
   const [tab, setTab] = useState("mandi");
   const [showLocation, setShowLocation] = useState(false);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [locating, setLocating] = useState(false);
+  const locationMatches = Object.entries(marketLocations).flatMap(([region, districts]) => districts.map(name => ({ region, name }))).filter(({ region, name }) => `${name} ${region}`.toLowerCase().includes(locationSearch.trim().toLowerCase()));
   const mspGroups = groupCrops(mspPrices, ([name]) => name);
   const markets = groupMarkets(overview?.records || []);
   const filteredMarkets = groupMarkets(data?.records || [])
@@ -176,20 +183,9 @@ export function Market({ api }) {
       </div>
       {tab === "mandi" && (
         <>
-          <p>{t(overview?.location?.district && !overview?.radiusKm ? "Local mandi prices" : "Mandis within 200 km · all states")}</p>
-          <button
-            className="secondary nearby-location-button"
-            disabled={busy}
-            onClick={locate}
-          >
-            {t("Use my location")}
-          </button>
-          <button
-            className="mandi-location-toggle"
-            aria-expanded={showLocation}
-            onClick={() => setShowLocation(!showLocation)}
-          >
-            <span>
+          <section className="market-location-card">
+            <div className="market-selected-location-card">
+            <span className="market-location-name">
               {overview?.location?.district
                 ? overview.location.district + ", " + overview.location.state
                 : overview?.location?.nearbyTown
@@ -199,13 +195,52 @@ export function Market({ api }) {
                     (overview.location.nearbyTown.district ? ", " + overview.location.nearbyTown.district : "") +
                     ", " +
                     overview.location.nearbyTown.state
-                  : t("Your market location")}
+                  : t(locating ? "Finding your location..." : "Choose location")}
             </span>
-            <span>{t("Change")} ›</span>
+            <button
+            className="mandi-location-toggle"
+            title={t(overview?.location?.district && !overview?.radiusKm ? "Local mandi prices" : "Mandis within 200 km · all states")}
+            aria-controls="market-location-picker"
+            aria-expanded={showLocation}
+            onClick={() => setShowLocation(!showLocation)}
+          >
+            <span>{t(showLocation ? "Close" : "Change")} ›</span>
           </button>
+            </div>
+          <button
+            type="button"
+            className="market-current-location"
+            aria-label={t(locating ? "Finding your location..." : "Use my location")}
+            title={t("Use my location")}
+            disabled={busy}
+            onClick={locate}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+              <circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="2" />
+              <path d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+            </svg>
+            {t(locating ? "Locating..." : "Location")}
+          </button>
+          </section>
           {showLocation && (
-            <section className="market-location">
-              <h3>{t("Your market location")}</h3>
+            <section className="market-location market-location-picker" id="market-location-picker">
+              <h3>{t("Explore another location")}</h3>
+              <p>{t("Search for a district or choose your state and district.")}</p>
+              {error && <p className="location-feedback" role="alert">{t(error)}</p>}
+              <label className="location-search-label">{t("Search districts or states")}
+                <input type="search" autoFocus value={locationSearch} placeholder={t("Type a district or state name")}
+                  onChange={(e) => setLocationSearch(e.target.value)} />
+              </label>
+              {locationSearch.trim() && <div className="location-search-results">
+                {locationMatches.slice(0, 30).map(({ region, name }) => <button type="button" key={`${region}-${name}`}
+                  disabled={busy} aria-pressed={state === region && district === name}
+                  onClick={() => { setState(region); setDistrict(name); setLocationSearch(""); }}>
+                  <span><strong>{name}</strong><small>{region}</small></span><span aria-hidden="true">›</span>
+                </button>)}
+                {!locationMatches.length && <p role="status">{t("No districts found. Try another name.")}</p>}
+                {locationMatches.length > 30 && <small>{t("Keep typing to narrow your search.")}</small>}
+              </div>}
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -223,9 +258,10 @@ export function Market({ api }) {
                   <select
                     required
                     value={state}
-                    onChange={(e) => { sequence.current++; setBusy(false); setState(e.target.value); setDistrict(""); }}
+                    disabled={busy}
+                    onChange={(e) => { setState(e.target.value); setDistrict(""); }}
                   >
-                    <option value="">{t("State")}</option>
+                    <option value="">{t("Choose a state")}</option>
                     {marketStates.map(name => <option key={name} value={name}>{name}</option>)}
                   </select>
                 </label>
@@ -233,19 +269,20 @@ export function Market({ api }) {
                   {t("District")}
                   <select
                     required
-                    disabled={!state}
+                    disabled={busy || !state}
                     value={district}
-                    onChange={(e) => { sequence.current++; setBusy(false); setDistrict(e.target.value); }}
+                    onChange={(e) => setDistrict(e.target.value)}
                   >
-                    <option value="">{t("District")}</option>
+                    <option value="">{t(state ? "Choose a district" : "Choose a state first")}</option>
                     {(marketLocations[state] || []).map(name => <option key={name} value={name}>{name}</option>)}
                   </select>
                 </label>
-                <button disabled={busy || !state || !district}>{t("Load prices")}</button>
+                <p className="location-selection-preview">{district ? `${district}, ${state}` : t("Select a district to see local mandi prices")}</p>
+                <button disabled={busy || !state || !district}>{t(busy ? "Loading market prices..." : "Show mandi prices")}</button>
               </form>
               <div className="market-actions">
                 <button className="secondary" disabled={busy} onClick={locate}>
-                  {t("Use my location")}
+                  {t(locating ? "Finding your location..." : "Use my location")}
                 </button>
                 <button
                   className="secondary"
@@ -283,11 +320,8 @@ export function Market({ api }) {
                   strokeWidth="2"
                 />
               </svg>
-              {t("Nearby mandi reports")}
+              <span>{t("Nearby mandi reports")} <small className="mandi-price-unit">({t("All prices in rupees per quintal (100 kg).").replace(/\.$/, "")})</small></span>
             </h3>
-            <p className="market-description">
-              {t("All prices in rupees per quintal (100 kg).")}
-            </p>
             {overview?.radiusKm && (
               <details className="mandi-explanation">
                 <summary>{t("About these prices")}</summary>
@@ -325,8 +359,9 @@ export function Market({ api }) {
               </small>
             )}
             {!!markets.length && (
-              <details className="mandi-filters">
-                <summary>{t("Filter mandis")}</summary>
+              <section className="mandi-filters" aria-label={t("Choose a mandi")}>
+                <details>
+                <summary>{t("Search crops or mandis")}</summary>
                 <label className="mandi-search">
                   {t("Search crops or mandis")}
                   <input
@@ -335,8 +370,10 @@ export function Market({ api }) {
                     placeholder={t("Search crops or mandis")}
                   />
                 </label>
+                </details>
                 <div
                   className="nearby-mandi-selector"
+                  tabIndex={0}
                   role="group"
                   aria-label={t("Choose a mandi")}
                 >
@@ -364,7 +401,7 @@ export function Market({ api }) {
                     </button>
                   ))}
                 </div>
-              </details>
+              </section>
             )}
             <CategoryBrowser
               categories={["All crops", ...cropOptions]}
