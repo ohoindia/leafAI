@@ -9,11 +9,31 @@ export function price(
   value: number | null,
   translate?: (text: string) => string,
 ): string;
-export function groupMarkets<T extends { market: string; state?: string; district?: string; distanceKm?: number }>(records: T[]): {
-  key: string; market: string; state: string; district: string; distanceKm?: number; records: T[];
+export function groupMarkets<
+  T extends {
+    market: string;
+    state?: string;
+    district?: string;
+    distanceKm?: number;
+  },
+>(
+  records: T[],
+): {
+  key: string;
+  market: string;
+  state: string;
+  district: string;
+  distanceKm?: number;
+  records: T[];
 }[];
 export type MarketData = {
-  location: { state: string; district: string; latitude?: number; longitude?: number; nearbyTown?: { town: string; state: string } };
+  location: {
+    state: string;
+    district: string;
+    latitude?: number;
+    longitude?: number;
+    nearbyTown?: { town: string; state: string };
+  };
   radiusKm?: number;
   originApproximate?: boolean;
   unresolvedMarkets?: number;
@@ -42,7 +62,22 @@ export type MarketData = {
     modal: number | null;
   }[];
 };
-export function groupCommodityPrices<T extends { commodity: string }>(records: T[]): { commodity: string; records: T[] }[];
+export function groupCommodityPrices<T extends { commodity: string }>(
+  records: T[],
+): { commodity: string; records: T[] }[];
 export function marketDate(value: string | null | undefined): string;
-export function priceChange(value: number | null | undefined, translate?: (text: string) => string): string;
-export function mergeMarketRecords<T extends { market: string; commodity: string; variety: string; date: string; distanceKm?: number; state?: string; district?: string }>(previous: T[], incoming: T[]): T[];
+export function priceChange(
+  value: number | null | undefined,
+  translate?: (text: string) => string,
+): string;
+export function mergeMarketRecords<
+  T extends {
+    market: string;
+    commodity: string;
+    variety: string;
+    date: string;
+    distanceKm?: number;
+    state?: string;
+    district?: string;
+  },
+>(previous: T[], incoming: T[]): T[];

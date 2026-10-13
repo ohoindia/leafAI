@@ -1,1 +1,218 @@
-{"jammuandkashmir": {"minLat": 32.04472, "maxLat": 34.91667, "minLon": 73.69776, "maxLon": 78.2086}, "ladakh": {"minLat": 32.60284, "maxLat": 35.33902, "minLon": 75.05523, "maxLon": 79.45378}, "punjab": {"minLat": 29.57585, "maxLat": 32.49953, "minLon": 73.90109, "maxLon": 76.9273}, "westbengal": {"minLat": 11.80104, "maxLat": 27.17716, "minLon": 77.81328, "maxLon": 89.86591}, "tamilnadu": {"minLat": 8.08206, "maxLat": 13.52578, "minLon": 76.23083, "maxLon": 80.34498}, "andhrapradesh": {"minLat": 12.45433, "maxLat": 19.80861, "minLon": 76.78224, "maxLon": 84.69038}, "nagaland": {"minLat": 25.29412, "maxLat": 27.07993, "minLon": 93.4255, "maxLon": 95.27794}, "mizoram": {"minLat": 8.37743, "maxLat": 24.38884, "minLon": 77.00603, "maxLon": 93.38417}, "arunachalpradesh": {"minLat": 26.72304, "maxLat": 29.15635, "minLon": 91.65569, "maxLon": 97.03781}, "madhyapradesh": {"minLat": 20.93295, "maxLat": 27.96912, "minLon": 73.82995, "maxLon": 90.25027}, "maharashtra": {"minLat": 15.61064, "maxLat": 22.01981, "minLon": 72.66319, "maxLon": 80.74968}, "rajasthan": {"minLat": 23.06703, "maxLat": 30.18789, "minLon": 69.50464, "maxLon": 78.25309}, "goa": {"minLat": 14.91045, "maxLat": 27.2949, "minLon": 73.68281, "maxLon": 95.73585}, "uttarpradesh": {"minLat": 23.89195, "maxLat": 30.6, "minLon": 77.09294, "maxLon": 84.62353}, "sikkim": {"minLat": 27.09122, "maxLat": 28.03533, "minLon": 88.08009, "maxLon": 88.84384}, "gujarat": {"minLat": 20.14817, "maxLat": 24.66525, "minLon": 68.23063, "maxLon": 74.45871}, "telangana": {"minLat": 15.87536, "maxLat": 19.91309, "minLon": 77.25204, "maxLon": 81.73155}, "himachalpradesh": {"minLat": 30.39817, "maxLat": 33.15928, "minLon": 75.60589, "maxLon": 78.67548}, "assam": {"minLat": 24.17827, "maxLat": 28.05347, "minLon": 89.75679, "maxLon": 96.81}, "karnataka": {"minLat": 11.61974, "maxLat": 27.4299, "minLon": 74.05056, "maxLon": 83.85373}, "andamanandnicobar": {"minLat": 6.80833, "maxLat": 13.28333, "minLon": 83.53333, "maxLon": 93.91667}, "haryana": {"minLat": 27.67154, "maxLat": 30.91465, "minLon": 74.47569, "maxLon": 77.5883}, "uttarakhand": {"minLat": 28.72865, "maxLat": 31.18333, "minLon": 77.5669, "maxLon": 80.85881}, "manipur": {"minLat": 23.93333, "maxLat": 25.8057, "minLon": 93.02464, "maxLon": 94.71359}, "bihar": {"minLat": 22.0275, "maxLat": 27.3178, "minLon": 83.17364, "maxLon": 88.83041}, "odisha": {"minLat": 17.81407, "maxLat": 22.51795, "minLon": 81.38597, "maxLon": 87.46216}, "kerala": {"minLat": 8.3146, "maxLat": 12.77762, "minLon": 74.88125, "maxLon": 77.32479}, "meghalaya": {"minLat": 8.33527, "maxLat": 26.09542, "minLon": 77.14802, "maxLon": 92.81987}, "puducherry": {"minLat": 10.83719, "maxLat": 12.10848, "minLon": 75.22664, "maxLon": 79.84885}, "dadraandnagarhavelianddamananddiu": {"minLat": 20.07548, "maxLat": 34.01679, "minLon": 70.61397, "maxLon": 74.86599}, "tripura": {"minLat": 11.85172, "maxLat": 24.39758, "minLon": 77.82947, "maxLon": 92.42328}, "chhattisgarh": {"minLat": 17.8021, "maxLat": 24.10539, "minLon": 80.2621, "maxLon": 84.38776}, "jharkhand": {"minLat": 21.9756, "maxLat": 25.30509, "minLon": 81.45333, "maxLon": 87.90615}, "delhi": {"minLat": 28.42953, "maxLat": 28.8723, "minLon": 76.86604, "maxLon": 77.33207}, "lakshadweep": {"minLat": 8.28899, "maxLat": 11.68828, "minLon": 72.18217, "maxLon": 73.67408}, "chandigarh": {"minLat": 19.86728, "maxLat": 30.79374, "minLon": 69.18685, "maxLon": 82.63079}}
+{
+  "jammuandkashmir": {
+    "minLat": 32.04472,
+    "maxLat": 34.91667,
+    "minLon": 73.69776,
+    "maxLon": 78.2086
+  },
+  "ladakh": {
+    "minLat": 32.60284,
+    "maxLat": 35.33902,
+    "minLon": 75.05523,
+    "maxLon": 79.45378
+  },
+  "punjab": {
+    "minLat": 29.57585,
+    "maxLat": 32.49953,
+    "minLon": 73.90109,
+    "maxLon": 76.9273
+  },
+  "westbengal": {
+    "minLat": 11.80104,
+    "maxLat": 27.17716,
+    "minLon": 77.81328,
+    "maxLon": 89.86591
+  },
+  "tamilnadu": {
+    "minLat": 8.08206,
+    "maxLat": 13.52578,
+    "minLon": 76.23083,
+    "maxLon": 80.34498
+  },
+  "andhrapradesh": {
+    "minLat": 12.45433,
+    "maxLat": 19.80861,
+    "minLon": 76.78224,
+    "maxLon": 84.69038
+  },
+  "nagaland": {
+    "minLat": 25.29412,
+    "maxLat": 27.07993,
+    "minLon": 93.4255,
+    "maxLon": 95.27794
+  },
+  "mizoram": {
+    "minLat": 8.37743,
+    "maxLat": 24.38884,
+    "minLon": 77.00603,
+    "maxLon": 93.38417
+  },
+  "arunachalpradesh": {
+    "minLat": 26.72304,
+    "maxLat": 29.15635,
+    "minLon": 91.65569,
+    "maxLon": 97.03781
+  },
+  "madhyapradesh": {
+    "minLat": 20.93295,
+    "maxLat": 27.96912,
+    "minLon": 73.82995,
+    "maxLon": 90.25027
+  },
+  "maharashtra": {
+    "minLat": 15.61064,
+    "maxLat": 22.01981,
+    "minLon": 72.66319,
+    "maxLon": 80.74968
+  },
+  "rajasthan": {
+    "minLat": 23.06703,
+    "maxLat": 30.18789,
+    "minLon": 69.50464,
+    "maxLon": 78.25309
+  },
+  "goa": {
+    "minLat": 14.91045,
+    "maxLat": 27.2949,
+    "minLon": 73.68281,
+    "maxLon": 95.73585
+  },
+  "uttarpradesh": {
+    "minLat": 23.89195,
+    "maxLat": 30.6,
+    "minLon": 77.09294,
+    "maxLon": 84.62353
+  },
+  "sikkim": {
+    "minLat": 27.09122,
+    "maxLat": 28.03533,
+    "minLon": 88.08009,
+    "maxLon": 88.84384
+  },
+  "gujarat": {
+    "minLat": 20.14817,
+    "maxLat": 24.66525,
+    "minLon": 68.23063,
+    "maxLon": 74.45871
+  },
+  "telangana": {
+    "minLat": 15.87536,
+    "maxLat": 19.91309,
+    "minLon": 77.25204,
+    "maxLon": 81.73155
+  },
+  "himachalpradesh": {
+    "minLat": 30.39817,
+    "maxLat": 33.15928,
+    "minLon": 75.60589,
+    "maxLon": 78.67548
+  },
+  "assam": {
+    "minLat": 24.17827,
+    "maxLat": 28.05347,
+    "minLon": 89.75679,
+    "maxLon": 96.81
+  },
+  "karnataka": {
+    "minLat": 11.61974,
+    "maxLat": 27.4299,
+    "minLon": 74.05056,
+    "maxLon": 83.85373
+  },
+  "andamanandnicobar": {
+    "minLat": 6.80833,
+    "maxLat": 13.28333,
+    "minLon": 83.53333,
+    "maxLon": 93.91667
+  },
+  "haryana": {
+    "minLat": 27.67154,
+    "maxLat": 30.91465,
+    "minLon": 74.47569,
+    "maxLon": 77.5883
+  },
+  "uttarakhand": {
+    "minLat": 28.72865,
+    "maxLat": 31.18333,
+    "minLon": 77.5669,
+    "maxLon": 80.85881
+  },
+  "manipur": {
+    "minLat": 23.93333,
+    "maxLat": 25.8057,
+    "minLon": 93.02464,
+    "maxLon": 94.71359
+  },
+  "bihar": {
+    "minLat": 22.0275,
+    "maxLat": 27.3178,
+    "minLon": 83.17364,
+    "maxLon": 88.83041
+  },
+  "odisha": {
+    "minLat": 17.81407,
+    "maxLat": 22.51795,
+    "minLon": 81.38597,
+    "maxLon": 87.46216
+  },
+  "kerala": {
+    "minLat": 8.3146,
+    "maxLat": 12.77762,
+    "minLon": 74.88125,
+    "maxLon": 77.32479
+  },
+  "meghalaya": {
+    "minLat": 8.33527,
+    "maxLat": 26.09542,
+    "minLon": 77.14802,
+    "maxLon": 92.81987
+  },
+  "puducherry": {
+    "minLat": 10.83719,
+    "maxLat": 12.10848,
+    "minLon": 75.22664,
+    "maxLon": 79.84885
+  },
+  "dadraandnagarhavelianddamananddiu": {
+    "minLat": 20.07548,
+    "maxLat": 34.01679,
+    "minLon": 70.61397,
+    "maxLon": 74.86599
+  },
+  "tripura": {
+    "minLat": 11.85172,
+    "maxLat": 24.39758,
+    "minLon": 77.82947,
+    "maxLon": 92.42328
+  },
+  "chhattisgarh": {
+    "minLat": 17.8021,
+    "maxLat": 24.10539,
+    "minLon": 80.2621,
+    "maxLon": 84.38776
+  },
+  "jharkhand": {
+    "minLat": 21.9756,
+    "maxLat": 25.30509,
+    "minLon": 81.45333,
+    "maxLon": 87.90615
+  },
+  "delhi": {
+    "minLat": 28.42953,
+    "maxLat": 28.8723,
+    "minLon": 76.86604,
+    "maxLon": 77.33207
+  },
+  "lakshadweep": {
+    "minLat": 8.28899,
+    "maxLat": 11.68828,
+    "minLon": 72.18217,
+    "maxLon": 73.67408
+  },
+  "chandigarh": {
+    "minLat": 19.86728,
+    "maxLat": 30.79374,
+    "minLon": 69.18685,
+    "maxLon": 82.63079
+  }
+}

@@ -1,25 +1,133 @@
-.mandi-search { display: grid; gap: 6px; font-size: 14px; }
-.market-page button.nearby-location-button { background: #fff; color: #218653; border: 1px solid #218653; }
-.nearby-mandi-selector { display: flex; gap: 10px; overflow-x: auto; padding: 4px 0 12px; }
-.market-page .nearby-mandi-selector button { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; flex: 0 0 190px; gap: 4px; padding: 12px; border: 1px solid #dce7df; border-radius: 10px; background: #fff; color: #243c30; text-align: left; }
-.market-page .nearby-mandi-selector button[aria-pressed="true"] { border-color: #218653; background: #edf7f0; }
-.nearby-mandi-selector span, .nearby-mandi-selector small { font-size: 12px; color: #697b70; }
-.nearby-mandi-group { display: grid; gap: 8px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid #e0e8e2; }
-.nearby-mandi-group h4, .nearby-mandi-group p { margin: 0; }
-.nearby-mandi-group p { font-size: 12px; color: #697b70; }
-.crop-market-group { margin-bottom: 20px; }
-.crop-market-group > header { display: flex; align-items: center; gap: 18px; padding: 12px 0 18px; border-bottom: 1px solid #e0e8e2; }
-.crop-market-group > header > .crop-icon { width: 76px; height: 76px; flex: 0 0 76px; object-fit: contain; }
-.crop-market-group h4 { margin: 0; text-transform: uppercase; font-size: 14px; }
-.crop-market-row { display: flex; justify-content: space-between; gap: 16px; padding: 18px 0; border-bottom: 1px solid #e0e8e2; }
-.crop-market-place, .crop-market-price { display: flex; flex-direction: column; gap: 5px; min-width: 0; flex: 1; }
-.crop-market-price { align-items: flex-end; text-align: right; }
-.crop-market-row strong { font-size: 14px; overflow-wrap: anywhere; }
-.crop-market-row small { font-size: 11px; color: #697b70; }
-.crop-market-row .price-up { color: #218653; font-weight: 600; font-size: 12px; }
-.crop-market-row .price-down { color: #bd3b3b; font-weight: 600; font-size: 12px; }
-.crop-market-row .price-unchanged { color: #697b70; font-size: 11px; }
-.mandi-explanation, .mandi-filters { font-size: 12px; color: #697b70; }
-.mandi-explanation summary, .mandi-filters summary { cursor: pointer; padding: 6px 0; color: #218653; }
-.mandi-explanation p { margin: 8px 0; }
-.mandi-filters .mandi-search { margin: 8px 0; }
+.mandi-search {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+.market-page button.nearby-location-button {
+  background: #fff;
+  color: #218653;
+  border: 1px solid #218653;
+}
+.nearby-mandi-selector {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+}
+.market-page .nearby-mandi-selector button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 0 0 190px;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #dce7df;
+  border-radius: 10px;
+  background: #fff;
+  color: #243c30;
+  text-align: left;
+}
+.market-page .nearby-mandi-selector button[aria-pressed="true"] {
+  border-color: #218653;
+  background: #edf7f0;
+}
+.nearby-mandi-selector span,
+.nearby-mandi-selector small {
+  font-size: 12px;
+  color: #697b70;
+}
+.nearby-mandi-group {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e0e8e2;
+}
+.nearby-mandi-group h4,
+.nearby-mandi-group p {
+  margin: 0;
+}
+.nearby-mandi-group p {
+  font-size: 12px;
+  color: #697b70;
+}
+.crop-market-group {
+  margin-bottom: 20px;
+}
+.crop-market-group > header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 0 18px;
+  border-bottom: 1px solid #e0e8e2;
+}
+.crop-market-group > header > .crop-icon {
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+  object-fit: contain;
+}
+.crop-market-group h4 {
+  margin: 0;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+.crop-market-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid #e0e8e2;
+}
+.crop-market-place,
+.crop-market-price {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+.crop-market-price {
+  align-items: flex-end;
+  text-align: right;
+}
+.crop-market-row strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.crop-market-row small {
+  font-size: 11px;
+  color: #697b70;
+}
+.crop-market-row .price-up {
+  color: #218653;
+  font-weight: 600;
+  font-size: 12px;
+}
+.crop-market-row .price-down {
+  color: #bd3b3b;
+  font-weight: 600;
+  font-size: 12px;
+}
+.crop-market-row .price-unchanged {
+  color: #697b70;
+  font-size: 11px;
+}
+.mandi-explanation,
+.mandi-filters {
+  font-size: 12px;
+  color: #697b70;
+}
+.mandi-explanation summary,
+.mandi-filters summary {
+  cursor: pointer;
+  padding: 6px 0;
+  color: #218653;
+}
+.mandi-explanation p {
+  margin: 8px 0;
+}
+.mandi-filters .mandi-search {
+  margin: 8px 0;
+}

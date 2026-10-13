@@ -83,7 +83,13 @@ export function Subscription({
         gap: 18,
       }}
     >
-      <Text style={{ fontFamily: typography.fontFamily, fontSize: 26, fontWeight: "bold" }}>
+      <Text
+        style={{
+          fontFamily: typography.fontFamily,
+          fontSize: 26,
+          fontWeight: "bold",
+        }}
+      >
         Subscription and AutoPay
       </Text>
       <Text>

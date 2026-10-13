@@ -244,7 +244,15 @@ function ProfileMenuRow({
       accessibilityRole="button"
       disabled={a.busy}
       onPress={onPress}
-      style={[s.row, { minHeight: 72, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: "#e0e8e2" }]}
+      style={[
+        s.row,
+        {
+          minHeight: 72,
+          paddingVertical: 16,
+          borderBottomWidth: 1,
+          borderBottomColor: "#e0e8e2",
+        },
+      ]}
     >
       <View style={{ width: 32, alignItems: "center" }}>
         <Text style={s.avatarText}>{icon}</Text>
@@ -262,39 +270,59 @@ export function ProfileScreen() {
   const a = useLeafCare();
   return (
     <Page title={localize(screens.profile)} flat>
-      <View style={{ alignItems: "center", paddingVertical: 24, gap: 10, borderBottomWidth: 1, borderBottomColor: "#e0e8e2" }}>
+      <View
+        style={{
+          alignItems: "center",
+          paddingVertical: 24,
+          gap: 10,
+          borderBottomWidth: 1,
+          borderBottomColor: "#e0e8e2",
+        }}
+      >
         <UserAvatar large />
-        <Text style={s.heading}>{a.user?.fullName || localize("Your account")}</Text>
+        <Text style={s.heading}>
+          {a.user?.fullName || localize("Your account")}
+        </Text>
         {!!a.user?.email && <Text style={s.muted}>{a.user.email}</Text>}
-        <Pressable accessibilityRole="button" disabled={a.busy} onPress={() => a.go("account-details")} style={{ minHeight: 44, justifyContent: "center" }}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={a.busy}
+          onPress={() => a.go("account-details")}
+          style={{ minHeight: 44, justifyContent: "center" }}
+        >
           <Text style={s.small}>{localize("Edit profile")} ›</Text>
         </Pressable>
       </View>
       <View style={{ gap: 0 }}>
-      <ProfileMenuRow title="Subscription and AutoPay" subtitle="Manage your subscription" icon="◈" onPress={() => a.setSubscriptionPopup(true)} />
-      {profileSettings.map((item) => (
         <ProfileMenuRow
-          key={item.route}
-          title={localize(item.title)}
-          subtitle={item.subtitle}
-          icon={
-            item.icon === "language"
-              ? "\u25ce"
-              : item.icon === "security"
-                ? "\u26bf"
-                : "\u25cb"
-          }
-          onPress={() => a.go(item.route)}
+          title="Subscription and AutoPay"
+          subtitle="Manage your subscription"
+          icon="◈"
+          onPress={() => a.setSubscriptionPopup(true)}
         />
-      ))}
-      <ProfileMenuRow
-        title={localize("Sign out")}
-        subtitle="Sign out of your account"
-        icon="\u21aa"
-        onPress={() => {
-          void a.logout();
-        }}
-      />
+        {profileSettings.map((item) => (
+          <ProfileMenuRow
+            key={item.route}
+            title={localize(item.title)}
+            subtitle={item.subtitle}
+            icon={
+              item.icon === "language"
+                ? "\u25ce"
+                : item.icon === "security"
+                  ? "\u26bf"
+                  : "\u25cb"
+            }
+            onPress={() => a.go(item.route)}
+          />
+        ))}
+        <ProfileMenuRow
+          title={localize("Sign out")}
+          subtitle="Sign out of your account"
+          icon="\u21aa"
+          onPress={() => {
+            void a.logout();
+          }}
+        />
       </View>
     </Page>
   );

@@ -1558,8 +1558,12 @@ function App() {
                       className="profile-menu-card"
                       onClick={() => go("subscription")}
                     >
-                      <span className="profile-menu-icon" aria-hidden="true">◈</span>
-                      <span className="profile-menu-copy"><strong>{localize("Subscription and AutoPay")}</strong></span>
+                      <span className="profile-menu-icon" aria-hidden="true">
+                        ◈
+                      </span>
+                      <span className="profile-menu-copy">
+                        <strong>{localize("Subscription and AutoPay")}</strong>
+                      </span>
                       <span aria-hidden="true">›</span>
                     </button>
                     {profileSettings.map((item) => (

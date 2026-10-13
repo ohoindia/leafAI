@@ -180,7 +180,8 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
                 accessibilityLabel="Country code +91"
                 style={{
                   color: "#243c30",
-                  fontFamily: typography.fontFamily, fontSize: 16,
+                  fontFamily: typography.fontFamily,
+                  fontSize: 16,
                   borderRightWidth: 1,
                   borderRightColor: "#d5e1d8",
                   paddingRight: 12,
@@ -195,7 +196,8 @@ export function AuthScreen({ register = false }: { register?: boolean }) {
                   minWidth: 0,
                   paddingVertical: 14,
                   color: "#243c30",
-                  fontFamily: typography.fontFamily, fontSize: 16,
+                  fontFamily: typography.fontFamily,
+                  fontSize: 16,
                 }}
                 value={mobileNumber.replace(/(\d{5})(\d+)/, "$1 $2")}
                 onChangeText={(value) => void checkMobile(value)}

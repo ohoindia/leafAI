@@ -44,7 +44,12 @@ export function UserAvatar({ large = false }: { large?: boolean }) {
         { width: size, height: size, borderRadius: size / 2 },
       ]}
     >
-      <Text style={[s.avatarText, large && { fontFamily: typography.fontFamily, fontSize: 30 }]}>
+      <Text
+        style={[
+          s.avatarText,
+          large && { fontFamily: typography.fontFamily, fontSize: 30 },
+        ]}
+      >
         {accountInitials(a.user?.fullName)}
       </Text>
     </View>
@@ -103,7 +108,6 @@ export function AuthBrand({ register = false }: { register?: boolean }) {
   return (
     <View style={s.authBrand}>
       <LeafLogo large />
-     
     </View>
   );
 }
@@ -320,7 +324,13 @@ export function Languages() {
                     )}
                   </Text>
                 </View>
-                <Text style={{ color: "#218653", fontFamily: typography.fontFamily, fontSize: 20 }}>
+                <Text
+                  style={{
+                    color: "#218653",
+                    fontFamily: typography.fontFamily,
+                    fontSize: 20,
+                  }}
+                >
                   {localize(a.lang === id ? "✓" : "○")}
                 </Text>
               </Pressable>
@@ -396,7 +406,13 @@ export function Page({
   if (auth && a.token) return <Redirect href="/home" />;
   if (!auth && !a.token) return <Redirect href="/login" />;
   return (
-    <SafeAreaView style={[s.safe, flat && { backgroundColor: "#fff" }, auth && { backgroundColor: "#edf7f0" }]}>
+    <SafeAreaView
+      style={[
+        s.safe,
+        flat && { backgroundColor: "#fff" },
+        auth && { backgroundColor: "#edf7f0" },
+      ]}
+    >
       <KeyboardAvoidingView
         style={s.flex}
         behavior={
@@ -458,7 +474,11 @@ export function Page({
           onLayout={revealFocusedInput}
           onContentSizeChange={revealFocusedInput}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[s.container, auth && s.authContainer, flat && { gap: 12, paddingHorizontal: 20 }]}
+          contentContainerStyle={[
+            s.container,
+            auth && s.authContainer,
+            flat && { gap: 12, paddingHorizontal: 20 },
+          ]}
         >
           {branding}
           <Text style={s.title}>{localize(title)}</Text>
@@ -618,7 +638,8 @@ export const s = StyleSheet.create({
   },
   authBrand: { alignItems: "center", gap: 10, marginVertical: 12 },
   brandTitle: {
-    fontFamily: typography.fontFamily, fontSize: 30,
+    fontFamily: typography.fontFamily,
+    fontSize: 30,
     fontWeight: "600",
     color: "#243c30",
     textAlign: "center",
@@ -668,10 +689,32 @@ export const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#e0e8e2",
   },
-  title: { fontFamily: typography.fontFamily, fontSize: 26, lineHeight: 34, fontWeight: "600", color: "#243c30" },
-  heading: { fontFamily: typography.fontFamily, fontSize: 18, lineHeight: 26, fontWeight: "600", color: "#243c30" },
-  body: { color: "#243c30", fontFamily: typography.fontFamily, fontSize: 16, lineHeight: 24 },
-  muted: { color: "#697b70", fontFamily: typography.fontFamily, fontSize: 14, lineHeight: 22 },
+  title: {
+    fontFamily: typography.fontFamily,
+    fontSize: 26,
+    lineHeight: 34,
+    fontWeight: "600",
+    color: "#243c30",
+  },
+  heading: {
+    fontFamily: typography.fontFamily,
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: "600",
+    color: "#243c30",
+  },
+  body: {
+    color: "#243c30",
+    fontFamily: typography.fontFamily,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  muted: {
+    color: "#697b70",
+    fontFamily: typography.fontFamily,
+    fontSize: 14,
+    lineHeight: 22,
+  },
   small: { color: "#218653", fontFamily: typography.fontFamily, fontSize: 12 },
   card: {
     backgroundColor: "#fff",
@@ -694,7 +737,8 @@ export const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#d5e1d8",
     borderRadius: 12,
-    fontFamily: typography.fontFamily, fontSize: 16,
+    fontFamily: typography.fontFamily,
+    fontSize: 16,
     color: "#243c30",
   },
   button: {
@@ -704,7 +748,12 @@ export const s = StyleSheet.create({
     alignItems: "center",
     minHeight: 48,
   },
-  buttonText: { color: "#fff", fontWeight: "700", fontFamily: typography.fontFamily, fontSize: 15 },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontFamily: typography.fontFamily,
+    fontSize: 15,
+  },
   secondary: { backgroundColor: "#edf7f0" },
   language: {
     minHeight: 48,
@@ -764,7 +813,12 @@ export const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarText: { color: "#218653", fontFamily: typography.fontFamily, fontSize: 18, fontWeight: "700" },
+  avatarText: {
+    color: "#218653",
+    fontFamily: typography.fontFamily,
+    fontSize: 18,
+    fontWeight: "700",
+  },
   navItem: {
     flex: 1,
     minHeight: 56,

@@ -119,17 +119,36 @@ test("device coordinates resolve district; unsupported locations require manual 
 test("nearby mode uses saved farm coordinates and requires a usable search centre", async () => {
   const key = process.env.DATA_GOV_IN_API_KEY;
   const previousFetch = globalThis.fetch;
-  globalThis.fetch = async () => { throw Error("offline"); };
+  globalThis.fetch = async () => {
+    throw Error("offline");
+  };
   delete process.env.DATA_GOV_IN_API_KEY;
   try {
-    const service = new MarketService({ execute: async () => [[{ state: "Telangana", district: "Khammam", latitude: "17.2473", longitude: "80.1514" }]] });
+    const service = new MarketService({
+      execute: async () => [
+        [
+          {
+            state: "Telangana",
+            district: "Khammam",
+            latitude: "17.2473",
+            longitude: "80.1514",
+          },
+        ],
+      ],
+    });
     const result = await service.prices(req({ radiusKm: "200" }));
     assert.equal(result.location.latitude, 17.2473);
     assert.equal(result.originApproximate, false);
     assert.equal(result.radiusKm, 200);
     assert.equal(result.status, "unavailable");
-    assert.equal((await service.prices(req({ radiusKm: "200", state: "Telangana" }))).status, "location_required");
-    await assert.rejects(service.prices(req({ radiusKm: "200", latitude: "17" })));
+    assert.equal(
+      (await service.prices(req({ radiusKm: "200", state: "Telangana" })))
+        .status,
+      "location_required",
+    );
+    await assert.rejects(
+      service.prices(req({ radiusKm: "200", latitude: "17" })),
+    );
   } finally {
     globalThis.fetch = previousFetch;
     if (key !== undefined) process.env.DATA_GOV_IN_API_KEY = key;
