@@ -296,3 +296,23 @@ For existing databases, build the server and run `node server/scripts/migrate-us
 ### Market prices
 
 The Market footer tab loads AGMARKNET reports for the saved farm district, device location (OpenStreetMap reverse geocoding), or a manually entered state and district. Set `DATA_GOV_IN_API_KEY` on the server using your data.gov.in API key. No sample prices are used when the feed is unavailable. Each report shows its source date, variety, mandi, minimum, maximum and modal price in INR/quintal. Government MSPs are a separately maintained Kharif 2026-27 schedule sourced from PIB (13 May 2026); update `common/market.js` when a new schedule is announced. Paddy MSP must not be compared directly with milled rice; mirchi has no central MSP in this schedule.
+
+The web and mobile mandi screens request `radiusKm=200`: reports from all states
+are paginated, matched to offline GeoNames town coordinates, filtered within
+200 km, and sorted by distance. Saved farm coordinates or device coordinates
+are preferred; a manually entered district uses the matching district town
+as an approximate centre. All crops are shown initially. Distances are approximate
+straight-line distances to town centres, not road distances to mandi gates.
+Unresolved markets are excluded and flagged. The feed is cached for five minutes
+per Lambda instance, capped at 20,000 reports with an explicit truncation flag.
+The screen also loads explicitly dated last-week reports from AGMARKNET's public
+recent-price endpoint for 28 common crops. These cover markets missing from the
+current-day snapshot. Choose a crop to focus the search, or load more recent
+reports to check subsequent market/crop batches. Crop headings list nearby mandi
+rows with the price date and change from the previous available report for the
+same variety. Weekly reports provide a single reported price, not a min/max
+range; missing comparisons are shown as unavailable. Newer daily reports do not
+inherit a trend from a different price measure. No sample prices are shown.
+GeoNames attribution and refresh instructions are in
+`server/assets/MARKET-PLACES.md`. Legacy requests without `radiusKm` retain
+district filtering.

@@ -9,6 +9,7 @@ export const cropCategories = [
   "Other crops",
 ];
 export const categoryImages = {
+  "All crops": "Crop plant",
   "Cereals & Millets": "Paddy",
   Pulses: "Moong",
   Oilseeds: "Sunflower seed",

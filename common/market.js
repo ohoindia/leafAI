@@ -33,3 +33,45 @@ export function price(value, t = (text) => text) {
     ? t("Not reported")
     : `\u20b9${Number(value).toLocaleString("en-IN")} / ${t("quintal")}`;
 }
+
+export function groupMarkets(records) {
+  const groups = new Map();
+  for (const record of records) {
+    const key = JSON.stringify([record.state || "", record.district || "", record.market]);
+    if (!groups.has(key)) groups.set(key, {
+      key, market: record.market, state: record.state || "", district: record.district || "",
+      distanceKm: record.distanceKm, records: [],
+    });
+    groups.get(key).records.push(record);
+  }
+  return [...groups.values()].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+}
+export function groupCommodityPrices(records) {
+  const groups = new Map();
+  for (const record of records) {
+    if (!groups.has(record.commodity)) groups.set(record.commodity, { commodity: record.commodity, records: [] });
+    groups.get(record.commodity).records.push(record);
+  }
+  return [...groups.values()].sort((a, b) => a.commodity.localeCompare(b.commodity));
+}
+export function marketDate(value) {
+  if (!value) return "";
+  const iso = /^\d{2}\/\d{2}\/\d{4}$/.test(value) ? value.split("/").reverse().join("-") : value;
+  const date = new Date(iso + "T00:00:00Z");
+  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(date);
+}
+export function priceChange(value, t = (text) => text) {
+  if (value == null) return t("No previous report");
+  if (value === 0) return t("No change");
+  return `${value > 0 ? "↑" : "↓"} ${price(Math.abs(value), t).split(" / ")[0]}`;
+}
+export function mergeMarketRecords(previous, incoming) {
+  const rows = new Map();
+  for (const row of [...previous, ...incoming]) {
+    const key = JSON.stringify([row.state, row.district, row.market, row.commodity, row.variety]);
+    const old = rows.get(key);
+    const iso = value => /^\d{2}\/\d{2}\/\d{4}$/.test(value) ? value.split("/").reverse().join("-") : value;
+    if (!old || iso(row.date) >= iso(old.date)) rows.set(key, row);
+  }
+  return [...rows.values()].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+}

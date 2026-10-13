@@ -10,5 +10,6 @@ uploads/
 server/dist/
 server/.lambda-build/
 server/lambda.zip
+server/lambda-recent.zip
 server/lambda-environment.json
 server/build/

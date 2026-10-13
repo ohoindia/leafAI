@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
 import { typography } from "./theme";
 import { Children, useEffect, useRef, useState } from "react";
-import { Text, View, Linking, Pressable, StyleSheet } from "react-native";
+import { Text, View, Linking, Pressable, StyleSheet, ScrollView } from "react-native";
 import { CropIcon } from "./CropIcon";
 import { NavigationIcon } from "./NavigationIcon";
 import {
-  cropCategories,
   categoryImages,
   cropDetails,
   groupCrops,
@@ -20,6 +19,11 @@ import {
   marketSource,
   mspSource,
   price,
+  groupMarkets,
+  groupCommodityPrices,
+  marketDate,
+  priceChange,
+  mergeMarketRecords,
   type MarketData,
 } from "../../common/market.js";
 import { useLeafCare } from "./state";
@@ -34,23 +38,37 @@ export function MarketScreen() {
     [error, setError] = useState(""),
     [state, setState] = useState(""),
     [district, setDistrict] = useState(""),
-    [category, setCategory] = useState("Cereals & Millets"),
+    [selectedMandi, setSelectedMandi] = useState(""),
+    [search, setSearch] = useState(""),
+    [recentCrop, setRecentCrop] = useState(""),
+    [showPriceInfo, setShowPriceInfo] = useState(false),
+    [showMandiFilters, setShowMandiFilters] = useState(false),
     [mspCategory, setMspCategory] = useState("Cereals & Millets"),
     [showMspInfo, setShowMspInfo] = useState(false),
     [tab, setTab] = useState("mandi"),
     [showLocation, setShowLocation] = useState(false);
   const sequence = useRef(0);
-  async function load(params = "") {
+  const lastParams = useRef("");
+  async function load(params = "", append = false, crop = recentCrop) {
     const id = ++sequence.current;
     setBusy(true);
     setError("");
-    setData(undefined);
+    if (!append) { setData(undefined); setSelectedMandi(""); }
     try {
+      const query = new URLSearchParams(params.replace(/^\?/, ""));
+      query.set("radiusKm", "200");
+      if (crop) query.set("recentCrop", crop); else query.delete("recentCrop");
+      lastParams.current = query.toString();
       const result = await request<MarketData>(
-        endpoints.market + params,
+        endpoints.market + "?" + query,
         a.token,
       );
-      if (id === sequence.current) setData(result);
+      if (id === sequence.current) setData(previous => {
+        if (!append) return result;
+        const records = mergeMarketRecords(previous?.records || [], result.records);
+        return { ...result, records, status: records.length ? "ok" : result.status,
+          message: result.records.length ? result.message : previous?.message || result.message };
+      });
     } catch (e) {
       if (id === sequence.current)
         setError(
@@ -60,10 +78,19 @@ export function MarketScreen() {
       if (id === sequence.current) setBusy(false);
     }
   }
+  function chooseCrop(crop: string) {
+    setRecentCrop(crop); setSearch("");
+    const query = new URLSearchParams(lastParams.current); query.delete("recentOffset");
+    void load("?" + query, false, crop);
+  }
+  function loadMore() {
+    const query = new URLSearchParams(lastParams.current); query.set("recentOffset", String(data?.recentNextOffset));
+    void load("?" + query, true);
+  }
   useEffect(() => {
     let active = true;
     const id = sequence.current;
-    void request<MarketData>(endpoints.market, a.token)
+    void request<MarketData>(endpoints.market + "?radiusKm=200", a.token)
       .then((result) => {
         if (active && id === sequence.current) setData(result);
       })
@@ -100,9 +127,14 @@ export function MarketScreen() {
       setBusy(false);
     }
   }
-  const mandiGroups = groupCrops(data?.records || [], r => r.commodity);
   const mspGroups = groupCrops(mspPrices, ([name]) => name);
-  const records = (data?.records || []).filter(r => cropDetails(r.commodity).category === category);
+  const markets = groupMarkets(data?.records || []);
+  const filteredMarkets = markets.filter(g => !selectedMandi || g.key === selectedMandi).map(g => ({ ...g,
+    records: g.records.filter(r => (!recentCrop || r.commodity.toLowerCase() === recentCrop.toLowerCase()) &&
+      [r.commodity, r.variety, r.market].some(value => String(value).toLowerCase().includes(search.trim().toLowerCase()))),
+  })).filter(g => g.records.length);
+  const records = filteredMarkets.flatMap(g => g.records);
+  const commodityGroups = groupCommodityPrices(records);
   const supportPrices = mspPrices.filter(([name]) => cropDetails(name).category === mspCategory);
   return (
     <Page title={t("Mandi prices")} flat>
@@ -114,8 +146,10 @@ export function MarketScreen() {
         ))}
       </View>
       {tab === "mandi" && <>
+      <Text style={s.body}>{t("Mandis within 200 km · all states")}</Text>
+      <Button secondary title={t("Use my location")} disabled={busy} onPress={() => void locate()} />
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: showLocation }} onPress={() => setShowLocation(!showLocation)} style={m.locationBar}>
-        <Text style={[s.body, m.flex]}>{data?.location.district ? data.location.district + ", " + data.location.state : t("Your market location")}</Text>
+        <Text style={[s.body, m.flex]}>{data?.location.district ? data.location.district + ", " + data.location.state : data?.location.nearbyTown ? t("Near") + " " + data.location.nearbyTown.town + ", " + data.location.nearbyTown.state : t("Your market location")}</Text>
         <Text style={m.selectedText}>{t("Change")} ›</Text>
       </Pressable>
       {showLocation && <View style={m.locationPanel}>
@@ -172,7 +206,7 @@ export function MarketScreen() {
       <View style={m.listSection}>
         <View style={m.sectionHeading}>
           <NavigationIcon route="market" selected />
-          <Text style={[s.heading, m.flex]}>{t("My crops")}</Text>
+          <Text style={[s.heading, m.flex]}>{t("Nearby mandi reports")}</Text>
         </View>
         <Text style={s.muted}>{t("All prices in rupees per quintal (100 kg).")}</Text>
         {busy && (
@@ -185,28 +219,64 @@ export function MarketScreen() {
             {t(error)}
           </Text>
         )}
-        {data && <Text style={s.muted}>{t(data.message)}</Text>}
+        {data && <Text style={s.muted}>{data.status === "ok" ? records.length + " " + t("reported prices") + " · " + t("Check price dates") : t(data.message)}</Text>}
+        {data?.radiusKm && <>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPriceInfo }} onPress={() => setShowPriceInfo(!showPriceInfo)}><Text style={m.selectedText}>{t("About these prices")} {showPriceInfo ? "−" : "+"}</Text></Pressable>
+          {showPriceInfo && <>
+            <Text style={s.muted}>{t("Approximate straight-line distances to market towns, not driving distances.")}</Text>
+            {data?.originApproximate && <Text style={s.muted}>{t("Using your district town as the centre. Use my location for a more accurate search.")}</Text>}
+            {!!data?.unresolvedMarkets && <Text style={s.muted}>{t("Some reported markets could not be located and are excluded.")}</Text>}
+            {!!data?.supportedRecentCrops?.length && <Text style={s.muted}>{t("Recent reports cover common crops. Check the date shown for each price.")}</Text>}
+          </>}
+        </>}
+        {!!data?.supportedRecentCrops?.length && <>
+          <Text style={s.body}>{t("Choose a crop")}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={m.mandiSelector}>
+            {["", ...data!.supportedRecentCrops!].map(crop => <Pressable key={crop} accessibilityRole="button" accessibilityState={{ selected: recentCrop === crop, disabled: busy }} disabled={busy} onPress={() => chooseCrop(crop)} style={[m.cropFilter, recentCrop === crop && m.selected]}>
+              <Text style={s.body}>{t(crop || "All crops")}</Text>
+            </Pressable>)}
+          </ScrollView>
+        </>}
+        {data?.recentPricesIncomplete && <Text style={s.muted}>{t("Some recent prices could not be loaded. Please retry.")}</Text>}
+        {!!markets.length && <>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showMandiFilters }} onPress={() => setShowMandiFilters(!showMandiFilters)}><Text style={m.selectedText}>{t("Filter mandis")} {showMandiFilters ? "−" : "+"}</Text></Pressable>
+          {showMandiFilters && <>
+          <Field accessibilityLabel={t("Search crops or mandis")} placeholder={t("Search crops or mandis")} value={search} onChangeText={setSearch} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={m.mandiSelector}>
+            <Pressable accessibilityRole="button" accessibilityState={{ selected: !selectedMandi }} onPress={() => setSelectedMandi("")} style={[m.mandiChoice, !selectedMandi && m.selected]}>
+              <Text style={s.body}>{t("All mandis")} ({markets.length})</Text>
+            </Pressable>
+            {markets.map(g => <Pressable key={g.key} accessibilityRole="button" accessibilityState={{ selected: selectedMandi === g.key }} onPress={() => setSelectedMandi(g.key)} style={[m.mandiChoice, selectedMandi === g.key && m.selected]}>
+              <Text style={m.cropName}>{g.market}</Text><Text style={m.meta}>{g.district}, {g.state}</Text>
+              <Text style={m.meta}>{g.distanceKm != null ? `≈ ${g.distanceKm} km · ` : ""}{new Set(g.records.map(r => r.commodity)).size} {t("crops")}</Text>
+            </Pressable>)}
+          </ScrollView>
+          </>}
+        </>}
         {data?.status === "ok" && !records.length && (
           <Text style={s.muted}>
-            {t("No reports for this crop in the selected district.")}
+            {t("No reports match these filters.")}
           </Text>
         )}
-        <CategoryBrowser categories={cropCategories} selected={category} onSelect={setCategory} counts={Object.fromEntries(mandiGroups.map(g => [g.category, g.items.length]))}>
-          <Text style={s.heading}>{t(category)}</Text>
-          <PriceGrid>{records.map((r, i) => <View key={r.commodity + r.market + i} style={m.tileContent}>
-            <View style={m.tileImage}><CropIcon name={r.commodity} size={64} /></View>
-            <Text style={m.cropName}>{t(r.commodity)}</Text>
-            <Text style={m.meta}>{t(r.variety)}</Text>
-            <Text style={m.tilePrice}>{price(r.modal, t).split(" / ")[0]}</Text>
-            <Text style={m.meta}>{t("per quintal (100 kg)")}</Text>
-            <Text style={m.meta}>{r.market} · {r.date}</Text>
-            <Text style={m.meta}>{t("Minimum")}: {price(r.min, t).split(" / ")[0]}</Text>
-            <Text style={m.meta}>{t("Maximum")}: {price(r.max, t).split(" / ")[0]}</Text>
-          </View>)}</PriceGrid>
-        </CategoryBrowser>
+        <View>
+          {commodityGroups.map(g => <View key={g.commodity} style={m.mandiGroup}>
+            <View style={m.cropHeading}><CropIcon name={g.commodity} size={64} /><Text style={[m.cropName, m.flex]}>{t(g.commodity)}</Text></View>
+            {g.records.map((r, i) => <View key={r.market + r.variety + i} style={m.cropPriceRow}>
+              <View style={m.flex}><Text style={m.cropName}>{r.market}</Text><Text style={m.meta}>{r.distanceKm != null ? `≈ ${r.distanceKm} km · ` : ""}{r.state}</Text><Text style={m.meta}>{t(r.variety)}</Text></View>
+              <View style={[m.flex, m.cropPriceValues]}>
+                <Text style={m.cropName}>{r.min != null && r.max != null ? price(r.min, t).split(" / ")[0] + " – " + price(r.max, t).split(" / ")[0] : price(r.modal, t).split(" / ")[0]}</Text>
+                <Text style={m.meta}>{marketDate(r.date)} · 100 kg</Text>
+                <Text style={[m.meta, r.change != null && r.change > 0 ? m.priceUp : r.change != null && r.change < 0 ? m.priceDown : undefined]}>{priceChange(r.change, t)}</Text>
+                {r.previousDate && <Text style={m.meta}>{t("Compared with")} {marketDate(r.previousDate)}</Text>}
+                <Text style={m.meta}>{r.source}</Text>
+              </View>
+            </View>)}
+          </View>)}
+        </View>
+        {data?.recentNextOffset != null && <Button secondary title={t("Load more recent reports")} disabled={busy} onPress={loadMore} />}
         {data?.truncated && (
           <Text style={s.muted}>
-            {t("Showing the first 1,000 reports. See the source for more.")}
+            {t(data?.radiusKm ? "Nearby coverage is incomplete because the government feed exceeds the report limit." : "Showing the first 1,000 reports. See the source for more.")}
           </Text>
         )}
         <Button
@@ -214,6 +284,7 @@ export function MarketScreen() {
           title="AGMARKNET / data.gov.in"
           onPress={() => void Linking.openURL(marketSource)}
         />
+        <Button secondary title={"AGMARKNET · " + t("Recent prices")} onPress={() => void Linking.openURL("https://agmarknet.gov.in/home")} />
       </View>
       </>}
       {tab === "msp" && <View style={m.listSection}>
@@ -258,6 +329,14 @@ export function MarketScreen() {
 }
 
 const m = StyleSheet.create({
+  cropHeading: { flexDirection: "row", alignItems: "center", gap: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: "#e0e8e2" },
+  cropPriceRow: { flexDirection: "row", justifyContent: "space-between", gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: "#e0e8e2" },
+  cropPriceValues: { alignItems: "flex-end", gap: 4 },
+  priceUp: { color: "#218653", fontWeight: "600" },
+  priceDown: { color: "#bd3b3b", fontWeight: "600" },
+  mandiSelector: { gap: 10, paddingVertical: 4 },
+  mandiChoice: { width: 190, gap: 4, padding: 12, borderWidth: 1, borderColor: "#dce7df", borderRadius: 10, backgroundColor: "#fff", justifyContent: "center" },
+  mandiGroup: { gap: 8, paddingBottom: 16, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: "#e0e8e2" },
   flex: { flex: 1 },
   browser: { flexDirection: "row", width: "100%", gap: 8, alignItems: "flex-start" },
   rail: { width: 76, flexShrink: 0, gap: 4, backgroundColor: "#f6f9f6", borderRadius: 12, padding: 4 },

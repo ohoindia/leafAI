@@ -8,11 +8,16 @@ import {
   marketSource,
   mspSource,
   price,
+  groupMarkets,
+  groupCommodityPrices,
+  marketDate,
+  priceChange,
+  mergeMarketRecords,
 } from "../../common/market.js";
 import { useLocale } from "./locale";
+import "./Market.css";
 import { CropIcon, CropSymbol } from "./CropIcon";
 import {
-  cropCategories,
   categoryImages,
   cropDetails,
   groupCrops,
@@ -24,22 +29,43 @@ export function Market({ api }) {
     [error, setError] = useState(""),
     [state, setState] = useState(""),
     [district, setDistrict] = useState(""),
-    [category, setCategory] = useState("Cereals & Millets"),
+    [selectedMandi, setSelectedMandi] = useState(""),
+    [search, setSearch] = useState(""),
+    [recentCrop, setRecentCrop] = useState(""),
     [mspCategory, setMspCategory] = useState("Cereals & Millets");
   const sequence = useRef(0);
-  async function load(params = "") {
+  const lastParams = useRef("");
+  async function load(params = "", append = false, crop = recentCrop) {
     const id = ++sequence.current;
     setBusy(true);
     setError("");
-    setData(null);
+    if (!append) { setData(null); setSelectedMandi(""); }
     try {
-      const result = await api(endpoints.market + params);
-      if (id === sequence.current) setData(result);
+      const query = new URLSearchParams(params.replace(/^\?/, ""));
+      query.set("radiusKm", "200");
+      if (crop) query.set("recentCrop", crop); else query.delete("recentCrop");
+      lastParams.current = query.toString();
+      const result = await api(endpoints.market + "?" + query);
+      if (id === sequence.current) setData(previous => {
+        if (!append) return result;
+        const records = mergeMarketRecords(previous?.records || [], result.records);
+        return { ...result, records, status: records.length ? "ok" : result.status,
+          message: result.records.length ? result.message : previous?.message || result.message };
+      });
     } catch (e) {
       if (id === sequence.current) setError(e.message);
     } finally {
       if (id === sequence.current) setBusy(false);
     }
+  }
+  function chooseCrop(crop) {
+    setRecentCrop(crop); setSearch("");
+    const query = new URLSearchParams(lastParams.current); query.delete("recentOffset");
+    load("?" + query, false, crop);
+  }
+  function loadMore() {
+    const query = new URLSearchParams(lastParams.current); query.set("recentOffset", String(data.recentNextOffset));
+    load("?" + query, true);
   }
   useEffect(() => {
     load();
@@ -65,9 +91,14 @@ export function Market({ api }) {
   }
   const [tab, setTab] = useState("mandi");
   const [showLocation, setShowLocation] = useState(false);
-  const mandiGroups = groupCrops(data?.records || [], r => r.commodity);
   const mspGroups = groupCrops(mspPrices, ([name]) => name);
-  const records = (data?.records || []).filter(r => cropDetails(r.commodity).category === category);
+  const markets = groupMarkets(data?.records || []);
+  const filteredMarkets = markets.filter(g => !selectedMandi || g.key === selectedMandi).map(g => ({ ...g,
+    records: g.records.filter(r => (!recentCrop || r.commodity.toLowerCase() === recentCrop.toLowerCase()) &&
+      [r.commodity, r.variety, r.market].some(value => String(value).toLowerCase().includes(search.trim().toLowerCase()))),
+  })).filter(g => g.records.length);
+  const records = filteredMarkets.flatMap(g => g.records);
+  const commodityGroups = groupCommodityPrices(records);
   const supportPrices = mspPrices.filter(([name]) => cropDetails(name).category === mspCategory);
   return (
     <div className="market-page">
@@ -76,8 +107,10 @@ export function Market({ api }) {
         {[["mandi", "Mandi prices"], ["msp", "MSP"]].map(([key, label]) => <button key={key} aria-pressed={tab === key} onClick={() => setTab(key)}>{t(label)}</button>)}
       </div>
       {tab === "mandi" && <>
+      <p>{t("Mandis within 200 km · all states")}</p>
+      <button className="secondary nearby-location-button" disabled={busy} onClick={locate}>{t("Use my location")}</button>
       <button className="mandi-location-toggle" aria-expanded={showLocation} onClick={() => setShowLocation(!showLocation)}>
-        <span>{data?.location?.district ? data.location.district + ", " + data.location.state : t("Your market location")}</span><span>{t("Change")} ›</span>
+        <span>{data?.location?.district ? data.location.district + ", " + data.location.state : data?.location?.nearbyTown ? t("Near") + " " + data.location.nearbyTown.town + ", " + data.location.nearbyTown.state : t("Your market location")}</span><span>{t("Change")} ›</span>
       </button>
       {showLocation && <section className="market-location">
         <h3>{t("Your market location")}</h3>
@@ -148,38 +181,65 @@ export function Market({ api }) {
               strokeWidth="2"
             />
           </svg>
-          {t("My crops")}
+          {t("Nearby mandi reports")}
         </h3>
         <p className="market-description">{t("All prices in rupees per quintal (100 kg).")}</p>
         {busy && <p role="status">{t("Loading market prices...")}</p>}
         {error && <p role="alert">{t(error)}</p>}
-        {data && <p role="status">{t(data.message)}</p>}
-        {data?.status === "ok" && !records.length && (
-          <p>{t("No reports for this crop in the selected district.")}</p>
-        )}
-        <CategoryBrowser categories={cropCategories} selected={category} onSelect={setCategory} groups={mandiGroups}>
-          <h4>{t(category)}</h4>
-          <div className="price-tile-grid">
-            {records.map((r, i) => <article className="price-tile" key={r.commodity + r.market + i}>
-              <CropSymbol name={r.commodity} />
-              <strong>{t(r.commodity)}</strong>
-              <small>{t(r.variety)}</small>
-              <strong className="tile-price">{price(r.modal, t).split(" / ")[0]}</strong>
-              <small>{t("per quintal (100 kg)")}</small>
-              <small>{r.market} · {r.date}</small>
-              <small>{t("Minimum")}: {price(r.min, t).split(" / ")[0]}</small>
-              <small>{t("Maximum")}: {price(r.max, t).split(" / ")[0]}</small>
-            </article>)}
+        {data && <p role="status">{data.status === "ok" ? records.length + " " + t("reported prices") + " · " + t("Check price dates") : t(data.message)}</p>}
+        {data?.radiusKm && <details className="mandi-explanation"><summary>{t("About these prices")}</summary>
+          <p>{t("Approximate straight-line distances to market towns, not driving distances.")}</p>
+          {data?.originApproximate && <p>{t("Using your district town as the centre. Use my location for a more accurate search.")}</p>}
+          {!!data?.unresolvedMarkets && <p>{t("Some reported markets could not be located and are excluded.")}</p>}
+          {!!data?.supportedRecentCrops?.length && <p>{t("Recent reports cover common crops. Check the date shown for each price.")}</p>}
+        </details>}
+        {!!data?.supportedRecentCrops?.length && <label className="mandi-search">{t("Choose a crop")}
+          <select value={recentCrop} disabled={busy} onChange={e => chooseCrop(e.target.value)}>
+            <option value="">{t("All crops")}</option>
+            {data.supportedRecentCrops.map(crop => <option key={crop} value={crop}>{t(crop)}</option>)}
+          </select>
+        </label>}
+        {data?.recentPricesIncomplete && <small>{t("Some recent prices could not be loaded. Please retry.")}</small>}
+        {!!markets.length && <details className="mandi-filters"><summary>{t("Filter mandis")}</summary>
+          <label className="mandi-search">{t("Search crops or mandis")}<input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("Search crops or mandis")} /></label>
+          <div className="nearby-mandi-selector" role="group" aria-label={t("Choose a mandi")}>
+            <button aria-pressed={!selectedMandi} onClick={() => setSelectedMandi("")}>{t("All mandis")} ({markets.length})</button>
+            {markets.map(g => <button key={g.key} aria-pressed={selectedMandi === g.key} onClick={() => setSelectedMandi(g.key)}>
+              <strong>{g.market}</strong><span>{g.district}, {g.state}</span>
+              <small>{g.distanceKm != null ? `≈ ${g.distanceKm} km · ` : ""}{new Set(g.records.map(r => r.commodity)).size} {t("crops")}</small>
+            </button>)}
           </div>
-        </CategoryBrowser>
+        </details>}
+        {data?.status === "ok" && !records.length && (
+          <p>{t("No reports match these filters.")}</p>
+        )}
+        <div className="crop-market-results" aria-live="polite">
+          {commodityGroups.map(g => <section className="crop-market-group" key={g.commodity}>
+            <header><CropIcon name={g.commodity} /><h4>{t(g.commodity)}</h4></header>
+            {g.records.map((r, i) => <article className="crop-market-row" key={r.market + r.variety + i}>
+              <div className="crop-market-place"><strong>{r.market}</strong>
+                <small>{r.distanceKm != null ? `≈ ${r.distanceKm} km · ` : ""}{r.state}</small><small>{t(r.variety)}</small>
+              </div>
+              <div className="crop-market-price">
+                <strong>{r.min != null && r.max != null ? price(r.min, t).split(" / ")[0] + " – " + price(r.max, t).split(" / ")[0] : price(r.modal, t).split(" / ")[0]}</strong>
+                <small>{marketDate(r.date)} · 100 kg</small>
+                <span className={r.change > 0 ? "price-up" : r.change < 0 ? "price-down" : "price-unchanged"}>{priceChange(r.change, t)}</span>
+                {r.previousDate && <small>{t("Compared with")} {marketDate(r.previousDate)}</small>}
+                <small>{r.source}</small>
+              </div>
+            </article>)}
+          </section>)}
+        </div>
+        {data?.recentNextOffset != null && <button className="secondary nearby-location-button" disabled={busy} onClick={loadMore}>{t("Load more recent reports")}</button>}
         {data?.truncated && (
           <p>
-            {t("Showing the first 1,000 reports. See the source for more.")}
+            {t(data?.radiusKm ? "Nearby coverage is incomplete because the government feed exceeds the report limit." : "Showing the first 1,000 reports. See the source for more.")}
           </p>
         )}
         <a href={marketSource} target="_blank" rel="noreferrer">
           AGMARKNET / data.gov.in
         </a>
+        <a href="https://agmarknet.gov.in/home" target="_blank" rel="noreferrer">AGMARKNET · {t("Recent prices")}</a>
       </section>
       </>}
       {tab === "msp" && <section className="market-msp">
@@ -219,7 +279,7 @@ function CategoryBrowser({ categories, groups, selected, onSelect, children }) {
   return <div className="category-browser">
     <aside className="category-rail" tabIndex={0} aria-label={t("Browse by category")}>
       {categories.map(name => <button key={name} aria-pressed={selected === name} onClick={() => onSelect(name)}>
-        <CropIcon name={categoryImages[name]} />
+        <span className="category-image"><CropIcon name={categoryImages[name]} /></span>
         <span>{t(name)}</span>
         <small>{groups.find(g => g.category === name)?.items.length || 0}</small>
       </button>)}

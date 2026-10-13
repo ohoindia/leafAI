@@ -2408,19 +2408,24 @@ nav .nav-icon.nav-icon-home, nav button.active .nav-icon.nav-icon-home { box-sha
 }
 
 /* Independent category and crop scrolling within the Weather-sized frame. */
-.category-browser { height: clamp(280px, 52dvh, 440px); grid-template-columns: 68px minmax(0, 1fr); align-items: stretch; }
+.category-browser { height: clamp(280px, 52dvh, 440px); grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: stretch; }
 .category-rail, .category-results { min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; scrollbar-width: thin; scrollbar-color: #c1d7c8 transparent; }
-.category-rail { padding: 3px; }
-.market-page .category-rail button { flex-shrink: 0; min-height: 68px; padding: 8px 2px; font-size: 10px; line-height: 14px; }
-.category-rail button .crop-icon { width: 26px; height: 26px; }
+.category-rail { gap: 12px; padding: 4px 8px 4px 4px; background: transparent; border-radius: 0; }
+.market-page .category-rail button { flex-shrink: 0; width: 100%; min-height: 112px; padding: 8px; gap: 7px; border: 1px solid #dce7df; border-radius: 10px; background: #fff; font-size: 11px; font-weight: 600; line-height: 15px; box-shadow: 0 2px 5px rgb(29 65 43 / 4%); transition: border-color 150ms, background 150ms; }
+.market-page .category-rail button:hover { border-color: #8ebba0; background: #f6faf7; }
+.market-page .category-rail button[aria-pressed="true"] { border-color: #218653; background: #edf7f0; box-shadow: inset 0 0 0 1px #218653; }
+.market-page .category-rail button:focus-visible { outline: 2px solid #218653; outline-offset: 2px; }
+.category-image { display: grid; place-items: center; width: 100%; height: 52px; padding: 4px; border: 1px solid #e6ede8; border-radius: 6px; background: #f7faf8; }
+.category-rail button .crop-icon { width: 44px; height: 44px; }
+.category-rail button small { font-weight: 400; }
 .category-results { display: block; padding-right: 3px; }
 .category-results h4 { position: sticky; top: 0; z-index: 1; padding: 0 0 10px; background: #fff; font-size: 14px; line-height: 20px; }
-.price-tile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.price-tile { padding: 6px; gap: 4px; border-radius: 8px; }
-.price-tile > .crop-symbol { width: min(100%, 44px); }
-.price-tile > .crop-symbol > .crop-icon { width: 40px; height: 40px; }
+.price-tile-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr)); gap: 12px; }
+.price-tile { padding: 10px; gap: 6px; border-radius: 10px; }
+.price-tile > .crop-symbol { width: 100%; height: 80px; aspect-ratio: auto; border: 1px solid #e6ede8; border-radius: 6px; }
+.price-tile > .crop-symbol > .crop-icon { width: 64px; height: 64px; }
 .price-tile > strong { font-size: 12px; line-height: 17px; }
 .price-tile > .tile-price { font-size: 15px; line-height: 21px; }
 .price-tile small { font-size: 10px; line-height: 15px; }
 .category-rail:focus-visible, .category-results:focus-visible { outline: 2px solid #218653; outline-offset: 2px; }
-@media (max-width: 340px) { .category-browser { grid-template-columns: 60px minmax(0, 1fr); gap: 6px; } }
+@media (max-width: 340px) { .category-browser { grid-template-columns: 92px minmax(0, 1fr); gap: 10px; } }
