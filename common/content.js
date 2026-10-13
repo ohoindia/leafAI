@@ -121,12 +121,6 @@ export function accountGreeting(name = "", hour = new Date().getHours()) {
 
 export const profileSettings = [
   {
-    route: "farm",
-    title: "Farm and crops",
-    subtitle: "Keep your farm and seasonal crop records up to date.",
-    icon: "farm",
-  },
-  {
     route: "language",
     title: "Change language",
     subtitle: "Choose your preferred language",

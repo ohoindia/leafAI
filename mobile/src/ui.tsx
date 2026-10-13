@@ -566,8 +566,8 @@ export function Page({
               [
                 ["home", "Home"],
                 ["market", "Market"],
-                ["weather", "Weather"],
                 ["services", "Services"],
+                ["farm", "Farm"],
                 ["profile", "Profile"],
               ] as const
             ).map(([route, label]) => (
@@ -578,10 +578,9 @@ export function Page({
                 accessibilityState={{
                   selected:
                     activeRoute === `/${route}` ||
+                    (route === "farm" && activeRoute === "/farm-details") ||
                     (route === "profile" &&
                       [
-                        "/farm",
-                        "/farm-details",
                         "/language",
                         "/account-details",
                         "/security",
@@ -593,10 +592,9 @@ export function Page({
                 style={[
                   s.navItem,
                   (activeRoute === `/${route}` ||
+                    (route === "farm" && activeRoute === "/farm-details") ||
                     (route === "profile" &&
                       [
-                        "/farm",
-                        "/farm-details",
                         "/language",
                         "/account-details",
                         "/security",
@@ -604,15 +602,23 @@ export function Page({
                     s.navSelected,
                 ]}
               >
-                <View style={[s.navIcon, (activeRoute === `/${route}` || (route === "profile" && ["/farm", "/farm-details", "/language", "/account-details", "/security"].includes(activeRoute))) && s.navIconSelected]}>
+                <View
+                  style={[
+                    s.navIcon,
+                    (activeRoute === `/${route}` ||
+                      (route === "farm" && activeRoute === "/farm-details") ||
+                      (route === "profile" &&
+                        ["/language", "/account-details", "/security"].includes(activeRoute))) &&
+                      s.navIconSelected,
+                  ]}
+                >
                   <NavigationIcon
                     route={route}
                     selected={
                       activeRoute === `/${route}` ||
+                      (route === "farm" && activeRoute === "/farm-details") ||
                       (route === "profile" &&
                         [
-                          "/farm",
-                          "/farm-details",
                           "/language",
                           "/account-details",
                           "/security",
@@ -624,10 +630,9 @@ export function Page({
                   style={[
                     s.navLabel,
                     (activeRoute === `/${route}` ||
+                      (route === "farm" && activeRoute === "/farm-details") ||
                       (route === "profile" &&
                         [
-                          "/farm",
-                          "/farm-details",
                           "/language",
                           "/account-details",
                           "/security",

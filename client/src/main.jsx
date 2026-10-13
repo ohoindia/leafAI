@@ -1014,14 +1014,6 @@ function App() {
               )}
               {screen === "home" && (
                 <>
-                  {subscriptionEnabled && subscriptionAccess !== true && (
-                    <section className="card" role="status">
-                      <p>{subscriptionMessage}</p>
-                      <button onClick={() => go("subscription")}>
-                        View subscription plans
-                      </button>
-                    </section>
-                  )}
                   <section className="greeting">
                     <span className="sun">☀</span>
                     <h1>{localize(accountGreeting(user?.fullName))}</h1>
@@ -1036,8 +1028,15 @@ function App() {
                     user={user}
                     lang={lang}
                     summary
-                    onOpen={() => go("weather")}
                   />
+                  {subscriptionEnabled && subscriptionAccess !== true && (
+                    <section className="card" role="status">
+                      <p>{subscriptionMessage}</p>
+                      <button onClick={() => go("subscription")}>
+                        View subscription plans
+                      </button>
+                    </section>
+                  )}
                   <section className="analyze-card">
                     <span className="camera-circle">
                       <Icon name="camera" />
@@ -1507,9 +1506,6 @@ function App() {
               )}
               {screen === "farm" && (
                 <>
-                  <button className="text-button" onClick={() => go("profile")}>
-                    {localize("Back to profile")}
-                  </button>
                   <h2>{localize(screens.farm)}</h2>
                   <FarmOverview
                     user={user}
@@ -1657,8 +1653,8 @@ function App() {
                 {[
                   ["home", "home", "Home"],
                   ["market", "market", "Market"],
-                  ["weather", "weather", "Weather"],
                   ["services", "services", "Services"],
+                  ["farm", "farm", "Farm"],
                   ["profile", "profile", "Profile"],
                 ].map(([next, icon, text]) => (
                   <button
@@ -1666,10 +1662,9 @@ function App() {
                     className={
                       screen === next ||
                       (next === "services" && ["fertilizer-calculator", "pesticide-calculator"].includes(screen)) ||
+                      (next === "farm" && screen === "farm-details") ||
                       (next === "profile" &&
                         [
-                          "farm",
-                          "farm-details",
                           "language",
                           "account-details",
                           "security",
@@ -1680,10 +1675,9 @@ function App() {
                     aria-current={
                       screen === next ||
                       (next === "services" && ["fertilizer-calculator", "pesticide-calculator"].includes(screen)) ||
+                      (next === "farm" && screen === "farm-details") ||
                       (next === "profile" &&
                         [
-                          "farm",
-                          "farm-details",
                           "language",
                           "account-details",
                           "security",
