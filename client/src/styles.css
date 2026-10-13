@@ -2358,9 +2358,10 @@ select {
   background: #fff;
 }
 nav {
-  border: 1px solid #e0e8e2;
+  background: #e6f2ff;
+  border: 1px solid #c4dcf3;
   border-radius: 16px;
-  box-shadow: 0 2px 16px #243c3010;
+  box-shadow: 0 2px 16px rgba(35, 78, 120, 0.16);
 }
 nav button.active {
   color: #17673f;
