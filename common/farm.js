@@ -7,6 +7,8 @@ export const farmSections = [
         label: "Farm / plot name",
         type: "text",
       },
+      { key: "ppbNo", label: "PPB No", type: "text" },
+      { key: "syNo", label: "Sy No", type: "text" },
       {
         key: "phone",
         label: "Contact phone",

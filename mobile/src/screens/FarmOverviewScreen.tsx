@@ -49,7 +49,7 @@ export function FarmOverviewScreen() {
           {localize("saved. Expand a farm to view its land details and crops.")}
         </Text>
         <Button
-          title={localize("Add New Crop")}
+          title={localize("Add New Farm")}
           onPress={() => a.go("farm-details")}
         />
       </Card>
@@ -70,7 +70,7 @@ export function FarmOverviewScreen() {
             )}
           </Text>
           <Button
-            title={localize("Add New Crop")}
+            title={localize("Add New Farm")}
             onPress={() => a.go("farm-details")}
           />
         </Card>

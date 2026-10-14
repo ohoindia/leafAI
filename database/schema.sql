@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS FarmDetails (
   id CHAR(36) PRIMARY KEY,
   user_id BIGINT UNSIGNED NOT NULL,
   farm_name VARCHAR(300) NULL,
+  ppb_no VARCHAR(300) NULL,
+  sy_no VARCHAR(300) NULL,
   phone VARCHAR(300) NULL,
   village VARCHAR(300) NULL,
   district VARCHAR(300) NULL,

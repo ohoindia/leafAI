@@ -1,5 +1,7 @@
 export type FarmFieldKey =
   | "farmName"
+  | "ppbNo"
+  | "syNo"
   | "phone"
   | "village"
   | "district"

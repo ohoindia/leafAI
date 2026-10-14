@@ -3,7 +3,7 @@ import { farmSections } from "./farm.js";
 export const farmPresentation = {
   "Farm details": {
     description: "Your farm identity, area and land ownership.",
-    basic: ["farmName", "phone", "area", "areaUnit", "ownership"],
+    basic: ["farmName", "ppbNo", "syNo", "phone", "area", "areaUnit", "ownership"],
     extra: "",
     empty: "Start with your farm name, area and ownership.",
   },

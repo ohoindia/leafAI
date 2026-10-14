@@ -2,6 +2,8 @@ import crypto from "node:crypto";
 import { BadRequestException } from "@nestjs/common";
 export const farmColumns = {
   farmName: "farm_name",
+  ppbNo: "ppb_no",
+  syNo: "sy_no",
   phone: "phone",
   village: "village",
   district: "district",

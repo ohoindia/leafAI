@@ -19,7 +19,7 @@ export function FarmDetails({
   onCreated,
 }) {
   const localize = useLocale();
-  const [selected, setSelected] = useState(creationOnly ? "choose" : null);
+  const [selected, setSelected] = useState(creationOnly ? "new" : null);
   const [newCrop, setNewCrop] = useState(false);
   const farm =
     farms.find((f) => f.id === selected) ||
@@ -47,11 +47,11 @@ export function FarmDetails({
     }
     return result;
   }
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState(creationOnly ? "Farm details" : null);
   const [expanded, setExpanded] = useState({});
   return (
     <div className="farm-sections">
-      {!embedded && (
+      {!embedded && !creationOnly && (
         <section className="card">
           {creationOnly && (
             <>
@@ -175,29 +175,6 @@ export function FarmDetails({
                 </strong>
                 {summary && <span className="muted">{summary}</span>}
               </summary>
-              <div className="farm-section-heading">
-                {editing !== section.title && (
-                  <button
-                    className="text-button"
-                    disabled={busy || editing !== null}
-                    aria-label={localize(
-                      `${saved.length ? "Edit" : "Add"} ${section.title.toLowerCase()}`,
-                    )}
-                    onClick={() => {
-                      setEditing(section.title);
-                      setExpanded((v) => ({ ...v, [section.title]: false }));
-                    }}
-                  >
-                    {isHistory
-                      ? farm?.crops?.some((c) => c.status === "PREVIOUS")
-                        ? "Add more previous crops"
-                        : "Add previous crop"
-                      : saved.length
-                        ? "Edit details"
-                        : "Add details"}
-                  </button>
-                )}
-              </div>
               {editing === section.title ? (
                 <form
                   onInvalidCapture={() =>
@@ -440,6 +417,29 @@ export function FarmDetails({
                     {localize(isExpanded ? "Show less" : "View more details")}
                   </button>
                 )}
+              <div className="farm-section-actions">
+                {editing !== section.title && (
+                  <button
+                    type="button"
+                    disabled={busy || editing !== null}
+                    aria-label={localize(
+                      `${saved.length ? "Edit" : "Add"} ${section.title.toLowerCase()}`,
+                    )}
+                    onClick={() => {
+                      setEditing(section.title);
+                      setExpanded((v) => ({ ...v, [section.title]: false }));
+                    }}
+                  >
+                    {localize(isHistory
+                      ? farm?.crops?.some((c) => c.status === "PREVIOUS")
+                        ? "Add more previous crops"
+                        : "Add previous crop"
+                      : saved.length
+                        ? "Edit details"
+                        : "Add details")}
+                  </button>
+                )}
+              </div>
             </details>
           );
         })}

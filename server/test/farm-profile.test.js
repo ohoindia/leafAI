@@ -82,6 +82,23 @@ function store() {
     },
   };
 }
+test("land identifiers preserve text across save, update and read", async () => {
+  const db = store();
+  const details = farmDetailsSchema.parse({ ppbNo: " 00123 ", syNo: "007/2-A" });
+  const id = await saveFarm(db, "7", details, "new");
+  assert.equal(db.farms[0].ppb_no, "00123");
+  assert.equal(db.farms[0].sy_no, "007/2-A");
+  assert.deepEqual((await readFarms(db, "7"))[0].details, details);
+  await saveFarm(db, "7", { syNo: "007/3-B" }, id);
+  assert.deepEqual((await readFarms(db, "7"))[0].details, {
+    ppbNo: "00123", syNo: "007/3-B",
+  });
+  await saveFarm(db, "7", { ppbNo: "", syNo: "" }, id);
+  assert.deepEqual((await readFarms(db, "7"))[0].details, {});
+  assert.equal(farmDetailsSchema.safeParse({ ppbNo: "x".repeat(301) }).success, false);
+  assert.equal(farmDetailsSchema.safeParse({ syNo: 123 }).success, false);
+});
+
 test("multiple farms are owner scoped and every new crop retains the full earlier record", async () => {
   const db = store();
   const id = await saveFarm(db, "7", {

@@ -1,0 +1,3 @@
+ALTER TABLE FarmDetails
+  ADD COLUMN ppb_no VARCHAR(300) NULL AFTER farm_name,
+  ADD COLUMN sy_no VARCHAR(300) NULL AFTER ppb_no;

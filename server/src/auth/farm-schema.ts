@@ -19,6 +19,8 @@ const number = (min: number, max: number) =>
 export const farmDetailsSchema = z
   .object({
     farmName: text.optional(),
+    ppbNo: text.optional(),
+    syNo: text.optional(),
     phone: text.optional(),
     village: text.optional(),
     district: text.optional(),

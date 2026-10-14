@@ -14,7 +14,7 @@ export function FarmOverview({ user, onAdd, busy, onSave }) {
           {farms.length} {localize(farms.length === 1 ? "farm" : "farms")}
           {localize("saved. Expand a farm to view its land details and crops.")}
         </p>
-        <button onClick={onAdd}>{localize("Add New Crop")}</button>
+        <button onClick={onAdd}>{localize("Add New Farm")}</button>
       </section>
       {!farms.length && (
         <section className="card">
@@ -34,7 +34,7 @@ export function FarmOverview({ user, onAdd, busy, onSave }) {
               "Your farm details are ready. Add your first crop to track its growth, season, and harvest in one place.",
             )}
           </p>
-          <button onClick={onAdd}>{localize("Add New Crop")}</button>
+          <button onClick={onAdd}>{localize("Add New Farm")}</button>
         </section>
       )}
       {farms.map((farm) => (

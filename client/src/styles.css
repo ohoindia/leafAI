@@ -1312,6 +1312,11 @@ textarea:focus-visible {
   align-items: flex-start;
   margin-bottom: 16px;
 }
+.farm-section-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
 .farm-section-heading > div {
   flex: 1;
   min-width: 160px;

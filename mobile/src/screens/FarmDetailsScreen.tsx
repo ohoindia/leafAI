@@ -23,10 +23,12 @@ export function FarmDetailsForm({
   const localize = useLocale();
   const a = useLeafCare();
   const [draft, setDraft] = useState<FarmDetails>({});
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(
+    creationOnly ? "Farm details" : null,
+  );
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<string | null>(
-    farmId || (creationOnly ? "choose" : null),
+    farmId || (creationOnly ? "new" : null),
   );
   const [sectionsOpen, setSectionsOpen] = useState<Record<string, boolean>>({});
   const [newCrop, setNewCrop] = useState(false);
@@ -48,7 +50,7 @@ export function FarmDetailsForm({
           onPress={() => a.go("farm")}
         />
       )}
-      <Card
+      {!creationOnly && <Card
         title={localize(
           embedded
             ? "Crop actions"
@@ -124,7 +126,7 @@ export function FarmDetailsForm({
             {localize("Saving will keep the current crop in history.")}
           </Text>
         )}
-      </Card>
+      </Card>}
       {selected !== "choose" && !embedded && (
         <View
           style={{
@@ -291,8 +293,8 @@ export function FarmDetailsForm({
                           }
                         />
                       )}
+                      <View style={{ alignSelf: "flex-end", marginTop: 12, maxWidth: "100%" }}>
                       <Button
-                        secondary
                         title={localize(
                           isHistory
                             ? farm?.crops.some((c) => c.status === "PREVIOUS")
@@ -320,6 +322,7 @@ export function FarmDetailsForm({
                           a.setError("");
                         }}
                       />
+                      </View>
                     </>
                   )}
                   {editing === section.title && (
